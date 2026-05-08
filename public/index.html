@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2c7a3d" />
+  <title>箕面ハイキング - オフライン地図</title>
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossorigin="" />
+  <link rel="stylesheet" href="style.css" />
+
+  <script type="importmap">
+    {
+      "imports": {
+        "leaflet": "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <h1>箕面ハイキング</h1>
+    <span class="online-indicator" id="onlineIndicator" aria-live="polite">●</span>
+  </header>
+
+  <div id="updateBanner" class="update-banner" hidden role="status" aria-live="polite">
+    <div class="update-banner-message" id="updateBannerMessage"></div>
+    <div class="update-banner-actions">
+      <button type="button" id="btnUpdateDiff" class="btn btn-banner">差分のみ更新</button>
+      <button type="button" id="btnUpdateAll" class="btn btn-banner">すべて更新</button>
+      <button type="button" id="btnUpdateLater" class="btn btn-banner btn-banner-secondary">後で</button>
+      <button type="button" id="btnUpdateClose" class="update-banner-close" aria-label="バナーを閉じる">×</button>
+    </div>
+  </div>
+
+  <main>
+    <div id="map" role="application" aria-label="地理院地図"></div>
+
+    <section class="control-panel" aria-label="オフライン操作パネル">
+      <details open>
+        <summary>オフラインキャッシュ</summary>
+
+        <div class="storage-info" id="storageInfo">
+          <div class="info-row">
+            <span class="info-label">キャッシュ済タイル:</span>
+            <span class="info-value" id="cachedTileCount">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">推定使用容量:</span>
+            <span class="info-value" id="estimatedSize">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">実測使用容量:</span>
+            <span class="info-value" id="measuredSize">-</span>
+          </div>
+        </div>
+
+        <div class="button-group">
+          <button id="btnDownloadDefault" class="btn btn-primary">
+            デフォルト (z=17, 約4.6MB)
+          </button>
+          <button id="btnDownloadDetail" class="btn btn-primary">
+            詳細版 (z=18 追加, 約11MB)
+          </button>
+          <button id="btnPause" class="btn btn-warning" hidden>一時停止</button>
+          <button id="btnResume" class="btn btn-warning" hidden>再開</button>
+          <button id="btnAbort" class="btn btn-warning" hidden>中断</button>
+          <button id="btnClearCache" class="btn btn-danger">キャッシュ削除</button>
+        </div>
+
+        <div class="progress-area" id="progressArea" hidden>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-text" id="progressText">準備中...</div>
+        </div>
+
+        <div class="status-message" id="statusMessage" role="status" aria-live="polite"></div>
+      </details>
+
+      <details>
+        <summary>表示設定</summary>
+        <label class="toggle">
+          <input type="checkbox" id="toggleBuffers" />
+          <span>バッファ範囲を表示</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" id="toggleEmergencyPoints" />
+          <span>緊急ポイントを表示</span>
+        </label>
+      </details>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
