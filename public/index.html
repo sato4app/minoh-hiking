@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#2c7a3d" />
-  <title>箕面ハイキング - オフライン地図</title>
+  <title>箕面ハイキング</title>
 
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="icons/icon-192.png" />
@@ -24,11 +24,7 @@
   </script>
 </head>
 <body>
-  <header class="app-header">
-    <h1>箕面ハイキング</h1>
-    <span class="online-indicator" id="onlineIndicator" aria-live="polite">●</span>
-  </header>
-
+  <!-- 全ビュー共通の固定トップエリア(オンライン状態 + マニフェスト更新バナー) -->
   <div id="updateBanner" class="update-banner" hidden role="status" aria-live="polite">
     <div class="update-banner-message" id="updateBannerMessage"></div>
     <div class="update-banner-actions">
@@ -39,14 +35,93 @@
     </div>
   </div>
 
-  <main>
+  <!-- 初期画面(ホーム) -->
+  <section class="view view-home" id="viewHome">
+    <div class="home-bg" aria-hidden="true"></div>
+    <header class="home-header">
+      <h1>箕面ハイキング</h1>
+      <span class="online-indicator" id="onlineIndicator" aria-live="polite" title="オンライン">●</span>
+    </header>
+    <nav class="home-menu" aria-label="メインメニュー">
+      <button type="button" class="home-btn" data-view="map">ハイキングマップ表示</button>
+      <button type="button" class="home-btn" data-view="nav">ハイキングコース案内・ナビ</button>
+      <button type="button" class="home-btn" data-view="collect">コース分岐路等のデータ収集</button>
+      <button type="button" class="home-btn" id="btnOpenSettings">設定</button>
+      <button type="button" class="home-btn" data-view="messages">メッセージ履歴を表示</button>
+    </nav>
+  </section>
+
+  <!-- ハイキングマップ表示 -->
+  <section class="view view-map" id="viewMap" hidden>
+    <header class="view-header">
+      <button type="button" class="btn-back" data-view="home" aria-label="ホームに戻る">←</button>
+      <h2>ハイキングマップ</h2>
+      <button type="button" class="btn-icon" id="btnMapLayers" aria-label="表示設定">≡</button>
+    </header>
     <div id="map" role="application" aria-label="地理院地図"></div>
+    <div class="map-layer-panel" id="mapLayerPanel" hidden>
+      <label class="toggle">
+        <input type="checkbox" id="toggleBuffers" />
+        <span>バッファ範囲を表示</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="toggleEmergencyPoints" checked />
+        <span>緊急ポイントを表示</span>
+      </label>
+    </div>
+  </section>
 
-    <section class="control-panel" aria-label="オフライン操作パネル">
-      <details open>
-        <summary>オフラインキャッシュ</summary>
+  <!-- ハイキングコース案内・ナビ(プレースホルダ) -->
+  <section class="view view-placeholder" id="viewNav" hidden>
+    <header class="view-header">
+      <button type="button" class="btn-back" data-view="home" aria-label="ホームに戻る">←</button>
+      <h2>ハイキングコース案内・ナビ</h2>
+    </header>
+    <div class="placeholder-body">
+      <p class="placeholder-message">この機能は準備中です。</p>
+    </div>
+  </section>
 
-        <div class="storage-info" id="storageInfo">
+  <!-- コース分岐路等のデータ収集(プレースホルダ) -->
+  <section class="view view-placeholder" id="viewCollect" hidden>
+    <header class="view-header">
+      <button type="button" class="btn-back" data-view="home" aria-label="ホームに戻る">←</button>
+      <h2>コース分岐路等のデータ収集</h2>
+    </header>
+    <div class="placeholder-body">
+      <p class="placeholder-message">この機能は準備中です。</p>
+    </div>
+  </section>
+
+  <!-- メッセージ履歴 -->
+  <section class="view view-messages" id="viewMessages" hidden>
+    <header class="view-header">
+      <button type="button" class="btn-back" data-view="home" aria-label="ホームに戻る">←</button>
+      <h2>メッセージ履歴</h2>
+      <button type="button" class="btn-icon" id="btnClearMessages" aria-label="履歴を消去">🗑</button>
+    </header>
+    <ul class="message-list" id="messageList"></ul>
+    <p class="message-empty" id="messageEmpty" hidden>履歴はありません。</p>
+  </section>
+
+  <!-- 設定モーダル -->
+  <div class="modal" id="settingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="settingsTitle">設定</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
+      </header>
+      <div class="modal-body">
+        <label class="toggle toggle-row">
+          <input type="checkbox" id="toggleDetail" />
+          <span class="toggle-label">
+            <span class="toggle-title">詳細データをダウンロード</span>
+            <span class="toggle-detail" id="toggleDetailHint">Off:z=10〜17、On:z=10〜18</span>
+          </span>
+        </label>
+
+        <div class="storage-info">
           <div class="info-row">
             <span class="info-label">キャッシュ済タイル:</span>
             <span class="info-value" id="cachedTileCount">-</span>
@@ -62,16 +137,11 @@
         </div>
 
         <div class="button-group">
-          <button id="btnDownloadDefault" class="btn btn-primary">
-            デフォルト (z=17, 約4.6MB)
-          </button>
-          <button id="btnDownloadDetail" class="btn btn-primary">
-            詳細版 (z=18 追加, 約11MB)
-          </button>
-          <button id="btnPause" class="btn btn-warning" hidden>一時停止</button>
-          <button id="btnResume" class="btn btn-warning" hidden>再開</button>
-          <button id="btnAbort" class="btn btn-warning" hidden>中断</button>
-          <button id="btnClearCache" class="btn btn-danger">キャッシュ削除</button>
+          <button type="button" id="btnDownloadMap" class="btn btn-primary">オフライン用地図データをダウンロード</button>
+          <button type="button" id="btnPause" class="btn btn-warning" hidden>一時停止</button>
+          <button type="button" id="btnResume" class="btn btn-warning" hidden>再開</button>
+          <button type="button" id="btnAbort" class="btn btn-warning" hidden>中断</button>
+          <button type="button" id="btnClearCache" class="btn btn-danger">ダウンロードした地図データをクリア</button>
         </div>
 
         <div class="progress-area" id="progressArea" hidden>
@@ -82,21 +152,9 @@
         </div>
 
         <div class="status-message" id="statusMessage" role="status" aria-live="polite"></div>
-      </details>
-
-      <details>
-        <summary>表示設定</summary>
-        <label class="toggle">
-          <input type="checkbox" id="toggleBuffers" />
-          <span>バッファ範囲を表示</span>
-        </label>
-        <label class="toggle">
-          <input type="checkbox" id="toggleEmergencyPoints" />
-          <span>緊急ポイントを表示</span>
-        </label>
-      </details>
-    </section>
-  </main>
+      </div>
+    </div>
+  </div>
 
   <script type="module" src="app.js"></script>
 </body>

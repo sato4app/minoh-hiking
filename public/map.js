@@ -35,6 +35,11 @@ export function initMap(containerId) {
   return map;
 }
 
+// ビュー表示直後に呼んでサイズを再計算する(hidden→visible 切替で必須)
+export function resizeMap() {
+  if (mapInstance) mapInstance.invalidateSize();
+}
+
 // バッファGeoJSON(z=17/z=18)をレイヤーとして追加
 export async function loadBuffersLayer(url) {
   if (!mapInstance) return null;

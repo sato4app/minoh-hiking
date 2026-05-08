@@ -17,37 +17,10 @@ html, body {
 body {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-/* ヘッダー */
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-  background: #2c7a3d;
-  color: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-  flex-shrink: 0;
-}
-
-.app-header h1 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.online-indicator {
-  font-size: 1.2rem;
-  color: #66ff66;
-  transition: color 0.3s;
-}
-
-.online-indicator.offline {
-  color: #ff6666;
-}
-
-/* マニフェスト更新バナー */
+/* ===== マニフェスト更新バナー(全ビュー共通) ===== */
 .update-banner {
   display: flex;
   flex-wrap: wrap;
@@ -59,6 +32,7 @@ body {
   color: #78350f;
   font-size: 0.9rem;
   flex-shrink: 0;
+  z-index: 200;
 }
 
 .update-banner[hidden] {
@@ -113,54 +87,339 @@ body {
   color: #422006;
 }
 
-/* メインレイアウト */
-main {
+/* ===== ビュー切替 ===== */
+.view {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
+  position: relative;
+}
+
+.view[hidden] {
+  display: none;
+}
+
+/* 共通ビューヘッダー */
+.view-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #2c7a3d;
+  color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.view-header h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.btn-back, .btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.3rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.btn-back:hover, .btn-icon:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ===== 初期画面 ===== */
+.view-home {
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.home-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('icons/Startup-512.png');
+  background-position: center;
+  background-size: 80% auto;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+/* 背景画像が暗いシーンに白文字でも読めるよう、控えめにオーバーレイ */
+.home-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.0) 100%);
+}
+
+.home-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background: rgba(44, 122, 61, 0.85);
+  color: #fff;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.home-header h1 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.home-menu {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.6rem;
+  padding: 1rem 1rem 1rem 0;
+}
+
+.home-btn {
+  min-width: 240px;
+  max-width: 80%;
+  min-height: 48px;
+  padding: 0.7rem 1.1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: right;
+  color: #fff;
+  background: rgba(44, 122, 61, 0.9);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  transition: background-color 0.15s, transform 0.05s;
+}
+
+.home-btn:hover {
+  background: rgba(36, 95, 48, 0.95);
+}
+
+.home-btn:active {
+  transform: scale(0.98);
+}
+
+.online-indicator {
+  font-size: 1.2rem;
+  color: #66ff66;
+  transition: color 0.3s;
+}
+
+.online-indicator.offline {
+  color: #ff6666;
+}
+
+/* ===== マップビュー ===== */
+.view-map {
+  background: #ddd;
 }
 
 #map {
   flex: 1;
   width: 100%;
-  min-height: 50vh;
+  min-height: 0;
   background: #ddd;
 }
 
-/* コントロールパネル */
-.control-panel {
+.map-layer-panel {
+  position: absolute;
+  top: 64px;
+  right: 0.75rem;
   background: #fff;
-  border-top: 1px solid #ddd;
-  max-height: 50vh;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  padding: 0.4rem 0.6rem;
+  z-index: 500;
+}
+
+.map-layer-panel[hidden] {
+  display: none;
+}
+
+/* ===== プレースホルダビュー ===== */
+.view-placeholder {
+  background: #fafafa;
+}
+
+.placeholder-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.placeholder-message {
+  color: #666;
+  font-size: 1rem;
+}
+
+/* ===== メッセージ履歴ビュー ===== */
+.view-messages {
+  background: #fafafa;
+}
+
+.message-list {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
   overflow-y: auto;
+}
+
+.message-list li {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+}
+
+.message-list .msg-time {
+  flex-shrink: 0;
+  color: #999;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 5.5rem;
+}
+
+.message-list .msg-text {
+  flex: 1;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.message-list li.level-error .msg-text { color: #b91c1c; }
+.message-list li.level-warning .msg-text { color: #92400e; }
+.message-list li.level-success .msg-text { color: #166534; }
+
+.message-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  margin: 0;
+}
+
+.message-empty[hidden] {
+  display: none;
+}
+
+/* ===== 設定モーダル ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.modal-panel {
+  position: relative;
+  width: min(420px, calc(100% - 1.5rem));
+  max-height: calc(100% - 2rem);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem 0.5rem 1rem;
+  background: #2c7a3d;
+  color: #fff;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.modal-body {
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+/* ===== 共通: トグル ===== */
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.toggle input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
   flex-shrink: 0;
 }
 
-.control-panel details {
+.toggle-row {
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid #eee;
 }
 
-.control-panel summary {
-  padding: 0.75rem 1rem;
+.toggle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.toggle-title {
   font-weight: 600;
-  cursor: pointer;
-  background: #f9f9f9;
-  user-select: none;
 }
 
-.control-panel summary:hover {
-  background: #f0f0f0;
+.toggle-detail {
+  font-size: 0.8rem;
+  color: #666;
 }
 
-.control-panel details > *:not(summary) {
-  padding: 0.5rem 1rem;
-}
-
-/* ストレージ情報 */
+/* ===== ストレージ情報 ===== */
 .storage-info {
   background: #fafafa;
   padding: 0.5rem 1rem;
+  border-bottom: 1px solid #eee;
 }
 
 .info-row {
@@ -180,7 +439,7 @@ main {
   font-variant-numeric: tabular-nums;
 }
 
-/* ボタン */
+/* ===== ボタン共通 ===== */
 .button-group {
   display: flex;
   flex-direction: column;
@@ -237,7 +496,7 @@ main {
   background: #991616;
 }
 
-/* 進捗バー */
+/* ===== 進捗バー ===== */
 .progress-area {
   padding: 0.5rem 1rem;
 }
@@ -265,7 +524,7 @@ main {
   text-align: center;
 }
 
-/* ステータスメッセージ */
+/* ===== ステータスメッセージ ===== */
 .status-message {
   min-height: 1.5rem;
   padding: 0.5rem 1rem;
@@ -288,34 +547,10 @@ main {
   background: #fffbeb;
 }
 
-/* トグル */
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  cursor: pointer;
-  min-height: 44px;
-}
-
-.toggle input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-}
-
-/* レスポンシブ: 横長のとき横並び */
-@media (min-width: 768px) and (orientation: landscape) {
-  main {
-    flex-direction: row;
-  }
-  #map {
-    min-height: 0;
-  }
-  .control-panel {
-    width: 360px;
-    max-height: none;
-    border-top: none;
-    border-left: 1px solid #ddd;
+/* ===== レスポンシブ ===== */
+@media (min-width: 768px) {
+  .home-btn {
+    min-width: 280px;
+    font-size: 1.05rem;
   }
 }
