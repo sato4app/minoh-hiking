@@ -151,7 +151,7 @@ body {
 .home-bg {
   position: absolute;
   inset: 0;
-  background-image: url('icons/Startup-512.png');
+  background-image: url('icons/Startup-512x875.png');
   background-position: center;
   background-size: 100% auto;
   background-repeat: no-repeat;
@@ -505,6 +505,14 @@ body {
 
 .btn-danger:not(:disabled):hover {
   background: #991616;
+}
+
+.btn-secondary {
+  background: #4b5563;
+}
+
+.btn-secondary:not(:disabled):hover {
+  background: #374151;
 }
 
 /* ===== 進捗バー ===== */
