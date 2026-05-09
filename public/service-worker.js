@@ -1,11 +1,11 @@
 // Service Worker
-// - gsi-std-{version}: 地理院標準地図タイル(明示ダウンロードでのみ書込)
+// - gsi-{version}: 地理院標準地図タイル(明示ダウンロードでのみ書込)
 //   {version} は data/tile_manifest.json の version を埋め込む。
 //   旧 version のキャッシュは自動削除しない(ユーザーがDL済みのタイル資産を保持)。
 // - app-shell-vN: アプリシェル(HTML/CSS/JS、CDN、GeoJSON、tile_manifest.json)。
 //
 // タイルはキャッシュ優先(あれば返す、無ければネット取得・自動キャッシュしない)。
-// 全 gsi-std-* キャッシュを横断検索するため、version 変更後も旧タイルは引き続き利用可能。
+// 全 gsi-* キャッシュを横断検索するため、version 変更後も旧タイルは引き続き利用可能。
 
 const SHELL_CACHE = 'app-shell-v2';
 const TILE_CACHE_PREFIX = 'gsi-';
@@ -56,7 +56,7 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// アクティベート: 旧シェルキャッシュのみ掃除。タイル(gsi-std-*)は保持。
+// アクティベート: 旧シェルキャッシュのみ掃除。タイル(gsi-*)は保持。
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
@@ -111,7 +111,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 async function handleTileRequest(req) {
-  // 全 gsi-std-* キャッシュを横断検索(version 変更前にDLしたタイルも活用)
+  // 全 gsi-* キャッシュを横断検索(version 変更前にDLしたタイルも活用)
   const allKeys = await caches.keys();
   const tileCacheNames = allKeys.filter((k) => k.startsWith(TILE_CACHE_PREFIX));
   for (const name of tileCacheNames) {

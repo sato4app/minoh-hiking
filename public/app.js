@@ -12,9 +12,9 @@ import {
 import { savePackage, listPackages, clearPackages } from './db.js';
 
 // ===== 定数 =====
-// タイルキャッシュ名は `gsi-std-{version}` 形式(version は tile_manifest.json から)。
-// 旧 version のキャッシュは保持し、SW・アプリ双方で全 gsi-std-* を横断参照する。
-const TILE_CACHE_PREFIX = 'gsi-std-';
+// タイルキャッシュ名は `gsi-{version}` 形式(version は tile_manifest.json から)。
+// 旧 version のキャッシュは保持し、SW・アプリ双方で全 gsi-* を横断参照する。
+const TILE_CACHE_PREFIX = 'gsi-';
 const TILE_URL_BASE = 'https://cyberjapandata.gsi.go.jp/xyz/std';
 const MANIFEST_URL = 'data/tile_manifest.json';
 const BUFFERS_URL = 'data/tile_buffers.geojson';
@@ -276,7 +276,7 @@ async function listTileCacheNames() {
   return keys.filter((k) => k.startsWith(TILE_CACHE_PREFIX));
 }
 
-// 全 gsi-std-* キャッシュにキャッシュ済みのURL集合
+// 全 gsi-* キャッシュにキャッシュ済みのURL集合
 async function getCachedTileUrlSet() {
   const set = new Set();
   for (const name of await listTileCacheNames()) {
@@ -423,7 +423,7 @@ async function runJobs(jobs, { overwrite = false } = {}) {
   const failed = [];
   const queueIndex = { i: 0 };
 
-  // 書込先は現 version のキャッシュ。重複判定は全 gsi-std-* を横断。
+  // 書込先は現 version のキャッシュ。重複判定は全 gsi-* を横断。
   const writeCache = await caches.open(writeCacheName);
   const readCaches = [];
   for (const name of await listTileCacheNames()) {

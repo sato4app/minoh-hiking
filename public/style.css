@@ -197,13 +197,12 @@ body {
 }
 
 .home-btn {
-  min-width: 240px;
   max-width: 80%;
   min-height: 48px;
   padding: 0.7rem 1.1rem;
   font-size: 1rem;
   font-weight: 600;
-  text-align: right;
+  white-space: nowrap;
   color: #0c4a6e;
   background: rgba(186, 230, 253, 0.9);
   border: none;
@@ -569,7 +568,6 @@ body {
 /* ===== レスポンシブ ===== */
 @media (min-width: 768px) {
   .home-btn {
-    min-width: 280px;
     font-size: 1.05rem;
   }
 }
