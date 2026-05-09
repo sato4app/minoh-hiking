@@ -14,6 +14,7 @@ const MAX_ZOOM = 18;
 let mapInstance = null;
 let bufferLayer = null;
 let emergencyLayer = null;
+let hikingLayer = null;
 
 // 地図の初期化
 export function initMap(containerId) {
@@ -114,6 +115,59 @@ export function setEmergencyPointsVisible(visible) {
     emergencyLayer.addTo(mapInstance);
   } else {
     mapInstance.removeLayer(emergencyLayer);
+  }
+}
+
+// ハイキングコース・スポットGeoJSONをレイヤーとして追加
+// (route: LineString → 線、spot: Point → 円マーカー)
+export async function loadHikingRoutesLayer(url) {
+  if (!mapInstance) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const geo = await res.json();
+
+    hikingLayer = L.geoJSON(geo, {
+      style: () => ({
+        color: '#ea580c',
+        weight: 3,
+        opacity: 0.85
+      }),
+      pointToLayer: (feature, latlng) =>
+        L.circleMarker(latlng, {
+          radius: 4,
+          color: '#0c4a6e',
+          weight: 1,
+          fillColor: '#bae6fd',
+          fillOpacity: 0.9
+        }),
+      onEachFeature: (feature, layer) => {
+        const p = feature.properties || {};
+        if (p.type === 'spot') {
+          const id = p.id ?? '';
+          const name = p.name ?? '';
+          layer.bindPopup(`<strong>${escapeHtml(id)}</strong><br>${escapeHtml(name)}`);
+        } else if (p.type === 'route') {
+          const id = p.id ?? '';
+          const sp = p.startPoint ?? '';
+          const ep = p.endPoint ?? '';
+          layer.bindPopup(`<strong>${escapeHtml(id)}</strong><br>${escapeHtml(sp)} → ${escapeHtml(ep)}`);
+        }
+      }
+    });
+    return hikingLayer;
+  } catch (err) {
+    console.warn('ハイキングコースGeoJSON読込失敗:', err);
+    return null;
+  }
+}
+
+export function setHikingRoutesVisible(visible) {
+  if (!mapInstance || !hikingLayer) return;
+  if (visible) {
+    hikingLayer.addTo(mapInstance);
+  } else {
+    mapInstance.removeLayer(hikingLayer);
   }
 }
 

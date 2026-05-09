@@ -7,7 +7,8 @@
 import {
   initMap, resizeMap,
   loadBuffersLayer, setBuffersVisible,
-  loadEmergencyPointsLayer, setEmergencyPointsVisible
+  loadEmergencyPointsLayer, setEmergencyPointsVisible,
+  loadHikingRoutesLayer, setHikingRoutesVisible
 } from './map.js';
 import { savePackage, listPackages, clearPackages } from './db.js';
 
@@ -19,6 +20,7 @@ const TILE_URL_BASE = 'https://cyberjapandata.gsi.go.jp/xyz/std';
 const MANIFEST_URL = 'data/tile_manifest.json';
 const BUFFERS_URL = 'data/tile_buffers.geojson';
 const EMERGENCY_URL = 'data/minoh-emergency-points.geojson';
+const HIKING_ROUTES_URL = 'data/minoh-hiking-routes-spots.geojson';
 const CONCURRENCY = 4;
 const MAX_RETRIES = 3;
 const AVG_TILE_KB = 12;
@@ -54,6 +56,7 @@ const el = {
   mapLayerPanel: document.getElementById('mapLayerPanel'),
   toggleBuffers: document.getElementById('toggleBuffers'),
   toggleEmergencyPoints: document.getElementById('toggleEmergencyPoints'),
+  toggleHikingRoutes: document.getElementById('toggleHikingRoutes'),
 
   // メッセージ履歴
   messageList: document.getElementById('messageList'),
@@ -132,6 +135,7 @@ function bindEvents() {
   });
   el.toggleBuffers.addEventListener('change', (e) => setBuffersVisible(e.target.checked));
   el.toggleEmergencyPoints.addEventListener('change', (e) => setEmergencyPointsVisible(e.target.checked));
+  el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
 
   // メッセージ履歴
   el.btnClearMessages.addEventListener('click', clearMessageLog);
@@ -171,6 +175,9 @@ function ensureMapInitialized() {
   loadEmergencyPointsLayer(EMERGENCY_URL).then(() => {
     // 緊急ポイントは既定で表示(README の共通機能)
     setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
+  });
+  loadHikingRoutesLayer(HIKING_ROUTES_URL).then(() => {
+    setHikingRoutesVisible(el.toggleHikingRoutes.checked);
   });
   setBuffersVisible(el.toggleBuffers.checked);
   mapInitialized = true;
