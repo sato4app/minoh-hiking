@@ -12,7 +12,9 @@ import {
 import { savePackage, listPackages, clearPackages } from './db.js';
 
 // ===== 定数 =====
-const TILE_CACHE = 'gsi-std-v1';
+// タイルキャッシュ名は `gsi-std-{version}` 形式(version は tile_manifest.json から)。
+// 旧 version のキャッシュは保持し、SW・アプリ双方で全 gsi-std-* を横断参照する。
+const TILE_CACHE_PREFIX = 'gsi-std-';
 const TILE_URL_BASE = 'https://cyberjapandata.gsi.go.jp/xyz/std';
 const MANIFEST_URL = 'data/tile_manifest.json';
 const BUFFERS_URL = 'data/tile_buffers.geojson';
@@ -90,7 +92,7 @@ async function init() {
   // SW 登録 + 更新検知
   if ('serviceWorker' in navigator) {
     try {
-      await navigator.serviceWorker.register('sw.js');
+      await navigator.serviceWorker.register('service-worker.js');
     } catch (err) {
       console.warn('SW登録失敗:', err);
     }
@@ -261,6 +263,30 @@ function tileUrl(job) {
   return `${TILE_URL_BASE}/${job.z}/${job.x}/${job.y}.png`;
 }
 
+// ===== タイルキャッシュ名解決 =====
+// 現マニフェストの version に対応する書込先キャッシュ名(version 不明時は null)
+function currentTileCacheName() {
+  if (!manifest || manifest.version == null) return null;
+  return TILE_CACHE_PREFIX + manifest.version;
+}
+
+// 既存の全タイルキャッシュ名(過去 version 含む)
+async function listTileCacheNames() {
+  const keys = await caches.keys();
+  return keys.filter((k) => k.startsWith(TILE_CACHE_PREFIX));
+}
+
+// 全 gsi-std-* キャッシュにキャッシュ済みのURL集合
+async function getCachedTileUrlSet() {
+  const set = new Set();
+  for (const name of await listTileCacheNames()) {
+    const cache = await caches.open(name);
+    const keys = await cache.keys();
+    for (const req of keys) set.add(req.url);
+  }
+  return set;
+}
+
 // ===== 設定モーダル: ダウンロード =====
 async function onDownloadMap() {
   // トグル: Off → z17_default のみ、On → z17_default + z18_optional
@@ -333,9 +359,7 @@ async function startManifestUpdate(mode) {
 
   if (mode === 'diff') {
     try {
-      const cache = await caches.open(TILE_CACHE);
-      const keys = await cache.keys();
-      const cachedUrls = new Set(keys.map((req) => req.url));
+      const cachedUrls = await getCachedTileUrlSet();
       jobs = allJobs.filter((j) => !cachedUrls.has(tileUrl(j)));
     } catch (err) {
       setStatus(`キャッシュ参照失敗: ${err.message}`, 'error');
@@ -378,6 +402,12 @@ async function startManifestUpdate(mode) {
 
 // ===== ジョブ実行(共通ワーカーループ) =====
 async function runJobs(jobs, { overwrite = false } = {}) {
+  const writeCacheName = currentTileCacheName();
+  if (!writeCacheName) {
+    setStatus('マニフェストの version が不明なため開始できません', 'error');
+    return { aborted: true, completed: 0, failed: [], total: jobs.length };
+  }
+
   isDownloading = true;
   isPaused = false;
   downloadController = new AbortController();
@@ -393,11 +423,19 @@ async function runJobs(jobs, { overwrite = false } = {}) {
   const failed = [];
   const queueIndex = { i: 0 };
 
-  const cache = await caches.open(TILE_CACHE);
+  // 書込先は現 version のキャッシュ。重複判定は全 gsi-std-* を横断。
+  const writeCache = await caches.open(writeCacheName);
+  const readCaches = [];
+  for (const name of await listTileCacheNames()) {
+    readCaches.push(await caches.open(name));
+  }
 
   async function isAlreadyCached(url) {
-    const hit = await cache.match(url);
-    return !!hit;
+    for (const c of readCaches) {
+      const hit = await c.match(url);
+      if (hit) return true;
+    }
+    return false;
   }
 
   async function worker() {
@@ -418,7 +456,7 @@ async function runJobs(jobs, { overwrite = false } = {}) {
       if (!overwrite && (await isAlreadyCached(url))) {
         ok = true;
       } else {
-        ok = await fetchAndCacheTile(cache, url, downloadController.signal);
+        ok = await fetchAndCacheTile(writeCache, url, downloadController.signal);
       }
       if (!ok) failed.push([job.z, job.x, job.y]);
       completed++;
@@ -521,7 +559,9 @@ async function onClearCache() {
   if (!confirm('キャッシュ済みのタイルを全て削除します。よろしいですか?')) return;
 
   try {
-    await caches.delete(TILE_CACHE);
+    for (const name of await listTileCacheNames()) {
+      await caches.delete(name);
+    }
     await clearPackages();
     try { localStorage.removeItem(VERSION_STORAGE_KEY); } catch { /* noop */ }
     hideUpdateBanner();
@@ -536,9 +576,11 @@ async function onClearCache() {
 async function refreshStorageInfo() {
   let tileCount = 0;
   try {
-    const cache = await caches.open(TILE_CACHE);
-    const keys = await cache.keys();
-    tileCount = keys.length;
+    for (const name of await listTileCacheNames()) {
+      const cache = await caches.open(name);
+      const keys = await cache.keys();
+      tileCount += keys.length;
+    }
   } catch {
     tileCount = 0;
   }

@@ -1,11 +1,14 @@
 // Service Worker
-// - gsi-std-v1: 地理院標準地図タイル(明示ダウンロードでのみ書込)
-// - app-shell-v1: アプリシェル
+// - gsi-std-{version}: 地理院標準地図タイル(明示ダウンロードでのみ書込)
+//   {version} は data/tile_manifest.json の version を埋め込む。
+//   旧 version のキャッシュは自動削除しない(ユーザーがDL済みのタイル資産を保持)。
+// - app-shell-vN: アプリシェル(HTML/CSS/JS、CDN、GeoJSON、tile_manifest.json)。
 //
 // タイルはキャッシュ優先(あれば返す、無ければネット取得・自動キャッシュしない)。
+// 全 gsi-std-* キャッシュを横断検索するため、version 変更後も旧タイルは引き続き利用可能。
 
-const TILE_CACHE = 'gsi-std-v1';
 const SHELL_CACHE = 'app-shell-v2';
+const TILE_CACHE_PREFIX = 'gsi-';
 
 // 同一オリジンの相対パス
 const SHELL_LOCAL_PATHS = [
@@ -53,14 +56,14 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// アクティベート: 旧キャッシュを掃除
+// アクティベート: 旧シェルキャッシュのみ掃除。タイル(gsi-std-*)は保持。
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((k) => k !== TILE_CACHE && k !== SHELL_CACHE)
+          .filter((k) => k !== SHELL_CACHE && !k.startsWith(TILE_CACHE_PREFIX))
           .map((k) => caches.delete(k))
       );
       await self.clients.claim();
@@ -108,9 +111,14 @@ self.addEventListener('fetch', (event) => {
 });
 
 async function handleTileRequest(req) {
-  const cache = await caches.open(TILE_CACHE);
-  const cached = await cache.match(req);
-  if (cached) return cached;
+  // 全 gsi-std-* キャッシュを横断検索(version 変更前にDLしたタイルも活用)
+  const allKeys = await caches.keys();
+  const tileCacheNames = allKeys.filter((k) => k.startsWith(TILE_CACHE_PREFIX));
+  for (const name of tileCacheNames) {
+    const cache = await caches.open(name);
+    const hit = await cache.match(req);
+    if (hit) return hit;
+  }
   // キャッシュに無ければネット取得 → 書込まない
   try {
     return await fetch(req);
@@ -126,7 +134,7 @@ async function handleShellRequest(req) {
   if (cached) return cached;
   try {
     const res = await fetch(req);
-    if (res.ok) cache.put(req, res.clone()).catch(() => {});
+    if (res.ok) cache.put(req, res.clone()).catch(() => { });
     return res;
   } catch (err) {
     return cached || new Response('', { status: 504 });
