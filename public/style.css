@@ -149,6 +149,12 @@ body {
   background: #ddd;
 }
 
+/* カスタムマーカー: divIcon の既定の白背景・枠線を無効化 */
+.leaflet-div-icon.custom-marker {
+  background: transparent;
+  border: none;
+}
+
 /* ===== 初期画面 ===== */
 .view-home {
   position: relative;

@@ -7,8 +7,8 @@
 import {
   initMap, resizeMap,
   loadBuffersLayer, setBuffersVisible,
-  loadEmergencyPointsLayer, setEmergencyPointsVisible,
-  loadHikingRoutesLayer, setHikingRoutesVisible
+  loadEmergencyPointsLayer, setEmergencyPointsVisible, setEmergencyStyle,
+  loadHikingRoutesLayer, setHikingRoutesVisible, setHikingRouteStyle, setHikingSpotStyle
 } from './map.js';
 import { savePackage, listPackages, clearPackages } from './db.js';
 import {
@@ -119,14 +119,16 @@ async function init() {
 
   // 共有地図を初期化(箕面大滝中心 / z=15、ホーム/マップで共通)
   initMap('map');
-  // 各オーバーレイはバックグラウンドで読込み、map ビュー時のみ表示
+  // 各オーバーレイはバックグラウンドで読込み、map ビュー時のみ表示。
+  // マーカースタイルは保存済み設定(無ければ config.js の既定値)を初期描画に反映。
+  const markerSettings = readMarkerSettings();
   loadBuffersLayer(BUFFERS_URL).then(() => {
     if (currentView === 'map') setBuffersVisible(el.toggleBuffers.checked);
   });
-  loadEmergencyPointsLayer(EMERGENCY_URL).then(() => {
+  loadEmergencyPointsLayer(EMERGENCY_URL, markerSettings.emergency).then(() => {
     if (currentView === 'map') setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
   });
-  loadHikingRoutesLayer(HIKING_ROUTES_URL).then(() => {
+  loadHikingRoutesLayer(HIKING_ROUTES_URL, markerSettings.hikingRoute, markerSettings.spot).then(() => {
     if (currentView === 'map') setHikingRoutesVisible(el.toggleHikingRoutes.checked);
   });
 
@@ -311,6 +313,15 @@ function updateMarkerSetting(key, attr, value) {
   if (!settings[key]) return;
   settings[key][attr] = value;
   writeMarkerSettings(settings);
+  applyMarkerSettingToMap(key, settings[key]);
+}
+
+// 設定変更を地図側へ反映(未実装の種別は noop)
+function applyMarkerSettingToMap(key, style) {
+  if (key === 'emergency') setEmergencyStyle(style);
+  else if (key === 'hikingRoute') setHikingRouteStyle(style);
+  else if (key === 'spot') setHikingSpotStyle(style);
+  // routeGuide / track / photoLocation はレイヤー未実装のため反映先なし
 }
 
 // ===== マニフェスト読込 / バージョン比較 =====
