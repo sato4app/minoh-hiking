@@ -11,9 +11,9 @@ const INITIAL_ZOOM = 14;
 const MIN_ZOOM = 10;
 const MAX_ZOOM = 18;
 
-// ホーム画面の背景地図(箕面大滝中心、z=13)
+// ホーム画面の背景地図(箕面大滝中心、z=15)
 const HOME_CENTER = [34.853667, 135.472041];
-const HOME_ZOOM = 13;
+const HOME_ZOOM = 15;
 
 let mapInstance = null;
 let homeMapInstance = null;
@@ -46,7 +46,7 @@ export function resizeMap() {
   if (mapInstance) mapInstance.invalidateSize();
 }
 
-// ホーム画面の背景地図(箕面大滝中心、z=13)
+// ホーム画面の背景地図(箕面大滝中心、z=15)
 export function initHomeMap(containerId) {
   if (homeMapInstance) return homeMapInstance;
   const map = L.map(containerId, {
