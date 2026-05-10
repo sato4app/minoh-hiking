@@ -6,7 +6,6 @@
 
 import {
   initMap, resizeMap,
-  initHomeMap, resizeHomeMap,
   loadBuffersLayer, setBuffersVisible,
   loadEmergencyPointsLayer, setEmergencyPointsVisible,
   loadHikingRoutesLayer, setHikingRoutesVisible
@@ -34,7 +33,6 @@ let manifest = null;
 let downloadController = null;
 let isPaused = false;
 let isDownloading = false;
-let mapInitialized = false;
 let currentView = 'home';
 
 // ===== DOM要素 =====
@@ -109,12 +107,22 @@ async function init() {
   await refreshStorageInfo();
   evaluateManifestVersion();
 
-  // 初期表示はホーム
-  showView('home');
+  // 共有地図を初期化(箕面大滝中心 / z=15、ホーム/マップで共通)
+  initMap('map');
+  // 各オーバーレイはバックグラウンドで読込み、map ビュー時のみ表示
+  loadBuffersLayer(BUFFERS_URL).then(() => {
+    if (currentView === 'map') setBuffersVisible(el.toggleBuffers.checked);
+  });
+  loadEmergencyPointsLayer(EMERGENCY_URL).then(() => {
+    if (currentView === 'map') setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
+  });
+  loadHikingRoutesLayer(HIKING_ROUTES_URL).then(() => {
+    if (currentView === 'map') setHikingRoutesVisible(el.toggleHikingRoutes.checked);
+  });
 
-  // ホーム背景の地理院地図を初期化(箕面大滝中心 / z=13)
-  initHomeMap('homeMap');
-  requestAnimationFrame(() => resizeHomeMap());
+  // 初期表示はホーム(オーバーレイは非表示のまま)
+  showView('home');
+  requestAnimationFrame(() => resizeMap());
 }
 
 function bindEvents() {
@@ -165,29 +173,20 @@ function showView(name) {
   currentView = name;
 
   if (name === 'map') {
-    ensureMapInitialized();
-    // 表示直後にサイズ再計算(Leaflet は hidden 時に正しく計測できない)
+    // マップビュー: 緊急ポイント・ハイキングコースを表示(トグル状態に従う)
+    setBuffersVisible(el.toggleBuffers.checked);
+    setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
+    setHikingRoutesVisible(el.toggleHikingRoutes.checked);
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'home') {
-    requestAnimationFrame(() => resizeHomeMap());
+    // ホーム: 全オーバーレイを非表示にして地理院地図のみ表示
+    setBuffersVisible(false);
+    setEmergencyPointsVisible(false);
+    setHikingRoutesVisible(false);
+    requestAnimationFrame(() => resizeMap());
   } else if (name === 'messages') {
     renderMessageList();
   }
-}
-
-function ensureMapInitialized() {
-  if (mapInitialized) return;
-  initMap('map');
-  loadBuffersLayer(BUFFERS_URL);
-  loadEmergencyPointsLayer(EMERGENCY_URL).then(() => {
-    // 緊急ポイントは既定で表示(README の共通機能)
-    setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
-  });
-  loadHikingRoutesLayer(HIKING_ROUTES_URL).then(() => {
-    setHikingRoutesVisible(el.toggleHikingRoutes.checked);
-  });
-  setBuffersVisible(el.toggleBuffers.checked);
-  mapInitialized = true;
 }
 
 // ===== 設定モーダル =====

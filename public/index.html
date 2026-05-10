@@ -24,6 +24,9 @@
   </script>
 </head>
 <body>
+  <!-- 全画面の地理院地図(ホーム/マップビューで共有、常時表示) -->
+  <div id="map" role="application" aria-label="箕面エリア地理院地図"></div>
+
   <!-- 全ビュー共通の固定トップエリア(オンライン状態 + マニフェスト更新バナー) -->
   <div id="updateBanner" class="update-banner" hidden role="status" aria-live="polite">
     <div class="update-banner-message" id="updateBannerMessage"></div>
@@ -37,7 +40,6 @@
 
   <!-- 初期画面(ホーム) -->
   <section class="view view-home" id="viewHome">
-    <div class="home-bg" id="homeMap" role="application" aria-label="箕面エリア地理院地図"></div>
     <img class="home-image" src="icons/Startup-512x875.png" alt="" aria-hidden="true" />
     <header class="home-header">
       <h1>箕面ハイキング</h1>
@@ -51,14 +53,13 @@
     </nav>
   </section>
 
-  <!-- ハイキングマップ表示 -->
+  <!-- ハイキングマップ表示(地図そのものは body 直下の #map を共有) -->
   <section class="view view-map" id="viewMap" hidden>
     <header class="view-header">
       <button type="button" class="btn-back" data-view="home" aria-label="ホームに戻る">←</button>
       <h2>ハイキングマップ</h2>
       <button type="button" class="btn-icon" id="btnMapLayers" aria-label="表示設定">≡</button>
     </header>
-    <div id="map" role="application" aria-label="地理院地図"></div>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
       <label class="toggle">
         <input type="checkbox" id="toggleBuffers" />

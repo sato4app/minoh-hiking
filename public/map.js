@@ -6,17 +6,13 @@ const GSI_TILE_URL = 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png';
 const GSI_ATTRIBUTION =
   '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>';
 
-const INITIAL_CENTER = [34.852, 135.476];
-const INITIAL_ZOOM = 14;
+// 起動時の中心は箕面大滝、z=15(ホーム/マップビュー共通の単一マップ)
+const INITIAL_CENTER = [34.853667, 135.472041];
+const INITIAL_ZOOM = 15;
 const MIN_ZOOM = 10;
 const MAX_ZOOM = 18;
 
-// ホーム画面の背景地図(箕面大滝中心、z=15)
-const HOME_CENTER = [34.853667, 135.472041];
-const HOME_ZOOM = 15;
-
 let mapInstance = null;
-let homeMapInstance = null;
 let bufferLayer = null;
 let emergencyLayer = null;
 let hikingLayer = null;
@@ -44,32 +40,6 @@ export function initMap(containerId) {
 // ビュー表示直後に呼んでサイズを再計算する(hidden→visible 切替で必須)
 export function resizeMap() {
   if (mapInstance) mapInstance.invalidateSize();
-}
-
-// ホーム画面の背景地図(箕面大滝中心、z=15)
-export function initHomeMap(containerId) {
-  if (homeMapInstance) return homeMapInstance;
-  const map = L.map(containerId, {
-    center: HOME_CENTER,
-    zoom: HOME_ZOOM,
-    minZoom: MIN_ZOOM,
-    maxZoom: MAX_ZOOM,
-    zoomControl: false
-  });
-
-  L.tileLayer(GSI_TILE_URL, {
-    attribution: GSI_ATTRIBUTION,
-    minZoom: MIN_ZOOM,
-    maxZoom: MAX_ZOOM,
-    crossOrigin: true
-  }).addTo(map);
-
-  homeMapInstance = map;
-  return map;
-}
-
-export function resizeHomeMap() {
-  if (homeMapInstance) homeMapInstance.invalidateSize();
 }
 
 // バッファGeoJSON(z=17/z=18)をレイヤーとして追加
