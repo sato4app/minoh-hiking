@@ -151,19 +151,8 @@ body {
 .home-bg {
   position: absolute;
   inset: 0;
-  background-image: url('icons/Startup-512x875.png');
-  background-position: center;
-  background-size: 100% auto;
-  background-repeat: no-repeat;
   z-index: 0;
-}
-
-/* 背景画像が暗いシーンに白文字でも読めるよう、控えめにオーバーレイ */
-.home-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.05) 0%, rgba(0, 0, 0, 0.0) 40%, rgba(0, 0, 0, 0.0) 100%);
+  background: #e5e7eb;
 }
 
 .home-header {

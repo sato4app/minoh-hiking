@@ -6,6 +6,7 @@
 
 import {
   initMap, resizeMap,
+  initHomeMap, resizeHomeMap,
   loadBuffersLayer, setBuffersVisible,
   loadEmergencyPointsLayer, setEmergencyPointsVisible,
   loadHikingRoutesLayer, setHikingRoutesVisible
@@ -110,6 +111,10 @@ async function init() {
 
   // 初期表示はホーム
   showView('home');
+
+  // ホーム背景の地理院地図を初期化(箕面大滝中心 / z=13)
+  initHomeMap('homeMap');
+  requestAnimationFrame(() => resizeHomeMap());
 }
 
 function bindEvents() {
@@ -163,6 +168,8 @@ function showView(name) {
     ensureMapInitialized();
     // 表示直後にサイズ再計算(Leaflet は hidden 時に正しく計測できない)
     requestAnimationFrame(() => resizeMap());
+  } else if (name === 'home') {
+    requestAnimationFrame(() => resizeHomeMap());
   } else if (name === 'messages') {
     renderMessageList();
   }
