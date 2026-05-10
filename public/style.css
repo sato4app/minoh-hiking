@@ -434,6 +434,82 @@ body.view-state-nav .leaflet-control-container {
   padding: 0.5rem 0;
 }
 
+/* ===== 設定モーダル: セクション ===== */
+.settings-section {
+  padding: 0.5rem 1rem 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.settings-section:last-child {
+  border-bottom: none;
+}
+
+.settings-section-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* マーカー設定行: ラベル + (色 / 形状 / サイズ) */
+.marker-settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.marker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+}
+
+.marker-label {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #222;
+}
+
+.marker-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.marker-color {
+  width: 36px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.marker-shape {
+  padding: 0.25rem 0.4rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  background: #fff;
+}
+
+.marker-size {
+  width: 56px;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.marker-size-unit {
+  font-size: 0.8rem;
+  color: #666;
+}
+
 /* ===== 共通: トグル ===== */
 .toggle {
   display: flex;

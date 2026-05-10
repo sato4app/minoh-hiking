@@ -11,6 +11,11 @@ import {
   loadHikingRoutesLayer, setHikingRoutesVisible
 } from './map.js';
 import { savePackage, listPackages, clearPackages } from './db.js';
+import {
+  MARKER_SETTINGS_KEY,
+  MARKER_TYPES,
+  MARKER_SHAPES
+} from './config.js';
 
 // ===== 定数 =====
 // タイルキャッシュ名は `gsi-{version}` 形式(version は tile_manifest.json から)。
@@ -27,6 +32,7 @@ const AVG_TILE_KB = 12;
 const VERSION_STORAGE_KEY = 'minoh-hiking.tile-manifest-version';
 const MESSAGE_LOG_KEY = 'minoh-hiking.message-log';
 const MESSAGE_LOG_MAX = 100;
+// マーカー設定の既定値・選択肢・localStorage キーは ./config.js から import
 
 // ===== 状態 =====
 let manifest = null;
@@ -61,8 +67,8 @@ const el = {
   messageEmpty: document.getElementById('messageEmpty'),
   btnClearMessages: document.getElementById('btnClearMessages'),
 
-  // 設定モーダル
-  settingsModal: document.getElementById('settingsModal'),
+  // ダウンロードモーダル
+  downloadModal: document.getElementById('downloadModal'),
   toggleDetail: document.getElementById('toggleDetail'),
   btnDownloadMap: document.getElementById('btnDownloadMap'),
   btnPause: document.getElementById('btnPause'),
@@ -76,6 +82,10 @@ const el = {
   cachedTileCount: document.getElementById('cachedTileCount'),
   estimatedSize: document.getElementById('estimatedSize'),
   measuredSize: document.getElementById('measuredSize'),
+
+  // 設定モーダル
+  settingsModal: document.getElementById('settingsModal'),
+  markerSettingsList: document.getElementById('markerSettingsList'),
 
   // 更新バナー
   updateBanner: document.getElementById('updateBanner'),
@@ -101,6 +111,7 @@ async function init() {
   }
 
   bindEvents();
+  renderMarkerSettings();
   renderMessageList();
   updateOnlineIndicator();
   await refreshStorageInfo();
@@ -129,12 +140,15 @@ function bindEvents() {
   for (const btn of document.querySelectorAll('[data-view]')) {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
-  el.btnOpenDownload.addEventListener('click', openSettings);
-  el.btnOpenSettings.addEventListener('click', openSettings);
+  el.btnOpenDownload.addEventListener('click', openDownloadModal);
+  el.btnOpenSettings.addEventListener('click', openSettingsModal);
 
-  // 設定モーダル
+  // モーダル閉じる(各モーダル内の [data-close-modal] が、その親モーダルを閉じる)
   for (const elem of document.querySelectorAll('[data-close-modal]')) {
-    elem.addEventListener('click', closeSettings);
+    elem.addEventListener('click', () => {
+      const modal = elem.closest('.modal');
+      if (modal) modal.hidden = true;
+    });
   }
   el.btnDownloadMap.addEventListener('click', onDownloadMap);
   el.btnPause.addEventListener('click', pauseDownload);
@@ -195,14 +209,108 @@ function showView(name) {
   }
 }
 
-// ===== 設定モーダル =====
-function openSettings() {
-  el.settingsModal.hidden = false;
+// ===== モーダル =====
+function openDownloadModal() {
+  el.downloadModal.hidden = false;
   refreshStorageInfo();
 }
 
-function closeSettings() {
-  el.settingsModal.hidden = true;
+function openSettingsModal() {
+  el.settingsModal.hidden = false;
+}
+
+// ===== マーカー設定 =====
+function readMarkerSettings() {
+  let saved = {};
+  try {
+    const raw = localStorage.getItem(MARKER_SETTINGS_KEY);
+    if (raw) saved = JSON.parse(raw) || {};
+  } catch { /* noop */ }
+  // 既定値で埋めて返す
+  const merged = {};
+  for (const m of MARKER_TYPES) {
+    const s = saved[m.key] || {};
+    merged[m.key] = {
+      color: s.color || m.color,
+      shape: s.shape || m.shape,
+      size: Number.isFinite(s.size) ? s.size : m.size
+    };
+  }
+  return merged;
+}
+
+function writeMarkerSettings(settings) {
+  try { localStorage.setItem(MARKER_SETTINGS_KEY, JSON.stringify(settings)); } catch { /* noop */ }
+}
+
+function renderMarkerSettings() {
+  if (!el.markerSettingsList) return;
+  const settings = readMarkerSettings();
+  el.markerSettingsList.innerHTML = '';
+
+  for (const m of MARKER_TYPES) {
+    const cur = settings[m.key];
+
+    const row = document.createElement('div');
+    row.className = 'marker-row';
+
+    const label = document.createElement('span');
+    label.className = 'marker-label';
+    label.textContent = m.label;
+    row.appendChild(label);
+
+    const controls = document.createElement('div');
+    controls.className = 'marker-controls';
+
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.className = 'marker-color';
+    colorInput.value = cur.color;
+    colorInput.setAttribute('aria-label', `${m.label} 色`);
+    colorInput.addEventListener('input', () => updateMarkerSetting(m.key, 'color', colorInput.value));
+    controls.appendChild(colorInput);
+
+    const shapeSelect = document.createElement('select');
+    shapeSelect.className = 'marker-shape';
+    shapeSelect.setAttribute('aria-label', `${m.label} 形状`);
+    for (const s of MARKER_SHAPES) {
+      const opt = document.createElement('option');
+      opt.value = s.value;
+      opt.textContent = s.label;
+      if (s.value === cur.shape) opt.selected = true;
+      shapeSelect.appendChild(opt);
+    }
+    shapeSelect.addEventListener('change', () => updateMarkerSetting(m.key, 'shape', shapeSelect.value));
+    controls.appendChild(shapeSelect);
+
+    const sizeInput = document.createElement('input');
+    sizeInput.type = 'number';
+    sizeInput.className = 'marker-size';
+    sizeInput.min = '1';
+    sizeInput.max = '50';
+    sizeInput.value = String(cur.size);
+    sizeInput.setAttribute('aria-label', `${m.label} サイズ`);
+    sizeInput.addEventListener('change', () => {
+      const v = parseInt(sizeInput.value, 10);
+      if (Number.isFinite(v) && v > 0) updateMarkerSetting(m.key, 'size', v);
+    });
+    controls.appendChild(sizeInput);
+
+    const unit = document.createElement('span');
+    unit.className = 'marker-size-unit';
+    unit.textContent = 'px';
+    controls.appendChild(unit);
+
+    row.appendChild(controls);
+    el.markerSettingsList.appendChild(row);
+  }
+}
+
+function updateMarkerSetting(key, attr, value) {
+  const settings = readMarkerSettings();
+  if (!settings[key]) return;
+  settings[key][attr] = value;
+  writeMarkerSettings(settings);
 }
 
 // ===== マニフェスト読込 / バージョン比較 =====
@@ -397,8 +505,8 @@ async function startManifestUpdate(mode) {
     return;
   }
 
-  // 進捗表示のため設定モーダルを開く
-  openSettings();
+  // 進捗表示のためダウンロードモーダルを開く
+  openDownloadModal();
 
   const label = mode === 'diff' ? '差分更新' : '全部更新';
   setStatus(`${label}開始: ${jobs.length} タイル`, '');

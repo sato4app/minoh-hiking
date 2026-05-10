@@ -36,10 +36,11 @@ export function initMap(containerId) {
     crossOrigin: true
   }).addTo(map);
 
-  // 追加順に上から下へ並ぶ: zoom(上) → scale(中) → attribution(下)
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
-  L.control.scale({ position: 'bottomright', metric: true, imperial: false, maxWidth: 150 }).addTo(map);
+  // bottomright は後から追加したものほど上に積まれる。
+  // 期待する並び(上から): zoom → scale → attribution なので、逆順に追加する。
   L.control.attribution({ position: 'bottomright' }).addTo(map);
+  L.control.scale({ position: 'bottomright', metric: true, imperial: false, maxWidth: 150 }).addTo(map);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
 
   mapInstance = map;
   return map;

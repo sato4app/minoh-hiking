@@ -18,6 +18,7 @@ const SHELL_LOCAL_PATHS = [
   './app.js',
   './map.js',
   './db.js',
+  './config.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
