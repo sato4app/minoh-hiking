@@ -157,8 +157,7 @@ body {
   pointer-events: none;
 }
 
-/* ホームの操作要素(ヘッダー・メニュー)は地図上でクリック可能に戻す */
-.view-home > .home-header,
+/* ホームの操作要素(メニュー)は地図上でクリック可能に戻す */
 .view-home > .home-menu {
   pointer-events: auto;
 }
@@ -176,24 +175,6 @@ body {
   z-index: 1;
   pointer-events: none;
   user-select: none;
-}
-
-.home-header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem 1rem;
-  background: rgba(44, 122, 61, 0.85);
-  color: #fff;
-  z-index: 2;
-  flex-shrink: 0;
-}
-
-.home-header h1 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
 }
 
 .home-menu {
@@ -232,26 +213,79 @@ body {
   transform: scale(0.98);
 }
 
-.online-indicator {
-  font-size: 1.2rem;
-  color: #66ff66;
-  transition: color 0.3s;
-}
-
-.online-indicator.offline {
-  color: #ff6666;
-}
-
 /* ===== マップビュー ===== */
-.view-map {
+.view-map,
+.view-nav {
   background: transparent;
   pointer-events: none;
 }
 
-/* マップビューの操作要素(ヘッダー・レイヤーパネル)はクリック可能に */
-.view-map > .view-header,
-.view-map > .map-layer-panel {
+/* マップ/ナビビューの操作要素(浮きボタン・パネル)はクリック可能に */
+.view-map > .btn-float,
+.view-map > .map-layer-panel,
+.view-nav > .btn-float,
+.view-nav > .nav-pending {
   pointer-events: auto;
+}
+
+/* 浮きボタン(← / ≡): 地図上に重ねるトップ・コーナー配置 */
+.btn-float {
+  position: absolute;
+  top: 0.75rem;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #1f2937;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  z-index: 500;
+}
+
+.btn-float:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.btn-back-float {
+  left: 0.75rem;
+}
+
+.btn-menu-float {
+  right: 0.75rem;
+}
+
+/* ナビ画面の準備中メッセージ(中央オーバーレイ) */
+.nav-pending {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1rem 1.4rem;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 400;
+}
+
+.nav-pending .placeholder-message {
+  margin: 0;
+  color: #555;
+  font-size: 0.95rem;
+}
+
+/* 地図コントロール(zoom/scale/attribution)はマップ・ナビ画面でのみ表示 */
+.leaflet-control-container {
+  display: none;
+}
+
+body.view-state-map .leaflet-control-container,
+body.view-state-nav .leaflet-control-container {
+  display: block;
 }
 
 .map-layer-panel {

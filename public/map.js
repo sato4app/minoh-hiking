@@ -18,12 +18,15 @@ let emergencyLayer = null;
 let hikingLayer = null;
 
 // 地図の初期化
+// 右下に下から: 国土地理院クレジット(attribution) → スケール(metric) → ズームボタン
 export function initMap(containerId) {
   const map = L.map(containerId, {
     center: INITIAL_CENTER,
     zoom: INITIAL_ZOOM,
     minZoom: MIN_ZOOM,
-    maxZoom: MAX_ZOOM
+    maxZoom: MAX_ZOOM,
+    zoomControl: false,
+    attributionControl: false
   });
 
   L.tileLayer(GSI_TILE_URL, {
@@ -32,6 +35,11 @@ export function initMap(containerId) {
     maxZoom: MAX_ZOOM,
     crossOrigin: true
   }).addTo(map);
+
+  // 追加順に上から下へ並ぶ: zoom(上) → scale(中) → attribution(下)
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
+  L.control.scale({ position: 'bottomright', metric: true, imperial: false, maxWidth: 150 }).addTo(map);
+  L.control.attribution({ position: 'bottomright' }).addTo(map);
 
   mapInstance = map;
   return map;

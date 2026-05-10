@@ -42,12 +42,11 @@ const el = {
     home: document.getElementById('viewHome'),
     map: document.getElementById('viewMap'),
     nav: document.getElementById('viewNav'),
-    collect: document.getElementById('viewCollect'),
     messages: document.getElementById('viewMessages')
   },
-  onlineIndicator: document.getElementById('onlineIndicator'),
 
   // ホーム
+  btnOpenDownload: document.getElementById('btnOpenDownload'),
   btnOpenSettings: document.getElementById('btnOpenSettings'),
 
   // マップ
@@ -130,6 +129,7 @@ function bindEvents() {
   for (const btn of document.querySelectorAll('[data-view]')) {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
+  el.btnOpenDownload.addEventListener('click', openSettings);
   el.btnOpenSettings.addEventListener('click', openSettings);
 
   // 設定モーダル
@@ -172,14 +172,20 @@ function showView(name) {
   }
   currentView = name;
 
+  // ビュー名を body クラスに反映(地図コントロールの表示/非表示などで使用)
+  for (const cls of [...document.body.classList]) {
+    if (cls.startsWith('view-state-')) document.body.classList.remove(cls);
+  }
+  document.body.classList.add(`view-state-${name}`);
+
   if (name === 'map') {
     // マップビュー: 緊急ポイント・ハイキングコースを表示(トグル状態に従う)
     setBuffersVisible(el.toggleBuffers.checked);
     setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
     setHikingRoutesVisible(el.toggleHikingRoutes.checked);
     requestAnimationFrame(() => resizeMap());
-  } else if (name === 'home') {
-    // ホーム: 全オーバーレイを非表示にして地理院地図のみ表示
+  } else if (name === 'home' || name === 'nav') {
+    // ホーム/ナビ: 全オーバーレイを非表示にして地理院地図のみ表示
     setBuffersVisible(false);
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);
