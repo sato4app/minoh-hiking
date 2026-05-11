@@ -240,10 +240,13 @@ body {
   top: 0.75rem;
   width: 44px;
   height: 44px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.4rem;
+  font-size: 2rem;
+  line-height: 1;
+  font-weight: 600;
   color: #1f2937;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(0, 0, 0, 0.15);
