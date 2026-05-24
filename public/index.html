@@ -52,7 +52,11 @@
 
   <!-- ハイキングマップ表示(地図そのものは body 直下の #map を共有) -->
   <section class="view view-map" id="viewMap" hidden>
-    <button type="button" class="btn-float btn-back-float" data-view="home" aria-label="ホームに戻る">←</button>
+    <button type="button" class="btn-float btn-back-float" data-view="home" aria-label="ホームに戻る">
+      <svg class="icon-back" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+        <path d="M15.5 4.5L8 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
     <button type="button" class="btn-float btn-menu-float" id="btnMapLayers" aria-label="表示設定">≡</button>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
       <label class="toggle">
@@ -72,7 +76,11 @@
 
   <!-- ハイキングコースの案内・ナビ(地図そのものは body 直下の #map を共有) -->
   <section class="view view-nav" id="viewNav" hidden>
-    <button type="button" class="btn-float btn-back-float" data-view="home" aria-label="ホームに戻る">←</button>
+    <button type="button" class="btn-float btn-back-float" data-view="home" aria-label="ホームに戻る">
+      <svg class="icon-back" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+        <path d="M15.5 4.5L8 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
     <button type="button" class="btn-float btn-menu-float" id="btnNavMenu" aria-label="ナビメニュー">≡</button>
     <div class="nav-pending">
       <p class="placeholder-message">この機能は準備中です。</p>
@@ -82,7 +90,11 @@
   <!-- メッセージ履歴 -->
   <section class="view view-messages" id="viewMessages" hidden>
     <header class="view-header">
-      <button type="button" class="btn-back" data-view="home" aria-label="ホームに戻る">←</button>
+      <button type="button" class="btn-back" data-view="home" aria-label="ホームに戻る">
+        <svg class="icon-back" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+          <path d="M15.5 4.5L8 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
       <h2>メッセージ履歴</h2>
       <button type="button" class="btn-icon" id="btnClearMessages" aria-label="履歴を消去">🗑</button>
     </header>

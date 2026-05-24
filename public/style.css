@@ -264,6 +264,13 @@ body {
   left: 0.75rem;
 }
 
+.btn-float .icon-back,
+.btn-back .icon-back {
+  display: block;
+  width: 24px;
+  height: 24px;
+}
+
 .btn-menu-float {
   right: 0.75rem;
 }
