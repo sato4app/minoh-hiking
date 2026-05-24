@@ -92,6 +92,7 @@ const el = {
   settingsModal: document.getElementById('settingsModal'),
   settingsTitle: document.getElementById('settingsTitle'),
   markerSettingsList: document.getElementById('markerSettingsList'),
+  btnResetMarkerSettings: document.getElementById('btnResetMarkerSettings'),
 
   // マップ画面メニュー内の設定ショートカット
   btnMapOpenMarkerSettings: document.getElementById('btnMapOpenMarkerSettings'),
@@ -182,6 +183,9 @@ function bindEvents() {
   el.toggleBuffers.addEventListener('change', (e) => setBuffersVisible(e.target.checked));
   el.toggleEmergencyPoints.addEventListener('change', (e) => setEmergencyPointsVisible(e.target.checked));
   el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
+
+  // マーカー設定: 規定値に戻す
+  el.btnResetMarkerSettings.addEventListener('click', resetMarkerSettings);
 
   // マップ画面メニューから設定モーダルを直接開く(起動画面に戻る必要なし)
   el.btnMapOpenMarkerSettings.addEventListener('click', () => {
@@ -386,6 +390,21 @@ function applyMarkerSettingToMap(key, style) {
   else if (key === 'hikingRoute') setHikingRouteStyle(style);
   else if (key === 'spot') setHikingSpotStyle(style);
   // routeGuide / track / photoLocation はレイヤー未実装のため反映先なし
+}
+
+// 規定値に戻す: config.js の MARKER_TYPES の値で localStorage を上書きし、
+// UI と地図の両方に反映する
+function resetMarkerSettings() {
+  if (!confirm('マーカーの設定を規定値に戻します。よろしいですか?')) return;
+  const defaults = {};
+  for (const m of MARKER_TYPES) {
+    defaults[m.key] = { color: m.color, shape: m.shape, size: m.size };
+  }
+  writeMarkerSettings(defaults);
+  renderMarkerSettings();
+  for (const m of MARKER_TYPES) {
+    applyMarkerSettingToMap(m.key, defaults[m.key]);
+  }
 }
 
 // ===== マニフェスト読込 / バージョン比較 =====

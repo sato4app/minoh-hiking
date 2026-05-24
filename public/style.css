@@ -496,6 +496,12 @@ body.view-state-nav .leaflet-control-container {
   gap: 0.4rem;
 }
 
+.marker-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.8rem;
+}
+
 .marker-row {
   display: flex;
   align-items: center;
