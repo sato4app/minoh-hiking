@@ -8,7 +8,8 @@ import {
   initMap, resizeMap,
   loadBuffersLayer, setBuffersVisible,
   loadEmergencyPointsLayer, setEmergencyPointsVisible, setEmergencyStyle,
-  loadHikingRoutesLayer, setHikingRoutesVisible, setHikingRouteStyle, setHikingSpotStyle
+  loadHikingRoutesLayer, setHikingRoutesVisible, setHikingRouteStyle, setHikingSpotStyle,
+  setCurrentLocationVisible
 } from './map.js';
 import { savePackage, listPackages, clearPackages } from './db.js';
 import {
@@ -66,6 +67,7 @@ const el = {
   toggleBuffers: document.getElementById('toggleBuffers'),
   toggleEmergencyPoints: document.getElementById('toggleEmergencyPoints'),
   toggleHikingRoutes: document.getElementById('toggleHikingRoutes'),
+  toggleCurrentLocation: document.getElementById('toggleCurrentLocation'),
 
   // メッセージ履歴
   messageList: document.getElementById('messageList'),
@@ -183,6 +185,14 @@ function bindEvents() {
   el.toggleBuffers.addEventListener('change', (e) => setBuffersVisible(e.target.checked));
   el.toggleEmergencyPoints.addEventListener('change', (e) => setEmergencyPointsVisible(e.target.checked));
   el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
+  el.toggleCurrentLocation.addEventListener('change', (e) => {
+    setCurrentLocationVisible(e.target.checked, {
+      onError: (msg) => {
+        setStatus(msg, 'error');
+        el.toggleCurrentLocation.checked = false;
+      }
+    });
+  });
 
   // マーカー設定: 規定値に戻す
   el.btnResetMarkerSettings.addEventListener('click', resetMarkerSettings);
@@ -237,12 +247,19 @@ function showView(name) {
     setBuffersVisible(el.toggleBuffers.checked);
     setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
     setHikingRoutesVisible(el.toggleHikingRoutes.checked);
+    setCurrentLocationVisible(el.toggleCurrentLocation.checked, {
+      onError: (msg) => {
+        setStatus(msg, 'error');
+        el.toggleCurrentLocation.checked = false;
+      }
+    });
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'home' || name === 'nav') {
     // ホーム/ナビ: 全オーバーレイを非表示にして地理院地図のみ表示
     setBuffersVisible(false);
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);
+    setCurrentLocationVisible(false);
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'messages') {
     renderMessageList();

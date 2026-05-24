@@ -261,3 +261,70 @@ function escapeHtml(s) {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
 }
+
+// ===== 現在地表示 =====
+// Geolocation API による現在地マーカー + 精度円。
+// 表示中は watchPosition で位置を追跡し、停止時は明示クリアする。
+let currentLocationMarker = null;
+let currentLocationCircle = null;
+let geoWatchId = null;
+
+export function setCurrentLocationVisible(visible, { onError } = {}) {
+  if (!mapInstance) return;
+  if (visible) {
+    if (!('geolocation' in navigator)) {
+      onError && onError('この端末は位置情報に対応していません');
+      return;
+    }
+    if (geoWatchId != null) return; // 既に追跡中
+    geoWatchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude, accuracy } = pos.coords;
+        const latlng = [latitude, longitude];
+        if (!currentLocationMarker) {
+          currentLocationMarker = L.circleMarker(latlng, {
+            radius: 7,
+            color: '#ffffff',
+            weight: 2,
+            fillColor: '#1d4ed8',
+            fillOpacity: 0.95
+          }).addTo(mapInstance);
+          currentLocationMarker.bindPopup('現在地');
+        } else {
+          currentLocationMarker.setLatLng(latlng);
+        }
+        if (Number.isFinite(accuracy)) {
+          if (!currentLocationCircle) {
+            currentLocationCircle = L.circle(latlng, {
+              radius: accuracy,
+              color: '#1d4ed8',
+              weight: 1,
+              fillColor: '#3b82f6',
+              fillOpacity: 0.12
+            }).addTo(mapInstance);
+          } else {
+            currentLocationCircle.setLatLng(latlng);
+            currentLocationCircle.setRadius(accuracy);
+          }
+        }
+      },
+      (err) => {
+        onError && onError(`位置情報の取得に失敗: ${err.message}`);
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    );
+  } else {
+    if (geoWatchId != null) {
+      navigator.geolocation.clearWatch(geoWatchId);
+      geoWatchId = null;
+    }
+    if (currentLocationMarker) {
+      mapInstance.removeLayer(currentLocationMarker);
+      currentLocationMarker = null;
+    }
+    if (currentLocationCircle) {
+      mapInstance.removeLayer(currentLocationCircle);
+      currentLocationCircle = null;
+    }
+  }
+}
