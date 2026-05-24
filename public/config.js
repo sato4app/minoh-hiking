@@ -7,10 +7,10 @@ export const MARKER_SETTINGS_KEY = 'minoh-hiking.marker-settings';
 
 // マーカー設定の対象種別と既定値
 export const MARKER_TYPES = [
-  { key: 'emergency', label: '緊急ポイント', color: '#00AA00', shape: 'circle', size: 7 },
-  { key: 'hikingRoute', label: 'ハイキングルート', color: '#FF8C00', shape: 'line', size: 3 },
+  { key: 'emergency', label: '緊急ポイント', color: '#00AA00', shape: 'circle', size: 12 },
+  { key: 'hikingRoute', label: 'ハイキングルート', color: '#007d00', shape: 'line', size: 3 },
   { key: 'routeGuide', label: 'ルート案内写真', color: '#2563EB', shape: 'square', size: 6 },
-  { key: 'spot', label: 'スポット', color: '#1E90FF', shape: 'circle', size: 5 },
+  { key: 'spot', label: 'スポット', color: '#1E90FF', shape: 'circle', size: 8 },
   { key: 'track', label: 'トラック', color: '#000080', shape: 'line', size: 4 },
   { key: 'photoLocation', label: '写真撮影場所', color: '#000080', shape: 'star', size: 6 }
 ];
