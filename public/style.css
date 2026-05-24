@@ -319,6 +319,28 @@ body.view-state-nav .leaflet-control-container {
   display: none;
 }
 
+.map-layer-panel .panel-divider {
+  border: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  margin: 0.4rem 0;
+}
+
+.map-layer-panel .panel-link {
+  display: block;
+  width: 100%;
+  padding: 0.4rem 0.2rem;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  font: inherit;
+  color: #1d4ed8;
+  cursor: pointer;
+}
+
+.map-layer-panel .panel-link:hover {
+  text-decoration: underline;
+}
+
 /* ===== プレースホルダビュー ===== */
 .view-placeholder {
   background: #fafafa;

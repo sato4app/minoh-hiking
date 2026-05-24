@@ -85,7 +85,12 @@ const el = {
 
   // 設定モーダル
   settingsModal: document.getElementById('settingsModal'),
+  settingsTitle: document.getElementById('settingsTitle'),
   markerSettingsList: document.getElementById('markerSettingsList'),
+
+  // マップ画面メニュー内の設定ショートカット
+  btnMapOpenMarkerSettings: document.getElementById('btnMapOpenMarkerSettings'),
+  btnMapOpenImageSettings: document.getElementById('btnMapOpenImageSettings'),
 
   // 更新バナー
   updateBanner: document.getElementById('updateBanner'),
@@ -166,6 +171,16 @@ function bindEvents() {
   el.toggleEmergencyPoints.addEventListener('change', (e) => setEmergencyPointsVisible(e.target.checked));
   el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
 
+  // マップ画面メニューから設定モーダルを直接開く(起動画面に戻る必要なし)
+  el.btnMapOpenMarkerSettings.addEventListener('click', () => {
+    el.mapLayerPanel.hidden = true;
+    openSettingsModal('marker');
+  });
+  el.btnMapOpenImageSettings.addEventListener('click', () => {
+    el.mapLayerPanel.hidden = true;
+    openSettingsModal('image');
+  });
+
   // メッセージ履歴
   el.btnClearMessages.addEventListener('click', clearMessageLog);
 
@@ -217,7 +232,17 @@ function openDownloadModal() {
   refreshStorageInfo();
 }
 
-function openSettingsModal() {
+// section を指定するとそのセクションのみ表示(未指定なら全セクション)
+function openSettingsModal(section) {
+  const sections = el.settingsModal.querySelectorAll('.settings-section');
+  for (const s of sections) {
+    s.hidden = section ? (s.dataset.section !== section) : false;
+  }
+  if (el.settingsTitle) {
+    if (section === 'marker') el.settingsTitle.textContent = 'マーカーの設定';
+    else if (section === 'image') el.settingsTitle.textContent = '画像解像度の設定';
+    else el.settingsTitle.textContent = '設定';
+  }
   el.settingsModal.hidden = false;
 }
 

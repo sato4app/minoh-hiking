@@ -71,6 +71,9 @@
         <input type="checkbox" id="toggleHikingRoutes" checked />
         <span>ハイキングコースを表示</span>
       </label>
+      <hr class="panel-divider" />
+      <button type="button" class="panel-link" id="btnMapOpenMarkerSettings">マーカーの設定</button>
+      <button type="button" class="panel-link" id="btnMapOpenImageSettings">画像解像度の設定</button>
     </div>
   </section>
 
@@ -164,12 +167,12 @@
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
       </header>
       <div class="modal-body">
-        <section class="settings-section">
+        <section class="settings-section" data-section="marker">
           <h3 class="settings-section-title">マーカーの設定</h3>
           <div class="marker-settings-list" id="markerSettingsList"></div>
         </section>
 
-        <section class="settings-section">
+        <section class="settings-section" data-section="image">
           <h3 class="settings-section-title">画像解像度の設定</h3>
           <p class="placeholder-message">この機能は準備中です。</p>
         </section>
