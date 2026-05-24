@@ -129,6 +129,9 @@ async function init() {
   updateOnlineIndicator();
   await refreshStorageInfo();
   evaluateManifestVersion();
+  // service-worker.js の SHELL_CACHE とキャッシュ済みバージョンを比較し
+  // 不一致なら confirm を出してアプリ全体を最新に更新
+  checkAppShellUpdate();
 
   // 共有地図を初期化(箕面大滝中心 / z=15、ホーム/マップで共通)
   initMap('map');
@@ -279,17 +282,84 @@ async function openVersionModal() {
   el.versionManifest.textContent = mv;
 
   // アプリシェルのキャッシュ名(service-worker.js の SHELL_CACHE)
-  let shell = '不明';
-  try {
-    if ('caches' in self) {
-      const keys = await caches.keys();
-      const found = keys.find((k) => k.startsWith('app-shell-'));
-      if (found) shell = found.replace(/^app-shell-/, '');
-    }
-  } catch { /* noop */ }
+  const shell = (await getCachedAppShellVersion()) || '不明';
   el.versionAppShell.textContent = shell;
 
   el.versionModal.hidden = false;
+
+  // モーダル表示のタイミングでも最新版チェックを実行
+  checkAppShellUpdate();
+}
+
+// キャッシュ済みアプリシェルのバージョン(app-shell-<ver> の <ver>)
+async function getCachedAppShellVersion() {
+  try {
+    if (!('caches' in self)) return null;
+    const keys = await caches.keys();
+    const found = keys.find((k) => k.startsWith('app-shell-'));
+    return found ? found.replace(/^app-shell-/, '') : null;
+  } catch {
+    return null;
+  }
+}
+
+// service-worker.js を取得し SHELL_CACHE のバージョンを抽出
+async function fetchServiceWorkerShellVersion() {
+  try {
+    const res = await fetch('service-worker.js', { cache: 'no-store' });
+    if (!res.ok) return null;
+    const text = await res.text();
+    const m = text.match(/SHELL_CACHE\s*=\s*['"]app-shell-([^'"]+)['"]/);
+    return m ? m[1] : null;
+  } catch {
+    return null;
+  }
+}
+
+let appShellUpdatePromptShown = false;
+async function checkAppShellUpdate() {
+  if (appShellUpdatePromptShown) return;
+  const [cached, latest] = await Promise.all([
+    getCachedAppShellVersion(),
+    fetchServiceWorkerShellVersion()
+  ]);
+  // 初回(キャッシュ無し)や取得失敗時は何もしない
+  if (!cached || !latest) return;
+  if (cached === latest) return;
+  appShellUpdatePromptShown = true;
+  const ok = confirm(
+    `アプリの新しいバージョンが利用可能です。\n` +
+    `現在: ${cached}\n` +
+    `最新: ${latest}\n\n` +
+    `アプリを最新の状態に更新しますか?(再読み込みされます)`
+  );
+  if (!ok) return;
+  await updateAppToLatest();
+}
+
+// アプリシェルキャッシュを破棄し、SW を更新して再読み込み
+async function updateAppToLatest() {
+  try {
+    // app-shell-* のみ削除(タイル gsi-* は保持)
+    if ('caches' in self) {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.filter((k) => k.startsWith('app-shell-')).map((k) => caches.delete(k))
+      );
+    }
+    if ('serviceWorker' in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg) {
+        await reg.update();
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('アプリ更新失敗:', err);
+  }
+  location.reload();
 }
 
 // section を指定するとそのセクションのみ表示(未指定なら全セクション)

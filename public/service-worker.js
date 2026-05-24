@@ -58,6 +58,13 @@ self.addEventListener('install', (event) => {
   );
 });
 
+// アプリからの SKIP_WAITING 要求で即座にアクティベート
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 // アクティベート: 旧シェルキャッシュのみ掃除。タイル(gsi-*)は保持。
 self.addEventListener('activate', (event) => {
   event.waitUntil(

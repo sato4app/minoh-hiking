@@ -307,6 +307,8 @@ export function setCurrentLocationVisible(visible, { onError } = {}) {
             currentLocationCircle.setRadius(accuracy);
           }
         }
+        // 現在地を画面中央に表示(トグル ON 中は追従)
+        mapInstance.panTo(latlng, { animate: true });
       },
       (err) => {
         onError && onError(`位置情報の取得に失敗: ${err.message}`);
