@@ -609,6 +609,16 @@ body.view-state-nav .leaflet-control-container {
   font-variant-numeric: tabular-nums;
 }
 
+/* バージョン情報モーダル: ラベルと値の間に余白を設ける */
+#versionModal .info-row {
+  justify-content: flex-start;
+}
+
+#versionModal .info-label {
+  margin-right: 1rem;
+  min-width: 10rem;
+}
+
 /* ===== ボタン共通 ===== */
 .button-group {
   display: flex;
