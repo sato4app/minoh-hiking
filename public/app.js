@@ -240,7 +240,7 @@ function openSettingsModal(section) {
   }
   if (el.settingsTitle) {
     if (section === 'marker') el.settingsTitle.textContent = 'マーカーの設定';
-    else if (section === 'image') el.settingsTitle.textContent = '画像解像度の設定';
+    else if (section === 'image') el.settingsTitle.textContent = '撮影画像の解像度の設定';
     else el.settingsTitle.textContent = '設定';
   }
   el.settingsModal.hidden = false;
