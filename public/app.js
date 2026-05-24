@@ -162,6 +162,11 @@ function bindEvents() {
     elem.addEventListener('click', () => {
       const modal = elem.closest('.modal');
       if (modal) modal.hidden = true;
+      // 設定モーダルを閉じた後、現在のビュー状態(マップ画面の戻る/メニュー
+      // ボタン等)を正規化して表示崩れを防ぐ
+      if (modal && modal.id === 'settingsModal' && currentView === 'map') {
+        showView('map');
+      }
     });
   }
   el.btnDownloadMap.addEventListener('click', onDownloadMap);
@@ -217,6 +222,13 @@ function showView(name) {
   document.body.classList.add(`view-state-${name}`);
 
   if (name === 'map') {
+    // マップビュー: 戻る/メニューボタンを確実に表示(モーダル閉じ後等の表示崩れ対策)
+    const mapView = el.views.map;
+    for (const btn of mapView.querySelectorAll('.btn-float')) {
+      btn.hidden = false;
+      btn.style.display = '';
+    }
+
     // マップビュー: 緊急ポイント・ハイキングコースを表示(トグル状態に従う)
     setBuffersVisible(el.toggleBuffers.checked);
     setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
