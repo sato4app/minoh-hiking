@@ -609,12 +609,13 @@ body.view-state-nav .leaflet-control-container {
   font-variant-numeric: tabular-nums;
 }
 
-/* バージョン情報モーダル: ラベルと値の間に余白を設ける */
+/* バージョン情報モーダル: ラベルの左に余白を広げる */
 #versionModal .info-row {
   justify-content: flex-start;
 }
 
 #versionModal .info-label {
+  padding-left: 1.5rem;
   margin-right: 1rem;
   min-width: 10rem;
 }
