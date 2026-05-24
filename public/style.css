@@ -609,14 +609,14 @@ body.view-state-nav .leaflet-control-container {
   font-variant-numeric: tabular-nums;
 }
 
-/* バージョン情報モーダル: ラベルの左に余白を広げる */
+/* バージョン情報モーダル: ラベルと値の間の余白を広げる */
 #versionModal .info-row {
   justify-content: flex-start;
 }
 
 #versionModal .info-label {
   padding-left: 1.5rem;
-  margin-right: 1rem;
+  margin-right: 2.5rem;
   min-width: 10rem;
 }
 
