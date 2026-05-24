@@ -341,6 +341,38 @@ body.view-state-nav .leaflet-control-container {
   text-decoration: underline;
 }
 
+.map-layer-panel .track-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.map-layer-panel .track-row .toggle {
+  flex: 1 1 auto;
+}
+
+.map-layer-panel .btn-track-toggle {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.8rem;
+  font: inherit;
+  border: 1px solid #1d4ed8;
+  background: #1d4ed8;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.map-layer-panel .btn-track-toggle:disabled {
+  background: #aaa;
+  border-color: #aaa;
+  cursor: not-allowed;
+}
+
+.map-layer-panel .btn-track-toggle.recording {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
 /* ===== プレースホルダビュー ===== */
 .view-placeholder {
   background: #fafafa;

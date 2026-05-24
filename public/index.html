@@ -71,10 +71,13 @@
         <input type="checkbox" id="toggleHikingRoutes" checked />
         <span>ハイキングコースを表示</span>
       </label>
-      <label class="toggle">
-        <input type="checkbox" id="toggleCurrentLocation" />
-        <span>現在地を画面中央に表示</span>
-      </label>
+      <div class="track-row">
+        <label class="toggle">
+          <input type="checkbox" id="toggleTrackRecording" />
+          <span>移動経路を記録</span>
+        </label>
+        <button type="button" class="btn-track-toggle" id="btnTrackToggle" disabled>開始</button>
+      </div>
       <hr class="panel-divider" />
       <button type="button" class="panel-link" id="btnMapOpenMarkerSettings">マーカーの設定</button>
       <button type="button" class="panel-link" id="btnMapOpenImageSettings">撮影画像の解像度の設定</button>

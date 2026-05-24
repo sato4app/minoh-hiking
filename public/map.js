@@ -262,12 +262,95 @@ function escapeHtml(s) {
   }[c]));
 }
 
-// ===== 現在地表示 =====
+// ===== 現在地表示 + 移動経路の記録 =====
 // Geolocation API による現在地マーカー + 精度円。
-// 表示中は watchPosition で位置を追跡し、停止時は明示クリアする。
+// 表示中(setCurrentLocationVisible(true))は watchPosition で位置を追跡し、
+// 停止時は明示クリアする。
+// 記録中(startTrackRecording 後)は、位置更新ごとに軌跡(ポリライン + 通過点マーカー)を追加する。
 let currentLocationMarker = null;
 let currentLocationCircle = null;
 let geoWatchId = null;
+
+// トラック(移動経路)
+// 「移動した」の判定: 直近の記録点から 20m 以上離れたか、1 分以上経過した場合に記録
+const TRACK_MIN_DISTANCE_M = 20;
+const TRACK_MIN_INTERVAL_MS = 60 * 1000;
+let isRecordingTrack = false;
+let trackPolyline = null;
+let trackPointMarkers = [];
+let trackStyle = null;
+let lastTrackLatLng = null;
+let lastTrackTimeMs = 0;
+
+export function setTrackStyle(style) {
+  trackStyle = style;
+  if (trackPolyline) {
+    trackPolyline.setStyle({
+      color: style?.color || '#000080',
+      weight: style?.size || 4
+    });
+  }
+}
+
+export function startTrackRecording() {
+  if (!mapInstance) return;
+  isRecordingTrack = true;
+  if (!trackPolyline) {
+    trackPolyline = L.polyline([], {
+      color: trackStyle?.color || '#000080',
+      weight: trackStyle?.size || 4,
+      opacity: 0.85
+    }).addTo(mapInstance);
+  }
+  // 既に現在地が取得済なら、最初の点として打つ(待たずに描画開始する)
+  if (currentLocationMarker) {
+    const ll = currentLocationMarker.getLatLng();
+    appendTrackPoint([ll.lat, ll.lng]);
+  }
+}
+
+// 移動判定: 直近の記録点から 20m 以上離れた、または 1 分以上経過していれば記録対象
+function shouldRecordTrackPoint(latlng, nowMs) {
+  if (!lastTrackLatLng) return true;
+  const distance = L.latLng(latlng).distanceTo(L.latLng(lastTrackLatLng));
+  if (distance >= TRACK_MIN_DISTANCE_M) return true;
+  if (nowMs - lastTrackTimeMs >= TRACK_MIN_INTERVAL_MS) return true;
+  return false;
+}
+
+export function stopTrackRecording() {
+  isRecordingTrack = false;
+}
+
+// トラック表示を全削除(トグル OFF 時に呼び出す)
+function clearTrack() {
+  isRecordingTrack = false;
+  if (trackPolyline) {
+    mapInstance.removeLayer(trackPolyline);
+    trackPolyline = null;
+  }
+  for (const m of trackPointMarkers) {
+    mapInstance.removeLayer(m);
+  }
+  trackPointMarkers = [];
+  lastTrackLatLng = null;
+  lastTrackTimeMs = 0;
+}
+
+function appendTrackPoint(latlng) {
+  if (!trackPolyline) return;
+  trackPolyline.addLatLng(latlng);
+  const dot = L.circleMarker(latlng, {
+    radius: Math.max(2, Math.round((trackStyle?.size || 4) * 0.6)),
+    color: trackStyle?.color || '#000080',
+    weight: 1,
+    fillColor: trackStyle?.color || '#000080',
+    fillOpacity: 0.9
+  }).addTo(mapInstance);
+  trackPointMarkers.push(dot);
+  lastTrackLatLng = Array.isArray(latlng) ? [latlng[0], latlng[1]] : [latlng.lat, latlng.lng];
+  lastTrackTimeMs = Date.now();
+}
 
 export function setCurrentLocationVisible(visible, { onError } = {}) {
   if (!mapInstance) return;
@@ -307,8 +390,10 @@ export function setCurrentLocationVisible(visible, { onError } = {}) {
             currentLocationCircle.setRadius(accuracy);
           }
         }
-        // 現在地を画面中央に表示(トグル ON 中は追従)
-        mapInstance.panTo(latlng, { animate: true });
+        // 記録中: 直近の記録点から 20m 以上移動、または 1 分以上経過した場合のみ追加
+        if (isRecordingTrack && shouldRecordTrackPoint(latlng, Date.now())) {
+          appendTrackPoint(latlng);
+        }
       },
       (err) => {
         onError && onError(`位置情報の取得に失敗: ${err.message}`);
@@ -328,5 +413,7 @@ export function setCurrentLocationVisible(visible, { onError } = {}) {
       mapInstance.removeLayer(currentLocationCircle);
       currentLocationCircle = null;
     }
+    // トグル OFF 時は記録済の移動経路も消す
+    clearTrack();
   }
 }

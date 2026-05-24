@@ -9,7 +9,8 @@ import {
   loadBuffersLayer, setBuffersVisible,
   loadEmergencyPointsLayer, setEmergencyPointsVisible, setEmergencyStyle,
   loadHikingRoutesLayer, setHikingRoutesVisible, setHikingRouteStyle, setHikingSpotStyle,
-  setCurrentLocationVisible
+  setCurrentLocationVisible,
+  setTrackStyle, startTrackRecording, stopTrackRecording
 } from './map.js';
 import { savePackage, listPackages, clearPackages } from './db.js';
 import {
@@ -67,7 +68,8 @@ const el = {
   toggleBuffers: document.getElementById('toggleBuffers'),
   toggleEmergencyPoints: document.getElementById('toggleEmergencyPoints'),
   toggleHikingRoutes: document.getElementById('toggleHikingRoutes'),
-  toggleCurrentLocation: document.getElementById('toggleCurrentLocation'),
+  toggleTrackRecording: document.getElementById('toggleTrackRecording'),
+  btnTrackToggle: document.getElementById('btnTrackToggle'),
 
   // メッセージ履歴
   messageList: document.getElementById('messageList'),
@@ -147,6 +149,7 @@ async function init() {
   loadHikingRoutesLayer(HIKING_ROUTES_URL, markerSettings.hikingRoute, markerSettings.spot).then(() => {
     if (currentView === 'map') setHikingRoutesVisible(el.toggleHikingRoutes.checked);
   });
+  setTrackStyle(markerSettings.track);
 
   // 初期表示はホーム(オーバーレイは非表示のまま)
   showView('home');
@@ -197,13 +200,35 @@ function bindEvents() {
   el.toggleBuffers.addEventListener('change', (e) => setBuffersVisible(e.target.checked));
   el.toggleEmergencyPoints.addEventListener('change', (e) => setEmergencyPointsVisible(e.target.checked));
   el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
-  el.toggleCurrentLocation.addEventListener('change', (e) => {
-    setCurrentLocationVisible(e.target.checked, {
+  el.toggleTrackRecording.addEventListener('change', (e) => {
+    const on = e.target.checked;
+    setCurrentLocationVisible(on, {
       onError: (msg) => {
         setStatus(msg, 'error');
-        el.toggleCurrentLocation.checked = false;
+        el.toggleTrackRecording.checked = false;
+        updateTrackButtonState(false);
       }
     });
+    if (!on) {
+      // OFF: 記録中だった場合も停止し、ボタンを「開始」(無効)に戻す
+      stopTrackRecording();
+    }
+    updateTrackButtonState(on);
+  });
+
+  // 開始/停止ボタン: トグル ON のときのみ操作可
+  el.btnTrackToggle.addEventListener('click', () => {
+    if (!el.toggleTrackRecording.checked) return;
+    const isRecording = el.btnTrackToggle.classList.contains('recording');
+    if (isRecording) {
+      stopTrackRecording();
+      el.btnTrackToggle.textContent = '開始';
+      el.btnTrackToggle.classList.remove('recording');
+    } else {
+      startTrackRecording();
+      el.btnTrackToggle.textContent = '停止';
+      el.btnTrackToggle.classList.add('recording');
+    }
   });
 
   // マーカー設定: 規定値に戻す
@@ -259,10 +284,11 @@ function showView(name) {
     setBuffersVisible(el.toggleBuffers.checked);
     setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
     setHikingRoutesVisible(el.toggleHikingRoutes.checked);
-    setCurrentLocationVisible(el.toggleCurrentLocation.checked, {
+    setCurrentLocationVisible(el.toggleTrackRecording.checked, {
       onError: (msg) => {
         setStatus(msg, 'error');
-        el.toggleCurrentLocation.checked = false;
+        el.toggleTrackRecording.checked = false;
+        updateTrackButtonState(false);
       }
     });
     requestAnimationFrame(() => resizeMap());
@@ -272,6 +298,8 @@ function showView(name) {
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);
     setCurrentLocationVisible(false);
+    stopTrackRecording();
+    updateTrackButtonState(false);
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'messages') {
     renderMessageList();
@@ -485,7 +513,17 @@ function applyMarkerSettingToMap(key, style) {
   if (key === 'emergency') setEmergencyStyle(style);
   else if (key === 'hikingRoute') setHikingRouteStyle(style);
   else if (key === 'spot') setHikingSpotStyle(style);
-  // routeGuide / track / photoLocation はレイヤー未実装のため反映先なし
+  else if (key === 'track') setTrackStyle(style);
+  // routeGuide / photoLocation はレイヤー未実装のため反映先なし
+}
+
+// 移動経路ボタンの表示制御: トグル ON で操作可、OFF で「開始」状態に戻す
+function updateTrackButtonState(enabled) {
+  el.btnTrackToggle.disabled = !enabled;
+  if (!enabled) {
+    el.btnTrackToggle.textContent = '開始';
+    el.btnTrackToggle.classList.remove('recording');
+  }
 }
 
 // 規定値に戻す: config.js の MARKER_TYPES の値で localStorage を上書きし、
