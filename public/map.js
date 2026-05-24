@@ -6,8 +6,9 @@ const GSI_TILE_URL = 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png';
 const GSI_ATTRIBUTION =
   '<a href="https://maps.gsi.go.jp/development/ichiran.html" target="_blank" rel="noopener">国土地理院</a>';
 
-// 起動時の中心は箕面大滝、z=15(ホーム/マップビュー共通の単一マップ)
-const INITIAL_CENTER = [34.853667, 135.472041];
+// 起動時の中心は箕面ビジターセンター、z=15(ホーム/マップビュー共通の単一マップ)
+const INITIAL_CENTER = [34.85839, 135.4788];
+
 const INITIAL_ZOOM = 15;
 const MIN_ZOOM = 10;
 const MAX_ZOOM = 18;
