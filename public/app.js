@@ -185,6 +185,15 @@ function bindEvents() {
   el.btnMapLayers.addEventListener('click', () => {
     el.mapLayerPanel.hidden = !el.mapLayerPanel.hidden;
   });
+  // 地図部分(#map)クリックでメニューを閉じる(マップ画面でメニュー表示中のみ)
+  const mapEl = document.getElementById('map');
+  if (mapEl) {
+    mapEl.addEventListener('click', () => {
+      if (currentView === 'map' && !el.mapLayerPanel.hidden) {
+        el.mapLayerPanel.hidden = true;
+      }
+    });
+  }
   el.toggleBuffers.addEventListener('change', (e) => setBuffersVisible(e.target.checked));
   el.toggleEmergencyPoints.addEventListener('change', (e) => setEmergencyPointsVisible(e.target.checked));
   el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
