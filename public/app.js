@@ -55,6 +55,11 @@ const el = {
   btnOpenDownload: document.getElementById('btnOpenDownload'),
   btnOpenSettings: document.getElementById('btnOpenSettings'),
 
+  // バージョン情報モーダル
+  versionModal: document.getElementById('versionModal'),
+  versionManifest: document.getElementById('versionManifest'),
+  versionAppShell: document.getElementById('versionAppShell'),
+
   // マップ
   btnMapLayers: document.getElementById('btnMapLayers'),
   mapLayerPanel: document.getElementById('mapLayerPanel'),
@@ -148,7 +153,9 @@ function bindEvents() {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
   el.btnOpenDownload.addEventListener('click', openDownloadModal);
-  el.btnOpenSettings.addEventListener('click', openSettingsModal);
+  // 起動画面の「設定」ボタンはバージョン情報を表示
+  // (マーカー/画像解像度の設定はハイキングマップ画面のメニュー(≡)から開く)
+  el.btnOpenSettings.addEventListener('click', openVersionModal);
 
   // モーダル閉じる(各モーダル内の [data-close-modal] が、その親モーダルを閉じる)
   for (const elem of document.querySelectorAll('[data-close-modal]')) {
@@ -230,6 +237,26 @@ function showView(name) {
 function openDownloadModal() {
   el.downloadModal.hidden = false;
   refreshStorageInfo();
+}
+
+// バージョン情報モーダル(起動画面の「設定」から表示)
+async function openVersionModal() {
+  // タイルマニフェストの version
+  const mv = (manifest && manifest.version != null) ? String(manifest.version) : '不明';
+  el.versionManifest.textContent = mv;
+
+  // アプリシェルのキャッシュ名(service-worker.js の SHELL_CACHE)
+  let shell = '不明';
+  try {
+    if ('caches' in self) {
+      const keys = await caches.keys();
+      const found = keys.find((k) => k.startsWith('app-shell-'));
+      if (found) shell = found.replace(/^app-shell-/, '');
+    }
+  } catch { /* noop */ }
+  el.versionAppShell.textContent = shell;
+
+  el.versionModal.hidden = false;
 }
 
 // section を指定するとそのセクションのみ表示(未指定なら全セクション)

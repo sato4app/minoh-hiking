@@ -158,6 +158,31 @@
     </div>
   </div>
 
+  <!-- バージョン情報モーダル(起動画面の「設定」から表示) -->
+  <div class="modal" id="versionModal" hidden role="dialog" aria-modal="true" aria-labelledby="versionTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="versionTitle">バージョン情報</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
+      </header>
+      <div class="modal-body">
+        <div class="info-row">
+          <span class="info-label">アプリ名:</span>
+          <span class="info-value">箕面ハイキング</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">タイルマニフェスト:</span>
+          <span class="info-value" id="versionManifest">-</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">アプリシェル:</span>
+          <span class="info-value" id="versionAppShell">-</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 設定モーダル(マーカー / 画像解像度) -->
   <div class="modal" id="settingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
