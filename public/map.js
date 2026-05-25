@@ -51,10 +51,23 @@ export function initMap(containerId) {
   L.control.attribution({ position: 'bottomright' }).addTo(map);
   L.control.scale({ position: 'bottomright', metric: true, imperial: false, maxWidth: 150 }).addTo(map);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
+  // ズームレベル表示はズームボタンと同じ「行」に置く(CSSで clear:none)
+  new ZoomDisplayControl({ position: 'bottomright' }).addTo(map);
 
   mapInstance = map;
   return map;
 }
+
+// ===== 現在のズームレベル表示(ズームボタンの左に配置) =====
+const ZoomDisplayControl = L.Control.extend({
+  onAdd(map) {
+    const div = L.DomUtil.create('div', 'zoom-display');
+    const update = () => { div.textContent = `z=${map.getZoom()}`; };
+    update();
+    map.on('zoomend', update);
+    return div;
+  }
+});
 
 // ビュー表示直後に呼んでサイズを再計算する(hidden→visible 切替で必須)
 export function resizeMap() {

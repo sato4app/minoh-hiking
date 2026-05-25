@@ -299,6 +299,20 @@ body {
   display: none;
 }
 
+/* 現在ズームレベル表示: ズームボタンと同じ行に並べる(右寄せの float 内で clear:none にすることで左隣に配置) */
+.leaflet-right .zoom-display {
+  clear: none;
+  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  background-clip: padding-box;
+  line-height: 1.2;
+}
+
 body.view-state-map .leaflet-control-container,
 body.view-state-nav .leaflet-control-container {
   display: block;
