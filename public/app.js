@@ -644,10 +644,11 @@ async function getCachedTileUrlSet() {
 
 // ===== 設定モーダル: ダウンロード =====
 async function onDownloadMap() {
-  // トグル: Off → z17_default のみ、On → z17_default + z18_optional
+  // トグル: Off → z14〜17(基本)、On → z14〜18(詳細含む)
+  const baseKeys = ['z14_default', 'z15_default', 'z16_default', 'z17_default'];
   const layerKeys = el.toggleDetail.checked
-    ? ['z17_default', 'z18_optional']
-    : ['z17_default'];
+    ? [...baseKeys, 'z18_optional']
+    : baseKeys;
   await startDownload(layerKeys);
 }
 
