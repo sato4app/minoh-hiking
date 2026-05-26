@@ -12,7 +12,7 @@ import {
   setCurrentLocationVisible,
   setTrackStyle, startTrackRecording, stopTrackRecording
 } from './map.js';
-import { savePackage, listPackages, clearPackages } from './db.js';
+import { savePackage, listPackages, clearPackages, deletePackage } from './db.js';
 import {
   MARKER_SETTINGS_KEY,
   MARKER_TYPES,
@@ -121,6 +121,7 @@ async function init() {
   renderMarkerSettings();
   renderMessageList();
   updateOnlineIndicator();
+  await migrateLegacyPackages();
   await refreshStorageInfo();
   evaluateManifestVersion();
   // service-worker.js の SHELL_CACHE とキャッシュ済みバージョンを比較し
@@ -663,12 +664,16 @@ async function startDownload(layerKeys) {
     setStatus(`中断しました(${result.completed}/${result.total} 完了, 失敗 ${result.failed.length})`, 'warning');
     evaluateManifestVersion();
   } else {
+    // packageId は「バージョン + レイヤー」で決定的にする。
+    // 同じバージョンで同レイヤーを再ダウンロードしても upsert になり、履歴が重複しない。
+    const version = manifest.version != null ? String(manifest.version) : 'unknown';
     for (const key of layerKeys) {
       const layer = manifest.layers[key];
       if (!layer) continue;
       const layerFailed = result.failed.filter(([z]) => z === layer.z);
       await savePackage({
-        packageId: `${key}-${Date.now()}`,
+        packageId: `${version}-${key}`,
+        version,
         layerKey: key,
         downloadedAt: new Date().toISOString(),
         tileCount: layer.tile_count,
@@ -877,6 +882,37 @@ async function onClearCache() {
     await refreshStorageInfo();
   } catch (err) {
     setStatus(`削除失敗: ${err.message}`, 'error');
+  }
+}
+
+// 旧形式の packageId(layerKey-timestamp)を一度きり整理する。
+// 同一バージョン×同レイヤーで複数行できないように、最新の downloadedAt を残して残りを削除。
+async function migrateLegacyPackages() {
+  try {
+    const records = await listPackages();
+    if (records.length === 0) return;
+
+    // 旧形式: packageId が "...-<13桁以上のタイムスタンプ>" で終わる
+    const legacyRe = /-\d{13,}$/;
+
+    // 「layerKey ごとに最新の 1 件を残し、旧形式の残りを削除」
+    const byLayer = new Map();
+    for (const r of records) {
+      if (!r || !r.layerKey) continue;
+      if (!byLayer.has(r.layerKey)) byLayer.set(r.layerKey, []);
+      byLayer.get(r.layerKey).push(r);
+    }
+    for (const list of byLayer.values()) {
+      list.sort((a, b) => String(b.downloadedAt).localeCompare(String(a.downloadedAt)));
+      // 先頭(最新)以外で旧形式のものは削除
+      for (let i = 1; i < list.length; i++) {
+        if (legacyRe.test(list[i].packageId)) {
+          await deletePackage(list[i].packageId);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('旧ダウンロード履歴の整理に失敗:', err);
   }
 }
 

@@ -57,3 +57,14 @@ export async function clearPackages() {
     tx.onerror = () => reject(tx.error);
   });
 }
+
+// 指定 packageId のパッケージを削除
+export async function deletePackage(packageId) {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete(packageId);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}

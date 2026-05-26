@@ -655,6 +655,13 @@ body.view-state-nav .leaflet-control-container {
   color: #666;
 }
 
+/* メインラベルに添える内部用語の補足表示(例: 「地図バージョン (タイルマニフェスト)」) */
+.info-sublabel {
+  color: #999;
+  font-size: 0.8em;
+  margin-left: 0.25rem;
+}
+
 .info-value {
   font-weight: 600;
   color: #222;
