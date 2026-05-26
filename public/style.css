@@ -299,9 +299,8 @@ body {
   display: none;
 }
 
-/* 現在ズームレベル表示: ズームボタンと同じ行に並べる(右寄せの float 内で clear:none にすることで左隣に配置) */
+/* 現在ズームレベル表示: スケールとズームボタンの間(独立した行)に配置 */
 .leaflet-right .zoom-display {
-  clear: none;
   background: rgba(255, 255, 255, 0.92);
   border: 2px solid rgba(0, 0, 0, 0.2);
   border-radius: 4px;
@@ -311,6 +310,7 @@ body {
   color: #333;
   background-clip: padding-box;
   line-height: 1.2;
+  text-align: center;
 }
 
 body.view-state-map .leaflet-control-container,
@@ -678,6 +678,15 @@ body.view-state-nav .leaflet-control-container {
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
+}
+
+/* 横並びボタン: 2 つを等幅に並べる(ダウンロード/クリア等) */
+.button-group-row {
+  flex-direction: row;
+}
+
+.button-group-row > .btn {
+  flex: 1 1 0;
 }
 
 .btn {

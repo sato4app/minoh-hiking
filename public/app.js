@@ -39,7 +39,6 @@ const MESSAGE_LOG_MAX = 100;
 // ===== 状態 =====
 let manifest = null;
 let downloadController = null;
-let isPaused = false;
 let isDownloading = false;
 let currentView = 'home';
 
@@ -80,17 +79,10 @@ const el = {
   downloadModal: document.getElementById('downloadModal'),
   toggleDetail: document.getElementById('toggleDetail'),
   btnDownloadMap: document.getElementById('btnDownloadMap'),
-  btnPause: document.getElementById('btnPause'),
-  btnResume: document.getElementById('btnResume'),
-  btnAbort: document.getElementById('btnAbort'),
   btnClearCache: document.getElementById('btnClearCache'),
-  progressArea: document.getElementById('progressArea'),
-  progressFill: document.getElementById('progressFill'),
-  progressText: document.getElementById('progressText'),
   statusMessage: document.getElementById('statusMessage'),
-  cachedTileCount: document.getElementById('cachedTileCount'),
-  estimatedSize: document.getElementById('estimatedSize'),
-  measuredSize: document.getElementById('measuredSize'),
+  downloadedVersion: document.getElementById('downloadedVersion'),
+  downloadedSizeMB: document.getElementById('downloadedSizeMB'),
 
   // 設定モーダル
   settingsModal: document.getElementById('settingsModal'),
@@ -179,9 +171,6 @@ function bindEvents() {
     });
   }
   el.btnDownloadMap.addEventListener('click', onDownloadMap);
-  el.btnPause.addEventListener('click', pauseDownload);
-  el.btnResume.addEventListener('click', resumeDownload);
-  el.btnAbort.addEventListener('click', abortDownload);
   el.btnClearCache.addEventListener('click', onClearCache);
 
   // マップ表示設定
@@ -642,7 +631,7 @@ async function getCachedTileUrlSet() {
   return set;
 }
 
-// ===== 設定モーダル: ダウンロード =====
+// ===== ダウンロードモーダル: ダウンロード =====
 async function onDownloadMap() {
   // トグル: Off → z14〜17(基本)、On → z14〜18(詳細含む)
   const baseKeys = ['z14_default', 'z15_default', 'z16_default', 'z17_default'];
@@ -765,16 +754,10 @@ async function runJobs(jobs, { overwrite = false } = {}) {
   }
 
   isDownloading = true;
-  isPaused = false;
   downloadController = new AbortController();
 
   setDownloadButtonsDisabled(true);
-  el.btnPause.hidden = false;
-  el.btnAbort.hidden = false;
-  el.btnResume.hidden = true;
-  el.progressArea.hidden = false;
 
-  const startedAt = Date.now();
   let completed = 0;
   const failed = [];
   const queueIndex = { i: 0 };
@@ -797,10 +780,6 @@ async function runJobs(jobs, { overwrite = false } = {}) {
   async function worker() {
     while (true) {
       if (downloadController.signal.aborted) return;
-      while (isPaused && !downloadController.signal.aborted) {
-        await sleep(300);
-      }
-      if (downloadController.signal.aborted) return;
 
       const i = queueIndex.i++;
       if (i >= jobs.length) return;
@@ -816,7 +795,9 @@ async function runJobs(jobs, { overwrite = false } = {}) {
       }
       if (!ok) failed.push([job.z, job.x, job.y]);
       completed++;
-      updateProgress(completed, jobs.length, failed.length, startedAt);
+      if (completed === 1 || completed % 50 === 0 || completed === jobs.length) {
+        setStatus(`ダウンロード中... ${completed} / ${jobs.length}`, '');
+      }
     }
   }
 
@@ -826,9 +807,6 @@ async function runJobs(jobs, { overwrite = false } = {}) {
   const aborted = downloadController.signal.aborted;
   isDownloading = false;
   setDownloadButtonsDisabled(false);
-  el.btnPause.hidden = true;
-  el.btnResume.hidden = true;
-  el.btnAbort.hidden = true;
 
   return { aborted, completed, failed, total: jobs.length };
 }
@@ -857,41 +835,15 @@ async function fetchAndCacheTile(cache, url, signal) {
   return false;
 }
 
-function pauseDownload() {
-  if (!isDownloading) return;
-  isPaused = true;
-  el.btnPause.hidden = true;
-  el.btnResume.hidden = false;
-  setStatus('一時停止中', 'warning');
-}
-
-function resumeDownload() {
-  if (!isDownloading) return;
-  isPaused = false;
-  el.btnPause.hidden = false;
-  el.btnResume.hidden = true;
-  setStatus('再開しました', '');
-}
-
-function abortDownload() {
-  if (!isDownloading || !downloadController) return;
-  downloadController.abort();
-  isPaused = false;
-}
-
 // ===== オンライン/オフライン =====
 function handleOnline() {
   updateOnlineIndicator();
-  if (isDownloading && isPaused) {
-    setStatus('オンラインに復帰しました。再開ボタンを押してください', 'warning');
-  }
 }
 
 function handleOffline() {
   updateOnlineIndicator();
-  if (isDownloading && !isPaused) {
-    pauseDownload();
-    setStatus('ネットワーク切断のため一時停止しました', 'warning');
+  if (isDownloading) {
+    setStatus('ネットワーク切断: ダウンロードが失敗する可能性があります', 'warning');
   }
 }
 
@@ -929,7 +881,14 @@ async function onClearCache() {
 }
 
 // ===== ストレージ情報 =====
+// ダウンロード済みバージョンと、キャッシュ済タイルの推定サイズ(MB)を表示する。
+// 実測サイズ(navigator.storage.estimate)が取れる場合はそちらを優先。
 async function refreshStorageInfo() {
+  // ダウンロード済みバージョン(未ダウンロードなら "-")
+  const savedVersion = getSavedManifestVersion();
+  el.downloadedVersion.textContent = savedVersion || '-';
+
+  // タイル枚数を集計
   let tileCount = 0;
   try {
     for (const name of await listTileCacheNames()) {
@@ -940,39 +899,22 @@ async function refreshStorageInfo() {
   } catch {
     tileCount = 0;
   }
-  el.cachedTileCount.textContent = `${tileCount.toLocaleString()} 枚`;
 
-  const estimatedKB = tileCount * AVG_TILE_KB;
-  el.estimatedSize.textContent = formatSize(estimatedKB * 1024);
-
+  // 実測が取れればそれを、無ければ平均タイルサイズから推定
+  let bytes = null;
   if (navigator.storage && navigator.storage.estimate) {
     try {
       const est = await navigator.storage.estimate();
-      el.measuredSize.textContent = `${formatSize(est.usage)} / ${formatSize(est.quota)}`;
+      if (Number.isFinite(est.usage)) bytes = est.usage;
       if (est.quota && est.usage / est.quota > 0.9) {
         setStatus('ストレージ残量が少なくなっています', 'warning');
       }
-    } catch {
-      el.measuredSize.textContent = '取得不可';
-    }
-  } else {
-    el.measuredSize.textContent = '非対応';
+    } catch { /* noop */ }
   }
-}
+  if (bytes == null) bytes = tileCount * AVG_TILE_KB * 1024;
 
-// ===== 進捗表示 =====
-function updateProgress(completed, total, failedCount, startedAt) {
-  const ratio = completed / total;
-  el.progressFill.style.width = `${(ratio * 100).toFixed(1)}%`;
-
-  const elapsed = (Date.now() - startedAt) / 1000;
-  const rate = completed / Math.max(elapsed, 0.001);
-  const remaining = (total - completed) / Math.max(rate, 0.001);
-
-  const failedText = failedCount > 0 ? ` / 失敗 ${failedCount}` : '';
-  el.progressText.textContent =
-    `${completed.toLocaleString()} / ${total.toLocaleString()} ` +
-    `(${(ratio * 100).toFixed(1)}%${failedText}) ・ 残り ${formatDuration(remaining)}`;
+  el.downloadedSizeMB.textContent =
+    tileCount > 0 ? (bytes / (1024 * 1024)).toFixed(1) : '0';
 }
 
 // ===== ステータス + メッセージ履歴 =====
@@ -1053,22 +995,6 @@ function setDownloadButtonsDisabled(disabled) {
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
-}
-
-function formatSize(bytes) {
-  if (bytes == null || isNaN(bytes)) return '-';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
-  if (bytes < 1024 ** 3) return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
-  return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
-}
-
-function formatDuration(seconds) {
-  if (!isFinite(seconds) || seconds <= 0) return '計算中';
-  if (seconds < 60) return `${Math.ceil(seconds)}秒`;
-  const m = Math.floor(seconds / 60);
-  const s = Math.ceil(seconds % 60);
-  return `${m}分${s}秒`;
 }
 
 // 起動

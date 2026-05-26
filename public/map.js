@@ -47,12 +47,11 @@ export function initMap(containerId) {
   }).addTo(map);
 
   // bottomright は後から追加したものほど上に積まれる。
-  // 期待する並び(上から): zoom → scale → attribution なので、逆順に追加する。
+  // 期待する並び(上から): zoom → zoom-display → scale → attribution なので、逆順に追加する。
   L.control.attribution({ position: 'bottomright' }).addTo(map);
   L.control.scale({ position: 'bottomright', metric: true, imperial: false, maxWidth: 150 }).addTo(map);
-  L.control.zoom({ position: 'bottomright' }).addTo(map);
-  // ズームレベル表示はズームボタンと同じ「行」に置く(CSSで clear:none)
   new ZoomDisplayControl({ position: 'bottomright' }).addTo(map);
+  L.control.zoom({ position: 'bottomright' }).addTo(map);
 
   mapInstance = map;
   return map;

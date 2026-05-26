@@ -40,11 +40,11 @@
 
   <!-- 初期画面(ホーム) -->
   <section class="view view-home" id="viewHome">
-    <img class="home-image" src="icons/Startup-512x875.png" alt="" aria-hidden="true" />
+    <img class="home-image" src="icons/Startup-512x918.png" alt="" aria-hidden="true" />
     <nav class="home-menu" aria-label="メインメニュー">
       <button type="button" class="home-btn" data-view="map">ハイキングマップ表示</button>
       <button type="button" class="home-btn" data-view="nav">ハイキングコースの案内・ナビ</button>
-      <button type="button" class="home-btn" id="btnOpenDownload">地図のダウンロード(オフライン用)</button>
+      <button type="button" class="home-btn" id="btnOpenDownload">地図のダウンロード（オフライン用）</button>
       <button type="button" class="home-btn" data-view="messages">メッセージの履歴表示</button>
       <button type="button" class="home-btn" id="btnOpenSettings">バージョン情報</button>
     </nav>
@@ -117,47 +117,31 @@
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="downloadTitle">オフライン地図ダウンロード</h2>
+        <h2 id="downloadTitle">地図のダウンロード（オフライン用）</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
       </header>
       <div class="modal-body">
+        <div class="storage-info">
+          <div class="info-row">
+            <span class="info-label">ダウンロード済み地図バージョン:</span>
+            <span class="info-value" id="downloadedVersion">-</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">ファイルサイズ(MB):</span>
+            <span class="info-value" id="downloadedSizeMB">-</span>
+          </div>
+        </div>
+
         <label class="toggle toggle-row">
-          <input type="checkbox" id="toggleDetail" />
+          <input type="checkbox" id="toggleDetail" checked />
           <span class="toggle-label">
-            <span class="toggle-title">詳細データをダウンロード</span>
-            <span class="toggle-detail" id="toggleDetailHint">Off:z=14〜17、On:z=14〜18</span>
+            <span class="toggle-title">詳細地図(z=18)を含む</span>
           </span>
         </label>
 
-        <div class="storage-info">
-          <div class="info-row">
-            <span class="info-label">キャッシュ済タイル:</span>
-            <span class="info-value" id="cachedTileCount">-</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">推定使用容量:</span>
-            <span class="info-value" id="estimatedSize">-</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">実測使用容量:</span>
-            <span class="info-value" id="measuredSize">-</span>
-          </div>
-        </div>
-
-        <div class="button-group">
-          <button type="button" id="btnDownloadMap" class="btn btn-primary">オフライン用地図データをダウンロード</button>
-          <button type="button" id="btnPause" class="btn btn-warning" hidden>一時停止</button>
-          <button type="button" id="btnResume" class="btn btn-warning" hidden>再開</button>
-          <button type="button" id="btnAbort" class="btn btn-warning" hidden>中断</button>
-          <button type="button" id="btnClearCache" class="btn btn-danger">ダウンロードした地図データをクリア</button>
-          <button type="button" class="btn btn-secondary" data-view="messages" data-close-modal>メッセージ履歴を表示</button>
-        </div>
-
-        <div class="progress-area" id="progressArea" hidden>
-          <div class="progress-bar">
-            <div class="progress-fill" id="progressFill"></div>
-          </div>
-          <div class="progress-text" id="progressText">準備中...</div>
+        <div class="button-group button-group-row">
+          <button type="button" id="btnDownloadMap" class="btn btn-primary">ダウンロード</button>
+          <button type="button" id="btnClearCache" class="btn btn-danger">クリア</button>
         </div>
 
         <div class="status-message" id="statusMessage" role="status" aria-live="polite"></div>

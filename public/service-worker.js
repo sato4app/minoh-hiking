@@ -7,7 +7,7 @@
 // タイルはキャッシュ優先(あれば返す、無ければネット取得・自動キャッシュしない)。
 // 全 gsi-* キャッシュを横断検索するため、version 変更後も旧タイルは引き続き利用可能。
 
-const SHELL_CACHE = 'app-shell-2026-05-25.2';
+const SHELL_CACHE = 'app-shell-2026-05-26.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 同一オリジンの相対パス
