@@ -135,6 +135,9 @@ export async function loadEmergencyPointsLayer(url, style) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     emergencyGeoJSON = await res.json();
     emergencyLayer = buildEmergencyLayer();
+    // ルート端点(開始/終了ポイント)の多くは緊急ポイント。
+    // ハイキング層が先に構築済みなら、端点座標を反映するため再構築する。
+    rebuildHikingLayer();
     return emergencyLayer;
   } catch (err) {
     console.warn('緊急ポイントGeoJSON読込失敗:', err);
@@ -187,8 +190,48 @@ export async function loadHikingRoutesLayer(url, routeStyle, spotStyle) {
   }
 }
 
+// 開始/終了ポイントの座標索引を id から構築(緊急ポイント優先、無ければハイキングスポット)
+function buildEndpointIndex() {
+  const index = new Map();
+  const add = (gj) => {
+    if (!gj) return;
+    for (const f of gj.features) {
+      const g = f.geometry;
+      if (!g || g.type !== 'Point') continue;
+      const id = f.properties?.id ?? f.properties?.pointId;
+      if (id != null && !index.has(id)) index.set(id, g.coordinates);
+    }
+  };
+  add(emergencyGeoJSON);
+  add(hikingGeoJSON);
+  return index;
+}
+
+function sameCoord(a, b) {
+  return !!a && !!b && a[0] === b[0] && a[1] === b[1];
+}
+
+// ルート線を「開始ポイント → 中間点 → 終了ポイント」で結ぶため、
+// LineString の先頭に開始ポイント、末尾に終了ポイントの座標を補う。
+// 元データは変更せず、表示用に座標を拡張したコピーを返す。
+function withRouteEndpoints(gj, index) {
+  if (!gj) return gj;
+  const features = gj.features.map((f) => {
+    if (f.properties?.type !== 'route' || f.geometry?.type !== 'LineString') return f;
+    const coords = f.geometry.coordinates.slice();
+    const start = index.get(f.properties.startPoint);
+    const end = index.get(f.properties.endPoint);
+    if (start && !sameCoord(start, coords[0])) coords.unshift(start);
+    if (end && !sameCoord(end, coords[coords.length - 1])) coords.push(end);
+    return { ...f, geometry: { ...f.geometry, coordinates: coords } };
+  });
+  return { ...gj, features };
+}
+
 function buildHikingLayer() {
-  return L.geoJSON(hikingGeoJSON, {
+  // ルートに開始/終了ポイントを補ったコピーを描画(緊急ポイント未読込時は中間点のみ)
+  const data = withRouteEndpoints(hikingGeoJSON, buildEndpointIndex());
+  return L.geoJSON(data, {
     style: () => ({
       color: hikingRouteStyle?.color || '#ea580c',
       weight: hikingRouteStyle?.size || 3,
