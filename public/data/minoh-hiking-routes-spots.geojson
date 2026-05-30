@@ -1,9 +1,3012 @@
 {
   "type": "FeatureCollection",
-  "updated": "2026-03-18",
-  "routeCunt": 221,
-  "spotCount": 206,
   "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-01",
+        "name": "聖天展望台",
+        "pointId": "B-01",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47258,
+          34.839,
+          184.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-02",
+        "name": "風の杜",
+        "pointId": "B-02",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47454,
+          34.84046,
+          256.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-03",
+        "name": "地獄谷口",
+        "pointId": "B-03",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47626,
+          34.84785,
+          250.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-04",
+        "name": "風呂谷口",
+        "pointId": "B-04",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47633,
+          34.85043,
+          244.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-05",
+        "name": "雲隣展望台口",
+        "pointId": "B-05",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47347,
+          34.85442,
+          247.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-06",
+        "name": "百年橋",
+        "pointId": "B-06",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47175,
+          34.85643,
+          235.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-07",
+        "name": "ビジターセンタ",
+        "pointId": "B-07",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4788,
+          34.85839,
+          288.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-08",
+        "name": "雲隣展望台",
+        "pointId": "B-08",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47532,
+          34.8529,
+          349.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-09",
+        "name": "こもれびの森",
+        "pointId": "B-09",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47792,
+          34.85413,
+          354.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-10",
+        "name": "こもれび展望所",
+        "pointId": "B-10",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47995,
+          34.85544,
+          374.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-11",
+        "name": "才ヶ原口",
+        "pointId": "B-11",
+        "description": "B12～20欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4794,
+          34.8485,
+          295.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-21",
+        "name": "高山道口",
+        "pointId": "B-21",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47309,
+          34.83917,
+          192.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-22",
+        "name": "才ヶ原林道分岐",
+        "pointId": "B-22",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48022,
+          34.85061,
+          316.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-23",
+        "name": "こもれびの森",
+        "pointId": "B-23",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4802,
+          34.85169,
+          357
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-24",
+        "name": "こもれびの森",
+        "pointId": "B-24",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48007,
+          34.85417,
+          391.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-25",
+        "name": "ばばたれ坂上",
+        "pointId": "B-25",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48032,
+          34.85523,
+          363.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-26",
+        "name": "ばばたれ坂下",
+        "pointId": "B-26",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47932,
+          34.85738,
+          283.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-27",
+        "name": "雲隣展望台分岐",
+        "pointId": "B-27",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47574,
+          34.85421,
+          349
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-28",
+        "name": "地獄谷口",
+        "pointId": "B-28",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47657,
+          34.84736,
+          241.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-29",
+        "name": "才が原池",
+        "pointId": "B-29",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48049,
+          34.84903,
+          285.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-30",
+        "name": "才が原池",
+        "pointId": "B-30",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48091,
+          34.84738,
+          282.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-31",
+        "name": "三ツ石",
+        "pointId": "B-31",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48143,
+          34.84611,
+          300.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-32",
+        "name": "三ツ石西",
+        "pointId": "B-32",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48042,
+          34.8449,
+          303.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-33",
+        "name": "望海展望台分岐",
+        "pointId": "B-33",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47599,
+          34.84496,
+          253
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-34",
+        "name": "箕面川ダム",
+        "pointId": "B-34",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47702,
+          34.85949,
+          336.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-35",
+        "name": "自然研究路3号",
+        "pointId": "B-35",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47576,
+          34.85889,
+          353.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-36",
+        "name": "才ヶ原林道分岐",
+        "pointId": "B-36",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48185,
+          34.85178,
+          344.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-37",
+        "name": "風呂谷",
+        "pointId": "B-37",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47732,
+          34.85177,
+          280.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-38",
+        "name": "風呂谷上",
+        "pointId": "B-38",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48075,
+          34.85369,
+          380.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-39",
+        "name": "極楽谷分岐",
+        "pointId": "B-39",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47963,
+          34.85181,
+          339.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-40",
+        "name": "極楽谷",
+        "pointId": "B-40",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47819,
+          34.84931,
+          279
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "B-41",
+        "name": "極楽谷",
+        "pointId": "B-41",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47635,
+          34.84852,
+          254.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-01",
+        "name": "勝尾寺参道分岐",
+        "pointId": "C-01",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49939,
+          34.84988,
+          205.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-02",
+        "name": "ウツギ谷上池",
+        "pointId": "C-02",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49547,
+          34.85638,
+          290.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-03",
+        "name": "勝尾寺山門",
+        "pointId": "C-03",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49334,
+          34.86425,
+          357.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-04",
+        "name": "勝尾寺　車道",
+        "pointId": "C-04",
+        "description": "C5～10欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48617,
+          34.85992,
+          311.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-11",
+        "name": "勝尾寺参道入口",
+        "pointId": "C-11",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.50274,
+          34.84427,
+          117.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-12",
+        "name": "谷山尾根",
+        "pointId": "C-12",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49959,
+          34.84635,
+          143.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-13",
+        "name": "谷山尾根",
+        "pointId": "C-13",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49647,
+          34.85005,
+          266.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-14",
+        "name": "勝尾寺参道",
+        "pointId": "C-14",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49502,
+          34.85333,
+          323.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-15",
+        "name": "勝尾寺参道",
+        "pointId": "C-15",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49513,
+          34.85476,
+          316.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-16",
+        "name": "ウツギ谷上池",
+        "pointId": "C-16",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49527,
+          34.85567,
+          308.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-17",
+        "name": "勝尾寺参道",
+        "pointId": "C-17",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49376,
+          34.85945,
+          348
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-18",
+        "name": "勝尾寺参道",
+        "pointId": "C-18",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49442,
+          34.86205,
+          417.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-19",
+        "name": "しらみ地蔵",
+        "pointId": "C-19",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49259,
+          34.85975,
+          346.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-20",
+        "name": "勝尾寺　車道",
+        "pointId": "C-20",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48653,
+          34.86087,
+          314.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-21",
+        "name": "南山分岐",
+        "pointId": "C-21",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48711,
+          34.85934,
+          318
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-22",
+        "name": "ウツキ谷",
+        "pointId": "C-22",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49762,
+          34.84694,
+          150.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-23",
+        "name": "青松園北",
+        "pointId": "C-23",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49648,
+          34.84472,
+          148.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "C-24",
+        "name": "勝尾寺山門南",
+        "pointId": "C-24",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49396,
+          34.86264,
+          409.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-01",
+        "name": "教学の森事務所下",
+        "pointId": "D-01",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4564,
+          34.83791,
+          242
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-02",
+        "name": "ハート広場",
+        "pointId": "D-02",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46116,
+          34.84367,
+          333.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-03",
+        "name": "憩いの丘",
+        "pointId": "D-03",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4615,
+          34.83905,
+          223.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-04",
+        "name": "望海の丘",
+        "pointId": "D-04",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46494,
+          34.84184,
+          319.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-05",
+        "name": "桜谷分岐",
+        "pointId": "D-05",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46649,
+          34.84536,
+          339
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-06",
+        "name": "桜広場",
+        "pointId": "D-06",
+        "description": "D7～10欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47011,
+          34.84153,
+          168.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-11",
+        "name": "平和台北口",
+        "pointId": "D-11",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46248,
+          34.83746,
+          146.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-12",
+        "name": "平和台西口",
+        "pointId": "D-12",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46341,
+          34.83903,
+          154.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-13",
+        "name": "平和台北口北",
+        "pointId": "D-13",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.463,
+          34.8396,
+          171
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-14",
+        "name": "東尾根道",
+        "pointId": "D-14",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45934,
+          34.8381,
+          204.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-15",
+        "name": "東尾根道",
+        "pointId": "D-15",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45934,
+          34.8392,
+          248.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-16",
+        "name": "東尾根道",
+        "pointId": "D-16",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45871,
+          34.83969,
+          269
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-17",
+        "name": "教学の森",
+        "pointId": "D-17",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45801,
+          34.84127,
+          313.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-18",
+        "name": "六個山分岐",
+        "pointId": "D-18",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45704,
+          34.84078,
+          312.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-20",
+        "name": "わくわく展望台下",
+        "pointId": "D-20",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45978,
+          34.84134,
+          304.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-21",
+        "name": "わくわく展望台",
+        "pointId": "D-21",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46012,
+          34.84174,
+          324.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-22",
+        "name": "箕面ゴルフ",
+        "pointId": "D-22",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46003,
+          34.84242,
+          339.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-23",
+        "name": "六個山分岐",
+        "pointId": "D-23",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45891,
+          34.84211,
+          340.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-24",
+        "name": "教学の森",
+        "pointId": "D-24",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46246,
+          34.84072,
+          234.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-25",
+        "name": "西尾根",
+        "pointId": "D-25",
+        "description": "D26～30欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45643,
+          34.84099,
+          307
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-31",
+        "name": "西尾根",
+        "pointId": "D-31",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45535,
+          34.84196,
+          350.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-32",
+        "name": "六個山",
+        "pointId": "D-32",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45542,
+          34.84292,
+          371.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-33",
+        "name": "石澄川上流",
+        "pointId": "D-33",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45449,
+          34.84361,
+          329.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-34",
+        "name": "池田GC",
+        "pointId": "D-34",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45278,
+          34.84392,
+          346.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-35",
+        "name": "箕面ゴルフ",
+        "pointId": "D-35",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45955,
+          34.84491,
+          364.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-36",
+        "name": "ハート広場北",
+        "pointId": "D-36",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46056,
+          34.84543,
+          355.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-37",
+        "name": "望海の丘西",
+        "pointId": "D-37",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46453,
+          34.84212,
+          309.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-38",
+        "name": "山の神口",
+        "pointId": "D-38",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47018,
+          34.84225,
+          178.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-39",
+        "name": "桜広場展望台",
+        "pointId": "D-39",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47059,
+          34.84082,
+          172.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-40",
+        "name": "西尾根入口",
+        "pointId": "D-40",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45531,
+          34.8357,
+          177
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-41",
+        "name": "ささゆりコース",
+        "pointId": "D-41",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46523,
+          34.84498,
+          343.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-42",
+        "name": "望海の丘北",
+        "pointId": "D-42",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4653,
+          34.84354,
+          323.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-43",
+        "name": "桜谷",
+        "pointId": "D-43",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46661,
+          34.84448,
+          302.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-44",
+        "name": "桜谷",
+        "pointId": "D-44",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46729,
+          34.844,
+          278.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "D-45",
+        "name": "平和台分岐",
+        "pointId": "D-45",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4612,
+          34.83786,
+          203.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-01",
+        "name": "落合谷口",
+        "pointId": "E-01",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47101,
+          34.84558,
+          153.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-02",
+        "name": "落合谷分岐",
+        "pointId": "E-02",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46263,
+          34.85224,
+          400.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-03",
+        "name": "大ケヤキ",
+        "pointId": "E-03",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46385,
+          34.85386,
+          409
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-04",
+        "name": "ようらく台",
+        "pointId": "E-04",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45957,
+          34.85735,
+          467.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-05",
+        "name": "三国峠",
+        "pointId": "E-05",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46847,
+          34.85325,
+          389.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-06",
+        "name": "東海自然歩道",
+        "pointId": "E-06",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46145,
+          34.86379,
+          485.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-07",
+        "name": "天井岳分岐",
+        "pointId": "E-07",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46816,
+          34.86421,
+          511.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-08",
+        "name": "自然研究路2，3号",
+        "pointId": "E-08",
+        "description": "E9～10欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47347,
+          34.85993,
+          393
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-11",
+        "name": "大滝眺望",
+        "pointId": "E-11",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4694,
+          34.85036,
+          332.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-12",
+        "name": "落合谷",
+        "pointId": "E-12",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47085,
+          34.84575,
+          158.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-13",
+        "name": "落合谷",
+        "pointId": "E-13",
+        "description": "E14,16欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46233,
+          34.84855,
+          332.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-15",
+        "name": "落合谷分岐",
+        "pointId": "E-15",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45965,
+          34.84907,
+          372.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-17",
+        "name": "落合谷分岐",
+        "pointId": "E-17",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46189,
+          34.85123,
+          390.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-18",
+        "name": "カメラ通",
+        "pointId": "E-18",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46868,
+          34.84913,
+          274.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-19",
+        "name": "ようらく台分岐",
+        "pointId": "E-19",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46481,
+          34.85445,
+          454.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-20",
+        "name": "落合谷分岐",
+        "pointId": "E-20",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46528,
+          34.85439,
+          445.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-21",
+        "name": "ようらく台",
+        "pointId": "E-21",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.45864,
+          34.85783,
+          449.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "E-22",
+        "name": "止々呂美分岐",
+        "pointId": "E-22",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46031,
+          34.86315,
+          459.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-01",
+        "name": "ダム林道",
+        "pointId": "F-01",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47427,
+          34.86372,
+          355.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-02",
+        "name": "ダム林道",
+        "pointId": "F-02",
+        "description": "×位置不明"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47698,
+          34.8642,
+          343.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-03",
+        "name": "ダム林道",
+        "pointId": "F-03",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47839,
+          34.86879,
+          335.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-04",
+        "name": "清水谷",
+        "pointId": "F-04",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48532,
+          34.86866,
+          388.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-05",
+        "name": "東海自然歩道",
+        "pointId": "F-05",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49181,
+          34.86803,
+          499.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-06",
+        "name": "東海自然歩道",
+        "pointId": "F-06",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48257,
+          34.86583,
+          480.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-07",
+        "name": "自然研究路4号",
+        "pointId": "F-07",
+        "description": "F8～10欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48436,
+          34.86216,
+          379.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-11",
+        "name": "清水谷",
+        "pointId": "F-11",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49179,
+          34.86884,
+          471.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-12",
+        "name": "清水谷園地",
+        "pointId": "F-12",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47988,
+          34.8679,
+          345
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-13",
+        "name": "東海自然歩道",
+        "pointId": "F-13",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48585,
+          34.86664,
+          475.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-14",
+        "name": "東海自然歩道",
+        "pointId": "F-14",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4806,
+          34.86057,
+          375.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "F-15",
+        "name": "勝尾寺　車道",
+        "pointId": "F-15",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48627,
+          34.86121,
+          321.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-01",
+        "name": "医王岩",
+        "pointId": "G-01",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48627,
+          34.84215,
+          147.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-02",
+        "name": "22曲がり　北",
+        "pointId": "G-02",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48577,
+          34.84866,
+          301.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-03",
+        "name": "南山分岐",
+        "pointId": "G-03",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49142,
+          34.85708,
+          343.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-04",
+        "name": "ウツギ谷池",
+        "pointId": "G-04",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49334,
+          34.85427,
+          259.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-05",
+        "name": "谷山尾根分岐",
+        "pointId": "G-05",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49201,
+          34.84933,
+          284.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-06",
+        "name": "白姫神社",
+        "pointId": "G-06",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49177,
+          34.84244,
+          136.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-07",
+        "name": "谷山谷",
+        "pointId": "G-07",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48813,
+          34.84837,
+          195.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-08",
+        "name": "谷山谷",
+        "pointId": "G-08",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48631,
+          34.85173,
+          262
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-09",
+        "name": "南山分岐",
+        "pointId": "G-09",
+        "description": "G10欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48587,
+          34.85498,
+          327
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-11",
+        "name": "大宮寺森",
+        "pointId": "G-11",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48617,
+          34.84035,
+          129.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-12",
+        "name": "22曲がり",
+        "pointId": "G-12",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48655,
+          34.84485,
+          189.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-13",
+        "name": "22曲がり",
+        "pointId": "G-13",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48669,
+          34.84587,
+          204.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-14",
+        "name": "22曲がり",
+        "pointId": "G-14",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4861,
+          34.84785,
+          289.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-15",
+        "name": "才ヶ原東",
+        "pointId": "G-15",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48544,
+          34.84906,
+          313.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-16",
+        "name": "才ヶ原東",
+        "pointId": "G-16",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4837,
+          34.85003,
+          300.1
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-17",
+        "name": "才ヶ原東",
+        "pointId": "G-17",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48451,
+          34.85069,
+          282.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-18",
+        "name": "谷山谷",
+        "pointId": "G-18",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4861,
+          34.85266,
+          274.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-19",
+        "name": "谷山谷",
+        "pointId": "G-19",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48533,
+          34.85471,
+          301.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-20",
+        "name": "南山分岐",
+        "pointId": "G-20",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4912,
+          34.85725,
+          345.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-21",
+        "name": "南山分岐",
+        "pointId": "G-21",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49252,
+          34.85774,
+          342.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-22",
+        "name": "南山分岐",
+        "pointId": "G-22",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49147,
+          34.85803,
+          375.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-23",
+        "name": "南山頂上",
+        "pointId": "G-23",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49097,
+          34.85848,
+          394.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-24",
+        "name": "白島愛宕社口",
+        "pointId": "G-24",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48981,
+          34.84069,
+          138.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-25",
+        "name": "あかつき園北",
+        "pointId": "G-25",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48932,
+          34.84172,
+          158.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-26",
+        "name": "白島愛宕社",
+        "pointId": "G-26",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48843,
+          34.84469,
+          254.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-27",
+        "name": "白島愛宕社道",
+        "pointId": "G-27",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48868,
+          34.84546,
+          268.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-28",
+        "name": "谷山尾根",
+        "pointId": "G-28",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49289,
+          34.84396,
+          183.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-29",
+        "name": "谷山尾根",
+        "pointId": "G-29",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49185,
+          34.85125,
+          302.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "G-30",
+        "name": "勝尾寺　車道",
+        "pointId": "G-30",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48248,
+          34.85825,
+          295.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-01",
+        "name": "エキスポの森入口",
+        "pointId": "H-01",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47116,
+          34.86932,
+          450.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-02",
+        "name": "エキスポの森　中",
+        "pointId": "H-02",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46992,
+          34.8711,
+          484.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-03",
+        "name": "エキスポの森入口",
+        "pointId": "H-03",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.46815,
+          34.86947,
+          492.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-04",
+        "name": "鉢伏山道",
+        "pointId": "H-04",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4713,
+          34.87451,
+          534
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-05",
+        "name": "鉢伏山",
+        "pointId": "H-05",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47511,
+          34.87642,
+          596
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-06",
+        "name": "梅ケ谷",
+        "pointId": "H-06",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47914,
+          34.88048,
+          498.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-07",
+        "name": "梅ケ谷口",
+        "pointId": "H-07",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.48038,
+          34.87343,
+          358.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-08",
+        "name": "高山車道",
+        "pointId": "H-08",
+        "description": "H9.10欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47895,
+          34.86955,
+          339.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-11",
+        "name": "＃32鉄塔",
+        "pointId": "H-11",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47341,
+          34.86829,
+          552.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-12",
+        "name": "鉢伏山",
+        "pointId": "H-12",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47457,
+          34.87641,
+          598.4
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-13",
+        "name": "鉢伏山山頂",
+        "pointId": "H-13",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47403,
+          34.87644,
+          581.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-14",
+        "name": "鉢伏山",
+        "pointId": "H-14",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47629,
+          34.87671,
+          576.5
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-15",
+        "name": "鉢伏山道",
+        "pointId": "H-15",
+        "description": "H16欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47682,
+          34.87892,
+          592.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "H-17",
+        "name": "梅ケ谷",
+        "pointId": "H-17",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.47932,
+          34.87705,
+          451.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "J-01",
+        "name": "勝尾寺園地",
+        "pointId": "J-01",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49666,
+          34.86653,
+          354.9
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "J-02",
+        "name": "クリーンセンタ分岐",
+        "pointId": "J-02",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49815,
+          34.86945,
+          355.3
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "J-03",
+        "name": "＃24鉄塔",
+        "pointId": "J-03",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49686,
+          34.8726,
+          487.6
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "J-04",
+        "name": "北摂霊園",
+        "pointId": "J-04",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49457,
+          34.87521,
+          580.2
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "J-05",
+        "name": "東海自然歩道",
+        "pointId": "J-05",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49331,
+          34.87202,
+          564.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "J-06",
+        "name": "東海自然歩道",
+        "pointId": "J-06",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49368,
+          34.87061,
+          546.8
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "J-11",
+        "name": "林道止まり",
+        "pointId": "J-11",
+        "description": "J7～10欠番"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.4977,
+          34.86787,
+          343.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "J-12",
+        "name": "北摂霊園",
+        "pointId": "J-12",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49387,
+          34.87405,
+          592.7
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "type": "ポイントGPS",
+        "id": "J-13",
+        "name": "東海自然歩道",
+        "pointId": "J-13",
+        "description": null
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          135.49335,
+          34.87167,
+          561.2
+        ]
+      }
+    },
     {
       "type": "Feature",
       "properties": {
@@ -3718,7 +6721,17 @@
         "type": "route",
         "id": "route_H-01_to_WC",
         "startPoint": "H-01",
-        "endPoint": "WC"
+        "endPoint": "WC",
+        "startPointGPS": [
+          135.47116,
+          34.86932,
+          450.4
+        ],
+        "endPointGPS": [
+          135.46961,
+          34.87112,
+          484.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -3817,7 +6830,17 @@
         "type": "route",
         "id": "route_WC_to_H-03",
         "startPoint": "WC",
-        "endPoint": "H-03"
+        "endPoint": "H-03",
+        "startPointGPS": [
+          135.46961,
+          34.87112,
+          484.3
+        ],
+        "endPointGPS": [
+          135.46815,
+          34.86947,
+          492.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -3841,7 +6864,17 @@
         "type": "route",
         "id": "route_H-04_to_H-11",
         "startPoint": "H-04",
-        "endPoint": "H-11"
+        "endPoint": "H-11",
+        "startPointGPS": [
+          135.4713,
+          34.87451,
+          534
+        ],
+        "endPointGPS": [
+          135.47341,
+          34.86829,
+          552.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -4085,7 +7118,17 @@
         "type": "route",
         "id": "route_E-06_to_E-07",
         "startPoint": "E-06",
-        "endPoint": "E-07"
+        "endPoint": "E-07",
+        "startPointGPS": [
+          135.46145,
+          34.86379,
+          485.8
+        ],
+        "endPointGPS": [
+          135.46816,
+          34.86421,
+          511.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -4224,7 +7267,17 @@
         "type": "route",
         "id": "route_E-06_to_H-03",
         "startPoint": "E-06",
-        "endPoint": "H-03"
+        "endPoint": "H-03",
+        "startPointGPS": [
+          135.46145,
+          34.86379,
+          485.8
+        ],
+        "endPointGPS": [
+          135.46815,
+          34.86947,
+          492.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -4538,7 +7591,17 @@
         "type": "route",
         "id": "route_H-04_to_H-13",
         "startPoint": "H-04",
-        "endPoint": "H-13"
+        "endPoint": "H-13",
+        "startPointGPS": [
+          135.4713,
+          34.87451,
+          534
+        ],
+        "endPointGPS": [
+          135.47403,
+          34.87644,
+          581.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -4672,7 +7735,17 @@
         "type": "route",
         "id": "route_WC_to_H-04",
         "startPoint": "WC",
-        "endPoint": "H-04"
+        "endPoint": "H-04",
+        "startPointGPS": [
+          135.46961,
+          34.87112,
+          484.3
+        ],
+        "endPointGPS": [
+          135.4713,
+          34.87451,
+          534
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -4861,7 +7934,17 @@
         "type": "route",
         "id": "route_H-03_to_H-04",
         "startPoint": "H-03",
-        "endPoint": "H-04"
+        "endPoint": "H-04",
+        "startPointGPS": [
+          135.46815,
+          34.86947,
+          492.6
+        ],
+        "endPointGPS": [
+          135.4713,
+          34.87451,
+          534
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5015,7 +8098,17 @@
         "type": "route",
         "id": "route_H-15_to_H-05",
         "startPoint": "H-15",
-        "endPoint": "H-05"
+        "endPoint": "H-05",
+        "startPointGPS": [
+          135.47682,
+          34.87892,
+          592.2
+        ],
+        "endPointGPS": [
+          135.47511,
+          34.87642,
+          596
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5059,7 +8152,17 @@
         "type": "route",
         "id": "route_F-06_to_F-13",
         "startPoint": "F-06",
-        "endPoint": "F-13"
+        "endPoint": "F-13",
+        "startPointGPS": [
+          135.48257,
+          34.86583,
+          480.9
+        ],
+        "endPointGPS": [
+          135.48585,
+          34.86664,
+          475.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5113,7 +8216,17 @@
         "type": "route",
         "id": "route_H-08_to_F-03",
         "startPoint": "H-08",
-        "endPoint": "F-03"
+        "endPoint": "F-03",
+        "startPointGPS": [
+          135.47895,
+          34.86955,
+          339.5
+        ],
+        "endPointGPS": [
+          135.47839,
+          34.86879,
+          335.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5147,7 +8260,17 @@
         "type": "route",
         "id": "route_H-07_to_H-08",
         "startPoint": "H-07",
-        "endPoint": "H-08"
+        "endPoint": "H-08",
+        "startPointGPS": [
+          135.48038,
+          34.87343,
+          358.9
+        ],
+        "endPointGPS": [
+          135.47895,
+          34.86955,
+          339.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5206,7 +8329,17 @@
         "type": "route",
         "id": "route_H-05_to_H-04",
         "startPoint": "H-05",
-        "endPoint": "H-04"
+        "endPoint": "H-04",
+        "startPointGPS": [
+          135.47511,
+          34.87642,
+          596
+        ],
+        "endPointGPS": [
+          135.4713,
+          34.87451,
+          534
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5260,7 +8393,17 @@
         "type": "route",
         "id": "route_H-17_to_H-07",
         "startPoint": "H-17",
-        "endPoint": "H-07"
+        "endPoint": "H-07",
+        "startPointGPS": [
+          135.47932,
+          34.87705,
+          451.8
+        ],
+        "endPointGPS": [
+          135.48038,
+          34.87343,
+          358.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5329,7 +8472,17 @@
         "type": "route",
         "id": "route_H-02_to_H-04",
         "startPoint": "H-02",
-        "endPoint": "H-04"
+        "endPoint": "H-04",
+        "startPointGPS": [
+          135.46992,
+          34.8711,
+          484.9
+        ],
+        "endPointGPS": [
+          135.4713,
+          34.87451,
+          534
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5398,7 +8551,17 @@
         "type": "route",
         "id": "route_H-04_to_H-03",
         "startPoint": "H-04",
-        "endPoint": "H-03"
+        "endPoint": "H-03",
+        "startPointGPS": [
+          135.4713,
+          34.87451,
+          534
+        ],
+        "endPointGPS": [
+          135.46815,
+          34.86947,
+          492.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5487,7 +8650,17 @@
         "type": "route",
         "id": "route_H-06_to_H-15",
         "startPoint": "H-06",
-        "endPoint": "H-15"
+        "endPoint": "H-15",
+        "startPointGPS": [
+          135.47914,
+          34.88048,
+          498.9
+        ],
+        "endPointGPS": [
+          135.47682,
+          34.87892,
+          592.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5526,7 +8699,17 @@
         "type": "route",
         "id": "route_F-03_to_F-12",
         "startPoint": "F-03",
-        "endPoint": "F-12"
+        "endPoint": "F-12",
+        "startPointGPS": [
+          135.47839,
+          34.86879,
+          335.1
+        ],
+        "endPointGPS": [
+          135.47988,
+          34.8679,
+          345
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5555,7 +8738,17 @@
         "type": "route",
         "id": "route_H-03_to_H-01",
         "startPoint": "H-03",
-        "endPoint": "H-01"
+        "endPoint": "H-01",
+        "startPointGPS": [
+          135.46815,
+          34.86947,
+          492.6
+        ],
+        "endPointGPS": [
+          135.47116,
+          34.86932,
+          450.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5604,7 +8797,17 @@
         "type": "route",
         "id": "route_H-04_to_H-08",
         "startPoint": "H-04",
-        "endPoint": "H-08"
+        "endPoint": "H-08",
+        "startPointGPS": [
+          135.4713,
+          34.87451,
+          534
+        ],
+        "endPointGPS": [
+          135.47895,
+          34.86955,
+          339.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5693,7 +8896,17 @@
         "type": "route",
         "id": "route_F-13_to_F-05",
         "startPoint": "F-13",
-        "endPoint": "F-05"
+        "endPoint": "F-05",
+        "startPointGPS": [
+          135.48585,
+          34.86664,
+          475.4
+        ],
+        "endPointGPS": [
+          135.49181,
+          34.86803,
+          499.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5802,7 +9015,17 @@
         "type": "route",
         "id": "route_F-04_to_F-12",
         "startPoint": "F-04",
-        "endPoint": "F-12"
+        "endPoint": "F-12",
+        "startPointGPS": [
+          135.48532,
+          34.86866,
+          388.7
+        ],
+        "endPointGPS": [
+          135.47988,
+          34.8679,
+          345
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5856,7 +9079,17 @@
         "type": "route",
         "id": "route_F-04_to_F-11",
         "startPoint": "F-04",
-        "endPoint": "F-11"
+        "endPoint": "F-11",
+        "startPointGPS": [
+          135.48532,
+          34.86866,
+          388.7
+        ],
+        "endPointGPS": [
+          135.49179,
+          34.86884,
+          471.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5945,7 +9178,17 @@
         "type": "route",
         "id": "route_H-06_to_H-17",
         "startPoint": "H-06",
-        "endPoint": "H-17"
+        "endPoint": "H-17",
+        "startPointGPS": [
+          135.47914,
+          34.88048,
+          498.9
+        ],
+        "endPointGPS": [
+          135.47932,
+          34.87705,
+          451.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -5994,7 +9237,17 @@
         "type": "route",
         "id": "route_H-05_to_H-14",
         "startPoint": "H-05",
-        "endPoint": "H-14"
+        "endPoint": "H-14",
+        "startPointGPS": [
+          135.47511,
+          34.87642,
+          596
+        ],
+        "endPointGPS": [
+          135.47629,
+          34.87671,
+          576.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6023,7 +9276,17 @@
         "type": "route",
         "id": "route_H-02_to_H-03",
         "startPoint": "H-02",
-        "endPoint": "H-03"
+        "endPoint": "H-03",
+        "startPointGPS": [
+          135.46992,
+          34.8711,
+          484.9
+        ],
+        "endPointGPS": [
+          135.46815,
+          34.86947,
+          492.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6072,7 +9335,17 @@
         "type": "route",
         "id": "route_H-02_to_H-01",
         "startPoint": "H-02",
-        "endPoint": "H-01"
+        "endPoint": "H-01",
+        "startPointGPS": [
+          135.46992,
+          34.8711,
+          484.9
+        ],
+        "endPointGPS": [
+          135.47116,
+          34.86932,
+          450.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6111,7 +9384,17 @@
         "type": "route",
         "id": "route_F-11_to_F-05",
         "startPoint": "F-11",
-        "endPoint": "F-05"
+        "endPoint": "F-05",
+        "startPointGPS": [
+          135.49179,
+          34.86884,
+          471.1
+        ],
+        "endPointGPS": [
+          135.49181,
+          34.86803,
+          499.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6140,7 +9423,17 @@
         "type": "route",
         "id": "route_F-11_to_F-04",
         "startPoint": "F-11",
-        "endPoint": "F-04"
+        "endPoint": "F-04",
+        "startPointGPS": [
+          135.49179,
+          34.86884,
+          471.1
+        ],
+        "endPointGPS": [
+          135.48532,
+          34.86866,
+          388.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6229,7 +9522,17 @@
         "type": "route",
         "id": "route_J-06_to_J-01",
         "startPoint": "J-06",
-        "endPoint": "J-01"
+        "endPoint": "J-01",
+        "startPointGPS": [
+          135.49368,
+          34.87061,
+          546.8
+        ],
+        "endPointGPS": [
+          135.49666,
+          34.86653,
+          354.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6338,7 +9641,17 @@
         "type": "route",
         "id": "route_J-01_to_J-11",
         "startPoint": "J-01",
-        "endPoint": "J-11"
+        "endPoint": "J-11",
+        "startPointGPS": [
+          135.49666,
+          34.86653,
+          354.9
+        ],
+        "endPointGPS": [
+          135.4977,
+          34.86787,
+          343.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6387,7 +9700,17 @@
         "type": "route",
         "id": "route_J-06_to_F-05",
         "startPoint": "J-06",
-        "endPoint": "F-05"
+        "endPoint": "F-05",
+        "startPointGPS": [
+          135.49368,
+          34.87061,
+          546.8
+        ],
+        "endPointGPS": [
+          135.49181,
+          34.86803,
+          499.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6446,7 +9769,17 @@
         "type": "route",
         "id": "route_F-05_to_F-13",
         "startPoint": "F-05",
-        "endPoint": "F-13"
+        "endPoint": "F-13",
+        "startPointGPS": [
+          135.49181,
+          34.86803,
+          499.5
+        ],
+        "endPointGPS": [
+          135.48585,
+          34.86664,
+          475.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6535,7 +9868,17 @@
         "type": "route",
         "id": "route_J-03_to_J-04",
         "startPoint": "J-03",
-        "endPoint": "J-04"
+        "endPoint": "J-04",
+        "startPointGPS": [
+          135.49686,
+          34.8726,
+          487.6
+        ],
+        "endPointGPS": [
+          135.49457,
+          34.87521,
+          580.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6604,7 +9947,17 @@
         "type": "route",
         "id": "route_J-12_to_J-05",
         "startPoint": "J-12",
-        "endPoint": "J-05"
+        "endPoint": "J-05",
+        "startPointGPS": [
+          135.49387,
+          34.87405,
+          592.7
+        ],
+        "endPointGPS": [
+          135.49331,
+          34.87202,
+          564.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6653,7 +10006,17 @@
         "type": "route",
         "id": "route_J-05_to_F-11",
         "startPoint": "J-05",
-        "endPoint": "F-11"
+        "endPoint": "F-11",
+        "startPointGPS": [
+          135.49331,
+          34.87202,
+          564.7
+        ],
+        "endPointGPS": [
+          135.49179,
+          34.86884,
+          471.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6717,7 +10080,17 @@
         "type": "route",
         "id": "route_J-02_to_J-03",
         "startPoint": "J-02",
-        "endPoint": "J-03"
+        "endPoint": "J-03",
+        "startPointGPS": [
+          135.49815,
+          34.86945,
+          355.3
+        ],
+        "endPointGPS": [
+          135.49686,
+          34.8726,
+          487.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6781,7 +10154,17 @@
         "type": "route",
         "id": "route_J-13_to_J-06",
         "startPoint": "J-13",
-        "endPoint": "J-06"
+        "endPoint": "J-06",
+        "startPointGPS": [
+          135.49335,
+          34.87167,
+          561.2
+        ],
+        "endPointGPS": [
+          135.49368,
+          34.87061,
+          546.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6805,7 +10188,17 @@
         "type": "route",
         "id": "route_J-04_to_J-12",
         "startPoint": "J-04",
-        "endPoint": "J-12"
+        "endPoint": "J-12",
+        "startPointGPS": [
+          135.49457,
+          34.87521,
+          580.2
+        ],
+        "endPointGPS": [
+          135.49387,
+          34.87405,
+          592.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6839,7 +10232,17 @@
         "type": "route",
         "id": "route_J-11_to_J-02",
         "startPoint": "J-11",
-        "endPoint": "J-02"
+        "endPoint": "J-02",
+        "startPointGPS": [
+          135.4977,
+          34.86787,
+          343.7
+        ],
+        "endPointGPS": [
+          135.49815,
+          34.86945,
+          355.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6903,7 +10306,17 @@
         "type": "route",
         "id": "route_E-02_to_E-17",
         "startPoint": "E-02",
-        "endPoint": "E-17"
+        "endPoint": "E-17",
+        "startPointGPS": [
+          135.46263,
+          34.85224,
+          400.8
+        ],
+        "endPointGPS": [
+          135.46189,
+          34.85123,
+          390.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -6927,7 +10340,17 @@
         "type": "route",
         "id": "route_E-18_to_E-02",
         "startPoint": "E-18",
-        "endPoint": "E-02"
+        "endPoint": "E-02",
+        "startPointGPS": [
+          135.46868,
+          34.84913,
+          274.9
+        ],
+        "endPointGPS": [
+          135.46263,
+          34.85224,
+          400.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -7276,7 +10699,17 @@
         "type": "route",
         "id": "route_E-05_to_E-20",
         "startPoint": "E-05",
-        "endPoint": "E-20"
+        "endPoint": "E-20",
+        "startPointGPS": [
+          135.46847,
+          34.85325,
+          389.7
+        ],
+        "endPointGPS": [
+          135.46528,
+          34.85439,
+          445.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -7470,7 +10903,17 @@
         "type": "route",
         "id": "route_E-18_to_E-20",
         "startPoint": "E-18",
-        "endPoint": "E-20"
+        "endPoint": "E-20",
+        "startPointGPS": [
+          135.46868,
+          34.84913,
+          274.9
+        ],
+        "endPointGPS": [
+          135.46528,
+          34.85439,
+          445.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -7699,7 +11142,17 @@
         "type": "route",
         "id": "route_E-13_to_E-17",
         "startPoint": "E-13",
-        "endPoint": "E-17"
+        "endPoint": "E-17",
+        "startPointGPS": [
+          135.46233,
+          34.84855,
+          332.6
+        ],
+        "endPointGPS": [
+          135.46189,
+          34.85123,
+          390.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -7838,7 +11291,17 @@
         "type": "route",
         "id": "route_E-17_to_E-15",
         "startPoint": "E-17",
-        "endPoint": "E-15"
+        "endPoint": "E-15",
+        "startPointGPS": [
+          135.46189,
+          34.85123,
+          390.4
+        ],
+        "endPointGPS": [
+          135.45965,
+          34.84907,
+          372.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -7962,7 +11425,17 @@
         "type": "route",
         "id": "route_E-07_to_E-08",
         "startPoint": "E-07",
-        "endPoint": "E-08"
+        "endPoint": "E-08",
+        "startPointGPS": [
+          135.46816,
+          34.86421,
+          511.5
+        ],
+        "endPointGPS": [
+          135.47347,
+          34.85993,
+          393
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -8206,7 +11679,17 @@
         "type": "route",
         "id": "route_E-03_to_E-02",
         "startPoint": "E-03",
-        "endPoint": "E-02"
+        "endPoint": "E-02",
+        "startPointGPS": [
+          135.46385,
+          34.85386,
+          409
+        ],
+        "endPointGPS": [
+          135.46263,
+          34.85224,
+          400.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -8275,7 +11758,17 @@
         "type": "route",
         "id": "route_E-11_to_E-05",
         "startPoint": "E-11",
-        "endPoint": "E-05"
+        "endPoint": "E-05",
+        "startPointGPS": [
+          135.4694,
+          34.85036,
+          332.4
+        ],
+        "endPointGPS": [
+          135.46847,
+          34.85325,
+          389.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -8374,7 +11867,17 @@
         "type": "route",
         "id": "route_E-22_to_E-06",
         "startPoint": "E-22",
-        "endPoint": "E-06"
+        "endPoint": "E-06",
+        "startPointGPS": [
+          135.46031,
+          34.86315,
+          459.4
+        ],
+        "endPointGPS": [
+          135.46145,
+          34.86379,
+          485.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -8408,7 +11911,17 @@
         "type": "route",
         "id": "route_E-15_to_E-13",
         "startPoint": "E-15",
-        "endPoint": "E-13"
+        "endPoint": "E-13",
+        "startPointGPS": [
+          135.45965,
+          34.84907,
+          372.9
+        ],
+        "endPointGPS": [
+          135.46233,
+          34.84855,
+          332.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -8477,7 +11990,17 @@
         "type": "route",
         "id": "route_E-04_to_E-19",
         "startPoint": "E-04",
-        "endPoint": "E-19"
+        "endPoint": "E-19",
+        "startPointGPS": [
+          135.45957,
+          34.85735,
+          467.2
+        ],
+        "endPointGPS": [
+          135.46481,
+          34.85445,
+          454.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -8656,7 +12179,17 @@
         "type": "route",
         "id": "route_ようらく台園地_to_E-22",
         "startPoint": "ようらく台園地",
-        "endPoint": "E-22"
+        "endPoint": "E-22",
+        "startPointGPS": [
+          135.45885,
+          34.85745,
+          457.6
+        ],
+        "endPointGPS": [
+          135.46031,
+          34.86315,
+          459.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -8805,85 +12338,25 @@
         "type": "route",
         "id": "route_C-04_to_G-30",
         "startPoint": "C-04",
-        "endPoint": "G-30"
+        "endPoint": "G-30",
+        "startPointGPS": [
+          135.48617,
+          34.85992,
+          311.6
+        ],
+        "endPointGPS": [
+          135.48248,
+          34.85825,
+          295.8
+        ]
       },
       "geometry": {
         "type": "LineString",
         "coordinates": [
           [
-            135.48257,
-            34.85842,
-            298
-          ],
-          [
-            135.48273,
-            34.85858,
-            299.3
-          ],
-          [
-            135.48293,
-            34.85862,
-            298.1
-          ],
-          [
-            135.48311,
-            34.85874,
-            299
-          ],
-          [
-            135.48324,
-            34.85889,
-            299.8
-          ],
-          [
-            135.48343,
-            34.85898,
-            299.3
-          ],
-          [
-            135.48364,
-            34.85917,
-            302.1
-          ],
-          [
-            135.48392,
-            34.85922,
-            302.8
-          ],
-          [
-            135.48418,
-            34.85928,
-            302.6
-          ],
-          [
-            135.48438,
-            34.85937,
-            304.6
-          ],
-          [
-            135.48461,
-            34.8594,
-            305.5
-          ],
-          [
-            135.48487,
-            34.85941,
-            305.9
-          ],
-          [
-            135.48506,
-            34.85952,
-            305.6
-          ],
-          [
-            135.48519,
-            34.85961,
-            306.6
-          ],
-          [
-            135.48547,
-            34.85973,
-            306.9
+            135.48573,
+            34.85981,
+            310.8
           ],
           [
             135.48573,
@@ -8891,74 +12364,9 @@
             310.8
           ],
           [
-            135.48257,
-            34.85842,
-            298
-          ],
-          [
-            135.48273,
-            34.85858,
-            299.3
-          ],
-          [
-            135.48293,
-            34.85862,
-            298.1
-          ],
-          [
-            135.48311,
-            34.85874,
-            299
-          ],
-          [
-            135.48324,
-            34.85889,
-            299.8
-          ],
-          [
-            135.48343,
-            34.85898,
-            299.3
-          ],
-          [
-            135.48364,
-            34.85917,
-            302.1
-          ],
-          [
-            135.48392,
-            34.85922,
-            302.8
-          ],
-          [
-            135.48418,
-            34.85928,
-            302.6
-          ],
-          [
-            135.48438,
-            34.85937,
-            304.6
-          ],
-          [
-            135.48461,
-            34.8594,
-            305.5
-          ],
-          [
-            135.48487,
-            34.85941,
-            305.9
-          ],
-          [
-            135.48506,
-            34.85952,
-            305.6
-          ],
-          [
-            135.48519,
-            34.85961,
-            306.6
+            135.48573,
+            34.85981,
+            310.8
           ],
           [
             135.48547,
@@ -8966,79 +12374,9 @@
             306.9
           ],
           [
-            135.48573,
-            34.85981,
-            310.8
-          ],
-          [
-            135.48257,
-            34.85842,
-            298
-          ],
-          [
-            135.48273,
-            34.85858,
-            299.3
-          ],
-          [
-            135.48293,
-            34.85862,
-            298.1
-          ],
-          [
-            135.48311,
-            34.85874,
-            299
-          ],
-          [
-            135.48324,
-            34.85889,
-            299.8
-          ],
-          [
-            135.48343,
-            34.85898,
-            299.3
-          ],
-          [
-            135.48364,
-            34.85917,
-            302.1
-          ],
-          [
-            135.48392,
-            34.85922,
-            302.8
-          ],
-          [
-            135.48418,
-            34.85928,
-            302.6
-          ],
-          [
-            135.48438,
-            34.85937,
-            304.6
-          ],
-          [
-            135.48461,
-            34.8594,
-            305.5
-          ],
-          [
-            135.48487,
-            34.85941,
-            305.9
-          ],
-          [
-            135.48506,
-            34.85952,
-            305.6
-          ],
-          [
-            135.48519,
-            34.85961,
-            306.6
+            135.48547,
+            34.85973,
+            306.9
           ],
           [
             135.48547,
@@ -9046,9 +12384,214 @@
             306.9
           ],
           [
-            135.48573,
-            34.85981,
-            310.8
+            135.48519,
+            34.85961,
+            306.6
+          ],
+          [
+            135.48519,
+            34.85961,
+            306.6
+          ],
+          [
+            135.48519,
+            34.85961,
+            306.6
+          ],
+          [
+            135.48506,
+            34.85952,
+            305.6
+          ],
+          [
+            135.48506,
+            34.85952,
+            305.6
+          ],
+          [
+            135.48506,
+            34.85952,
+            305.6
+          ],
+          [
+            135.48487,
+            34.85941,
+            305.9
+          ],
+          [
+            135.48487,
+            34.85941,
+            305.9
+          ],
+          [
+            135.48487,
+            34.85941,
+            305.9
+          ],
+          [
+            135.48461,
+            34.8594,
+            305.5
+          ],
+          [
+            135.48461,
+            34.8594,
+            305.5
+          ],
+          [
+            135.48461,
+            34.8594,
+            305.5
+          ],
+          [
+            135.48438,
+            34.85937,
+            304.6
+          ],
+          [
+            135.48438,
+            34.85937,
+            304.6
+          ],
+          [
+            135.48438,
+            34.85937,
+            304.6
+          ],
+          [
+            135.48418,
+            34.85928,
+            302.6
+          ],
+          [
+            135.48418,
+            34.85928,
+            302.6
+          ],
+          [
+            135.48418,
+            34.85928,
+            302.6
+          ],
+          [
+            135.48392,
+            34.85922,
+            302.8
+          ],
+          [
+            135.48392,
+            34.85922,
+            302.8
+          ],
+          [
+            135.48392,
+            34.85922,
+            302.8
+          ],
+          [
+            135.48364,
+            34.85917,
+            302.1
+          ],
+          [
+            135.48364,
+            34.85917,
+            302.1
+          ],
+          [
+            135.48364,
+            34.85917,
+            302.1
+          ],
+          [
+            135.48343,
+            34.85898,
+            299.3
+          ],
+          [
+            135.48343,
+            34.85898,
+            299.3
+          ],
+          [
+            135.48343,
+            34.85898,
+            299.3
+          ],
+          [
+            135.48324,
+            34.85889,
+            299.8
+          ],
+          [
+            135.48324,
+            34.85889,
+            299.8
+          ],
+          [
+            135.48324,
+            34.85889,
+            299.8
+          ],
+          [
+            135.48311,
+            34.85874,
+            299
+          ],
+          [
+            135.48311,
+            34.85874,
+            299
+          ],
+          [
+            135.48311,
+            34.85874,
+            299
+          ],
+          [
+            135.48293,
+            34.85862,
+            298.1
+          ],
+          [
+            135.48293,
+            34.85862,
+            298.1
+          ],
+          [
+            135.48293,
+            34.85862,
+            298.1
+          ],
+          [
+            135.48273,
+            34.85858,
+            299.3
+          ],
+          [
+            135.48273,
+            34.85858,
+            299.3
+          ],
+          [
+            135.48273,
+            34.85858,
+            299.3
+          ],
+          [
+            135.48257,
+            34.85842,
+            298
+          ],
+          [
+            135.48257,
+            34.85842,
+            298
+          ],
+          [
+            135.48257,
+            34.85842,
+            298
           ]
         ]
       }
@@ -9059,7 +12602,17 @@
         "type": "route",
         "id": "route_B-39_to_B-40",
         "startPoint": "B-39",
-        "endPoint": "B-40"
+        "endPoint": "B-40",
+        "startPointGPS": [
+          135.47963,
+          34.85181,
+          339.4
+        ],
+        "endPointGPS": [
+          135.47819,
+          34.84931,
+          279
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -9143,7 +12696,17 @@
         "type": "route",
         "id": "route_B-07_to_F-14",
         "startPoint": "B-07",
-        "endPoint": "F-14"
+        "endPoint": "F-14",
+        "startPointGPS": [
+          135.4788,
+          34.85839,
+          288.6
+        ],
+        "endPointGPS": [
+          135.4806,
+          34.86057,
+          375.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -9352,7 +12915,17 @@
         "type": "route",
         "id": "route_C-21_to_G-20",
         "startPoint": "C-21",
-        "endPoint": "G-20"
+        "endPoint": "G-20",
+        "startPointGPS": [
+          135.48711,
+          34.85934,
+          318
+        ],
+        "endPointGPS": [
+          135.4912,
+          34.85725,
+          345.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -9426,7 +12999,17 @@
         "type": "route",
         "id": "route_G-02_to_G-14",
         "startPoint": "G-02",
-        "endPoint": "G-14"
+        "endPoint": "G-14",
+        "startPointGPS": [
+          135.48577,
+          34.84866,
+          301.7
+        ],
+        "endPointGPS": [
+          135.4861,
+          34.84785,
+          289.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -9460,7 +13043,17 @@
         "type": "route",
         "id": "route_F-06_to_F-14",
         "startPoint": "F-06",
-        "endPoint": "F-14"
+        "endPoint": "F-14",
+        "startPointGPS": [
+          135.48257,
+          34.86583,
+          480.9
+        ],
+        "endPointGPS": [
+          135.4806,
+          34.86057,
+          375.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -9579,7 +13172,17 @@
         "type": "route",
         "id": "route_B-41_to_B-03",
         "startPoint": "B-41",
-        "endPoint": "B-03"
+        "endPoint": "B-03",
+        "startPointGPS": [
+          135.47635,
+          34.84852,
+          254.6
+        ],
+        "endPointGPS": [
+          135.47626,
+          34.84785,
+          250.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -9608,7 +13211,17 @@
         "type": "route",
         "id": "route_G-17_to_G-15",
         "startPoint": "G-17",
-        "endPoint": "G-15"
+        "endPoint": "G-15",
+        "startPointGPS": [
+          135.48451,
+          34.85069,
+          282.7
+        ],
+        "endPointGPS": [
+          135.48544,
+          34.84906,
+          313.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -9657,7 +13270,17 @@
         "type": "route",
         "id": "route_B-38_to_B-23",
         "startPoint": "B-38",
-        "endPoint": "B-23"
+        "endPoint": "B-23",
+        "startPointGPS": [
+          135.48075,
+          34.85369,
+          380.8
+        ],
+        "endPointGPS": [
+          135.4802,
+          34.85169,
+          357
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -9726,7 +13349,17 @@
         "type": "route",
         "id": "route_F-15_to_C-04",
         "startPoint": "F-15",
-        "endPoint": "C-04"
+        "endPoint": "C-04",
+        "startPointGPS": [
+          135.48627,
+          34.86121,
+          321.4
+        ],
+        "endPointGPS": [
+          135.48617,
+          34.85992,
+          311.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -9770,7 +13403,17 @@
         "type": "route",
         "id": "route_B-39_to_B-23",
         "startPoint": "B-39",
-        "endPoint": "B-23"
+        "endPoint": "B-23",
+        "startPointGPS": [
+          135.47963,
+          34.85181,
+          339.4
+        ],
+        "endPointGPS": [
+          135.4802,
+          34.85169,
+          357
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -9874,7 +13517,17 @@
         "type": "route",
         "id": "route_B-09_to_B-08",
         "startPoint": "B-09",
-        "endPoint": "B-08"
+        "endPoint": "B-08",
+        "startPointGPS": [
+          135.47792,
+          34.85413,
+          354.5
+        ],
+        "endPointGPS": [
+          135.47532,
+          34.8529,
+          349.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10023,7 +13676,17 @@
         "type": "route",
         "id": "route_C-04_to_C-21",
         "startPoint": "C-04",
-        "endPoint": "C-21"
+        "endPoint": "C-21",
+        "startPointGPS": [
+          135.48617,
+          34.85992,
+          311.6
+        ],
+        "endPointGPS": [
+          135.48711,
+          34.85934,
+          318
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10057,7 +13720,17 @@
         "type": "route",
         "id": "route_E-05_to_E-11",
         "startPoint": "E-05",
-        "endPoint": "E-11"
+        "endPoint": "E-11",
+        "startPointGPS": [
+          135.46847,
+          34.85325,
+          389.7
+        ],
+        "endPointGPS": [
+          135.4694,
+          34.85036,
+          332.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10131,7 +13804,17 @@
         "type": "route",
         "id": "route_G-15_to_G-02",
         "startPoint": "G-15",
-        "endPoint": "G-02"
+        "endPoint": "G-02",
+        "startPointGPS": [
+          135.48544,
+          34.84906,
+          313.9
+        ],
+        "endPointGPS": [
+          135.48577,
+          34.84866,
+          301.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10155,7 +13838,17 @@
         "type": "route",
         "id": "route_G-09_to_G-18",
         "startPoint": "G-09",
-        "endPoint": "G-18"
+        "endPoint": "G-18",
+        "startPointGPS": [
+          135.48587,
+          34.85498,
+          327
+        ],
+        "endPointGPS": [
+          135.4861,
+          34.85266,
+          274.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10204,7 +13897,17 @@
         "type": "route",
         "id": "route_B-26_to_B-27",
         "startPoint": "B-26",
-        "endPoint": "B-27"
+        "endPoint": "B-27",
+        "startPointGPS": [
+          135.47932,
+          34.85738,
+          283.7
+        ],
+        "endPointGPS": [
+          135.47574,
+          34.85421,
+          349
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10313,7 +14016,17 @@
         "type": "route",
         "id": "route_B-36_to_G-16",
         "startPoint": "B-36",
-        "endPoint": "G-16"
+        "endPoint": "G-16",
+        "startPointGPS": [
+          135.48185,
+          34.85178,
+          344.7
+        ],
+        "endPointGPS": [
+          135.4837,
+          34.85003,
+          300.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10377,7 +14090,17 @@
         "type": "route",
         "id": "route_G-03_to_G-29",
         "startPoint": "G-03",
-        "endPoint": "G-29"
+        "endPoint": "G-29",
+        "startPointGPS": [
+          135.49142,
+          34.85708,
+          343.6
+        ],
+        "endPointGPS": [
+          135.49185,
+          34.85125,
+          302.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10486,7 +14209,17 @@
         "type": "route",
         "id": "route_F-03_to_B-34",
         "startPoint": "F-03",
-        "endPoint": "B-34"
+        "endPoint": "B-34",
+        "startPointGPS": [
+          135.47839,
+          34.86879,
+          335.1
+        ],
+        "endPointGPS": [
+          135.47702,
+          34.85949,
+          336.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10660,7 +14393,17 @@
         "type": "route",
         "id": "route_B-24_to_B-38",
         "startPoint": "B-24",
-        "endPoint": "B-38"
+        "endPoint": "B-38",
+        "startPointGPS": [
+          135.48007,
+          34.85417,
+          391.2
+        ],
+        "endPointGPS": [
+          135.48075,
+          34.85369,
+          380.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10689,7 +14432,17 @@
         "type": "route",
         "id": "route_B-09_to_B-27",
         "startPoint": "B-09",
-        "endPoint": "B-27"
+        "endPoint": "B-27",
+        "startPointGPS": [
+          135.47792,
+          34.85413,
+          354.5
+        ],
+        "endPointGPS": [
+          135.47574,
+          34.85421,
+          349
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10748,7 +14501,17 @@
         "type": "route",
         "id": "route_B-26_to_B-25",
         "startPoint": "B-26",
-        "endPoint": "B-25"
+        "endPoint": "B-25",
+        "startPointGPS": [
+          135.47932,
+          34.85738,
+          283.7
+        ],
+        "endPointGPS": [
+          135.48032,
+          34.85523,
+          363.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10792,7 +14555,17 @@
         "type": "route",
         "id": "route_B-09_to_B-24",
         "startPoint": "B-09",
-        "endPoint": "B-24"
+        "endPoint": "B-24",
+        "startPointGPS": [
+          135.47792,
+          34.85413,
+          354.5
+        ],
+        "endPointGPS": [
+          135.48007,
+          34.85417,
+          391.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10851,7 +14624,17 @@
         "type": "route",
         "id": "route_G-19_to_G-30",
         "startPoint": "G-19",
-        "endPoint": "G-30"
+        "endPoint": "G-30",
+        "startPointGPS": [
+          135.48533,
+          34.85471,
+          301.5
+        ],
+        "endPointGPS": [
+          135.48248,
+          34.85825,
+          295.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10925,7 +14708,17 @@
         "type": "route",
         "id": "route_G-22_to_G-20",
         "startPoint": "G-22",
-        "endPoint": "G-20"
+        "endPoint": "G-20",
+        "startPointGPS": [
+          135.49147,
+          34.85803,
+          375.9
+        ],
+        "endPointGPS": [
+          135.4912,
+          34.85725,
+          345.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -10964,7 +14757,17 @@
         "type": "route",
         "id": "route_F-14_to_B-07",
         "startPoint": "F-14",
-        "endPoint": "B-07"
+        "endPoint": "B-07",
+        "startPointGPS": [
+          135.4806,
+          34.86057,
+          375.6
+        ],
+        "endPointGPS": [
+          135.4788,
+          34.85839,
+          288.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11048,7 +14851,17 @@
         "type": "route",
         "id": "route_B-05_to_B-06",
         "startPoint": "B-05",
-        "endPoint": "B-06"
+        "endPoint": "B-06",
+        "startPointGPS": [
+          135.47347,
+          34.85442,
+          247.1
+        ],
+        "endPointGPS": [
+          135.47175,
+          34.85643,
+          235.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11257,7 +15070,17 @@
         "type": "route",
         "id": "route_B-37_to_B-04",
         "startPoint": "B-37",
-        "endPoint": "B-04"
+        "endPoint": "B-04",
+        "startPointGPS": [
+          135.47732,
+          34.85177,
+          280.8
+        ],
+        "endPointGPS": [
+          135.47633,
+          34.85043,
+          244.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11311,7 +15134,17 @@
         "type": "route",
         "id": "route_B-04_to_B-03",
         "startPoint": "B-04",
-        "endPoint": "B-03"
+        "endPoint": "B-03",
+        "startPointGPS": [
+          135.47633,
+          34.85043,
+          244.6
+        ],
+        "endPointGPS": [
+          135.47626,
+          34.84785,
+          250.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11475,7 +15308,17 @@
         "type": "route",
         "id": "route_F-13_to_F-06",
         "startPoint": "F-13",
-        "endPoint": "F-06"
+        "endPoint": "F-06",
+        "startPointGPS": [
+          135.48585,
+          34.86664,
+          475.4
+        ],
+        "endPointGPS": [
+          135.48257,
+          34.86583,
+          480.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11544,7 +15387,17 @@
         "type": "route",
         "id": "route_G-23_to_G-22",
         "startPoint": "G-23",
-        "endPoint": "G-22"
+        "endPoint": "G-22",
+        "startPointGPS": [
+          135.49097,
+          34.85848,
+          394.6
+        ],
+        "endPointGPS": [
+          135.49147,
+          34.85803,
+          375.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11573,7 +15426,17 @@
         "type": "route",
         "id": "route_B-04_to_B-05",
         "startPoint": "B-04",
-        "endPoint": "B-05"
+        "endPoint": "B-05",
+        "startPointGPS": [
+          135.47633,
+          34.85043,
+          244.6
+        ],
+        "endPointGPS": [
+          135.47347,
+          34.85442,
+          247.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11672,7 +15535,17 @@
         "type": "route",
         "id": "route_B-36_to_B-22",
         "startPoint": "B-36",
-        "endPoint": "B-22"
+        "endPoint": "B-22",
+        "startPointGPS": [
+          135.48185,
+          34.85178,
+          344.7
+        ],
+        "endPointGPS": [
+          135.48022,
+          34.85061,
+          316.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11736,7 +15609,17 @@
         "type": "route",
         "id": "route_G-18_to_G-19",
         "startPoint": "G-18",
-        "endPoint": "G-19"
+        "endPoint": "G-19",
+        "startPointGPS": [
+          135.4861,
+          34.85266,
+          274.8
+        ],
+        "endPointGPS": [
+          135.48533,
+          34.85471,
+          301.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11775,7 +15658,17 @@
         "type": "route",
         "id": "route_G-16_to_G-15",
         "startPoint": "G-16",
-        "endPoint": "G-15"
+        "endPoint": "G-15",
+        "startPointGPS": [
+          135.4837,
+          34.85003,
+          300.1
+        ],
+        "endPointGPS": [
+          135.48544,
+          34.84906,
+          313.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11814,7 +15707,17 @@
         "type": "route",
         "id": "route_B-23_to_B-39",
         "startPoint": "B-23",
-        "endPoint": "B-39"
+        "endPoint": "B-39",
+        "startPointGPS": [
+          135.4802,
+          34.85169,
+          357
+        ],
+        "endPointGPS": [
+          135.47963,
+          34.85181,
+          339.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11838,7 +15741,17 @@
         "type": "route",
         "id": "route_B-25_to_B-24",
         "startPoint": "B-25",
-        "endPoint": "B-24"
+        "endPoint": "B-24",
+        "startPointGPS": [
+          135.48032,
+          34.85523,
+          363.7
+        ],
+        "endPointGPS": [
+          135.48007,
+          34.85417,
+          391.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11892,7 +15805,17 @@
         "type": "route",
         "id": "route_G-08_to_G-02",
         "startPoint": "G-08",
-        "endPoint": "G-02"
+        "endPoint": "G-02",
+        "startPointGPS": [
+          135.48631,
+          34.85173,
+          262
+        ],
+        "endPointGPS": [
+          135.48577,
+          34.84866,
+          301.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -11941,7 +15864,17 @@
         "type": "route",
         "id": "route_B-35_to_B-26",
         "startPoint": "B-35",
-        "endPoint": "B-26"
+        "endPoint": "B-26",
+        "startPointGPS": [
+          135.47576,
+          34.85889,
+          353.9
+        ],
+        "endPointGPS": [
+          135.47932,
+          34.85738,
+          283.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12025,7 +15958,17 @@
         "type": "route",
         "id": "route_B-34_to_F-01",
         "startPoint": "B-34",
-        "endPoint": "F-01"
+        "endPoint": "F-01",
+        "startPointGPS": [
+          135.47702,
+          34.85949,
+          336.8
+        ],
+        "endPointGPS": [
+          135.47427,
+          34.86372,
+          355.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12119,7 +16062,17 @@
         "type": "route",
         "id": "route_B-22_to_B-11",
         "startPoint": "B-22",
-        "endPoint": "B-11"
+        "endPoint": "B-11",
+        "startPointGPS": [
+          135.48022,
+          34.85061,
+          316.9
+        ],
+        "endPointGPS": [
+          135.4794,
+          34.8485,
+          295.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12183,7 +16136,17 @@
         "type": "route",
         "id": "route_B-03_to_B-28",
         "startPoint": "B-03",
-        "endPoint": "B-28"
+        "endPoint": "B-28",
+        "startPointGPS": [
+          135.47626,
+          34.84785,
+          250.3
+        ],
+        "endPointGPS": [
+          135.47657,
+          34.84736,
+          241.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12207,7 +16170,17 @@
         "type": "route",
         "id": "route_B-10_to_B-09",
         "startPoint": "B-10",
-        "endPoint": "B-09"
+        "endPoint": "B-09",
+        "startPointGPS": [
+          135.47995,
+          34.85544,
+          374.6
+        ],
+        "endPointGPS": [
+          135.47792,
+          34.85413,
+          354.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12276,7 +16249,17 @@
         "type": "route",
         "id": "route_B-38_to_B-37",
         "startPoint": "B-38",
-        "endPoint": "B-37"
+        "endPoint": "B-37",
+        "startPointGPS": [
+          135.48075,
+          34.85369,
+          380.8
+        ],
+        "endPointGPS": [
+          135.47732,
+          34.85177,
+          280.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12365,7 +16348,17 @@
         "type": "route",
         "id": "route_F-15_to_C-20",
         "startPoint": "F-15",
-        "endPoint": "C-20"
+        "endPoint": "C-20",
+        "startPointGPS": [
+          135.48627,
+          34.86121,
+          321.4
+        ],
+        "endPointGPS": [
+          135.48653,
+          34.86087,
+          314.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12389,7 +16382,17 @@
         "type": "route",
         "id": "route_F-01_to_F-02",
         "startPoint": "F-01",
-        "endPoint": "F-02"
+        "endPoint": "F-02",
+        "startPointGPS": [
+          135.47427,
+          34.86372,
+          355.6
+        ],
+        "endPointGPS": [
+          135.47698,
+          34.8642,
+          343.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12508,7 +16511,17 @@
         "type": "route",
         "id": "route_F-07_to_F-14",
         "startPoint": "F-07",
-        "endPoint": "F-14"
+        "endPoint": "F-14",
+        "startPointGPS": [
+          135.48436,
+          34.86216,
+          379.6
+        ],
+        "endPointGPS": [
+          135.4806,
+          34.86057,
+          375.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12632,7 +16645,17 @@
         "type": "route",
         "id": "route_B-34_to_B-35",
         "startPoint": "B-34",
-        "endPoint": "B-35"
+        "endPoint": "B-35",
+        "startPointGPS": [
+          135.47702,
+          34.85949,
+          336.8
+        ],
+        "endPointGPS": [
+          135.47576,
+          34.85889,
+          353.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12676,7 +16699,17 @@
         "type": "route",
         "id": "route_B-07_to_B-26",
         "startPoint": "B-07",
-        "endPoint": "B-26"
+        "endPoint": "B-26",
+        "startPointGPS": [
+          135.4788,
+          34.85839,
+          288.6
+        ],
+        "endPointGPS": [
+          135.47932,
+          34.85738,
+          283.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12700,7 +16733,17 @@
         "type": "route",
         "id": "route_G-08_to_G-17",
         "startPoint": "G-08",
-        "endPoint": "G-17"
+        "endPoint": "G-17",
+        "startPointGPS": [
+          135.48631,
+          34.85173,
+          262
+        ],
+        "endPointGPS": [
+          135.48451,
+          34.85069,
+          282.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12739,7 +16782,17 @@
         "type": "route",
         "id": "route_B-25_to_B-10",
         "startPoint": "B-25",
-        "endPoint": "B-10"
+        "endPoint": "B-10",
+        "startPointGPS": [
+          135.48032,
+          34.85523,
+          363.7
+        ],
+        "endPointGPS": [
+          135.47995,
+          34.85544,
+          374.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12763,7 +16816,17 @@
         "type": "route",
         "id": "route_G-09_to_G-19",
         "startPoint": "G-09",
-        "endPoint": "G-19"
+        "endPoint": "G-19",
+        "startPointGPS": [
+          135.48587,
+          34.85498,
+          327
+        ],
+        "endPointGPS": [
+          135.48533,
+          34.85471,
+          301.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12787,7 +16850,17 @@
         "type": "route",
         "id": "route_B-29_to_G-16",
         "startPoint": "B-29",
-        "endPoint": "G-16"
+        "endPoint": "G-16",
+        "startPointGPS": [
+          135.48049,
+          34.84903,
+          285.2
+        ],
+        "endPointGPS": [
+          135.4837,
+          34.85003,
+          300.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -12861,7 +16934,17 @@
         "type": "route",
         "id": "route_B-06_to_B-26",
         "startPoint": "B-06",
-        "endPoint": "B-26"
+        "endPoint": "B-26",
+        "startPointGPS": [
+          135.47175,
+          34.85643,
+          235.2
+        ],
+        "endPointGPS": [
+          135.47932,
+          34.85738,
+          283.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13040,7 +17123,17 @@
         "type": "route",
         "id": "route_G-18_to_G-08",
         "startPoint": "G-18",
-        "endPoint": "G-08"
+        "endPoint": "G-08",
+        "startPointGPS": [
+          135.4861,
+          34.85266,
+          274.8
+        ],
+        "endPointGPS": [
+          135.48631,
+          34.85173,
+          262
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13069,7 +17162,17 @@
         "type": "route",
         "id": "route_B-08_to_B-05",
         "startPoint": "B-08",
-        "endPoint": "B-05"
+        "endPoint": "B-05",
+        "startPointGPS": [
+          135.47532,
+          34.8529,
+          349.3
+        ],
+        "endPointGPS": [
+          135.47347,
+          34.85442,
+          247.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13123,7 +17226,17 @@
         "type": "route",
         "id": "route_C-20_to_C-04",
         "startPoint": "C-20",
-        "endPoint": "C-04"
+        "endPoint": "C-04",
+        "startPointGPS": [
+          135.48653,
+          34.86087,
+          314.9
+        ],
+        "endPointGPS": [
+          135.48617,
+          34.85992,
+          311.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13157,7 +17270,17 @@
         "type": "route",
         "id": "route_B-29_to_B-30",
         "startPoint": "B-29",
-        "endPoint": "B-30"
+        "endPoint": "B-30",
+        "startPointGPS": [
+          135.48049,
+          34.84903,
+          285.2
+        ],
+        "endPointGPS": [
+          135.48091,
+          34.84738,
+          282.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13206,7 +17329,17 @@
         "type": "route",
         "id": "route_B-39_to_B-41",
         "startPoint": "B-39",
-        "endPoint": "B-41"
+        "endPoint": "B-41",
+        "startPointGPS": [
+          135.47963,
+          34.85181,
+          339.4
+        ],
+        "endPointGPS": [
+          135.47635,
+          34.84852,
+          254.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13320,7 +17453,17 @@
         "type": "route",
         "id": "route_G-29_to_G-05",
         "startPoint": "G-29",
-        "endPoint": "G-05"
+        "endPoint": "G-05",
+        "startPointGPS": [
+          135.49185,
+          34.85125,
+          302.3
+        ],
+        "endPointGPS": [
+          135.49201,
+          34.84933,
+          284.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13364,7 +17507,17 @@
         "type": "route",
         "id": "route_B-08_to_B-37",
         "startPoint": "B-08",
-        "endPoint": "B-37"
+        "endPoint": "B-37",
+        "startPointGPS": [
+          135.47532,
+          34.8529,
+          349.3
+        ],
+        "endPointGPS": [
+          135.47732,
+          34.85177,
+          280.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13468,7 +17621,17 @@
         "type": "route",
         "id": "route_F-02_to_F-03",
         "startPoint": "F-02",
-        "endPoint": "F-03"
+        "endPoint": "F-03",
+        "startPointGPS": [
+          135.47698,
+          34.8642,
+          343.6
+        ],
+        "endPointGPS": [
+          135.47839,
+          34.86879,
+          335.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13562,7 +17725,17 @@
         "type": "route",
         "id": "route_B-35_to_E-08",
         "startPoint": "B-35",
-        "endPoint": "E-08"
+        "endPoint": "E-08",
+        "startPointGPS": [
+          135.47576,
+          34.85889,
+          353.9
+        ],
+        "endPointGPS": [
+          135.47347,
+          34.85993,
+          393
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13621,7 +17794,17 @@
         "type": "route",
         "id": "route_B-30_to_B-31",
         "startPoint": "B-30",
-        "endPoint": "B-31"
+        "endPoint": "B-31",
+        "startPointGPS": [
+          135.48091,
+          34.84738,
+          282.8
+        ],
+        "endPointGPS": [
+          135.48143,
+          34.84611,
+          300.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13670,7 +17853,17 @@
         "type": "route",
         "id": "route_G-08_to_G-07",
         "startPoint": "G-08",
-        "endPoint": "G-07"
+        "endPoint": "G-07",
+        "startPointGPS": [
+          135.48631,
+          34.85173,
+          262
+        ],
+        "endPointGPS": [
+          135.48813,
+          34.84837,
+          195.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13734,7 +17927,17 @@
         "type": "route",
         "id": "route_G-20_to_G-09",
         "startPoint": "G-20",
-        "endPoint": "G-09"
+        "endPoint": "G-09",
+        "startPointGPS": [
+          135.4912,
+          34.85725,
+          345.8
+        ],
+        "endPointGPS": [
+          135.48587,
+          34.85498,
+          327
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13828,7 +18031,17 @@
         "type": "route",
         "id": "route_B-26_to_G-30",
         "startPoint": "B-26",
-        "endPoint": "G-30"
+        "endPoint": "G-30",
+        "startPointGPS": [
+          135.47932,
+          34.85738,
+          283.7
+        ],
+        "endPointGPS": [
+          135.48248,
+          34.85825,
+          295.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13902,7 +18115,17 @@
         "type": "route",
         "id": "route_B-40_to_B-11",
         "startPoint": "B-40",
-        "endPoint": "B-11"
+        "endPoint": "B-11",
+        "startPointGPS": [
+          135.47819,
+          34.84931,
+          279
+        ],
+        "endPointGPS": [
+          135.4794,
+          34.8485,
+          295.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13951,7 +18174,17 @@
         "type": "route",
         "id": "route_B-27_to_B-08",
         "startPoint": "B-27",
-        "endPoint": "B-08"
+        "endPoint": "B-08",
+        "startPointGPS": [
+          135.47574,
+          34.85421,
+          349
+        ],
+        "endPointGPS": [
+          135.47532,
+          34.8529,
+          349.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -13990,7 +18223,17 @@
         "type": "route",
         "id": "route_B-07_to_B-34",
         "startPoint": "B-07",
-        "endPoint": "B-34"
+        "endPoint": "B-34",
+        "startPointGPS": [
+          135.4788,
+          34.85839,
+          288.6
+        ],
+        "endPointGPS": [
+          135.47702,
+          34.85949,
+          336.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14094,7 +18337,17 @@
         "type": "route",
         "id": "route_B-11_to_B-29",
         "startPoint": "B-11",
-        "endPoint": "B-29"
+        "endPoint": "B-29",
+        "startPointGPS": [
+          135.4794,
+          34.8485,
+          295.5
+        ],
+        "endPointGPS": [
+          135.48049,
+          34.84903,
+          285.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14133,7 +18386,17 @@
         "type": "route",
         "id": "route_E-08_to_B-06",
         "startPoint": "E-08",
-        "endPoint": "B-06"
+        "endPoint": "B-06",
+        "startPointGPS": [
+          135.47347,
+          34.85993,
+          393
+        ],
+        "endPointGPS": [
+          135.47175,
+          34.85643,
+          235.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14227,7 +18490,17 @@
         "type": "route",
         "id": "route_B-25_to_B-36",
         "startPoint": "B-25",
-        "endPoint": "B-36"
+        "endPoint": "B-36",
+        "startPointGPS": [
+          135.48032,
+          34.85523,
+          363.7
+        ],
+        "endPointGPS": [
+          135.48185,
+          34.85178,
+          344.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14311,7 +18584,17 @@
         "type": "route",
         "id": "route_C-24_to_C-20",
         "startPoint": "C-24",
-        "endPoint": "C-20"
+        "endPoint": "C-20",
+        "startPointGPS": [
+          135.49396,
+          34.86264,
+          409.1
+        ],
+        "endPointGPS": [
+          135.48653,
+          34.86087,
+          314.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14430,7 +18713,17 @@
         "type": "route",
         "id": "route_G-04_to_C-02",
         "startPoint": "G-04",
-        "endPoint": "C-02"
+        "endPoint": "C-02",
+        "startPointGPS": [
+          135.49334,
+          34.85427,
+          259.1
+        ],
+        "endPointGPS": [
+          135.49547,
+          34.85638,
+          290.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14484,7 +18777,17 @@
         "type": "route",
         "id": "route_C-17_to_C-18",
         "startPoint": "C-17",
-        "endPoint": "C-18"
+        "endPoint": "C-18",
+        "startPointGPS": [
+          135.49376,
+          34.85945,
+          348
+        ],
+        "endPointGPS": [
+          135.49442,
+          34.86205,
+          417.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14553,7 +18856,17 @@
         "type": "route",
         "id": "route_G-29_to_G-03",
         "startPoint": "G-29",
-        "endPoint": "G-03"
+        "endPoint": "G-03",
+        "startPointGPS": [
+          135.49185,
+          34.85125,
+          302.3
+        ],
+        "endPointGPS": [
+          135.49142,
+          34.85708,
+          343.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14687,7 +19000,17 @@
         "type": "route",
         "id": "route_G-13_to_G-14",
         "startPoint": "G-13",
-        "endPoint": "G-14"
+        "endPoint": "G-14",
+        "startPointGPS": [
+          135.48669,
+          34.84587,
+          204.4
+        ],
+        "endPointGPS": [
+          135.4861,
+          34.84785,
+          289.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14761,7 +19084,17 @@
         "type": "route",
         "id": "route_C-17_to_C-19",
         "startPoint": "C-17",
-        "endPoint": "C-19"
+        "endPoint": "C-19",
+        "startPointGPS": [
+          135.49376,
+          34.85945,
+          348
+        ],
+        "endPointGPS": [
+          135.49259,
+          34.85975,
+          346.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14795,7 +19128,17 @@
         "type": "route",
         "id": "route_C-18_to_C-24",
         "startPoint": "C-18",
-        "endPoint": "C-24"
+        "endPoint": "C-24",
+        "startPointGPS": [
+          135.49442,
+          34.86205,
+          417.6
+        ],
+        "endPointGPS": [
+          135.49396,
+          34.86264,
+          409.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14819,7 +19162,17 @@
         "type": "route",
         "id": "route_C-14_to_C-15",
         "startPoint": "C-14",
-        "endPoint": "C-15"
+        "endPoint": "C-15",
+        "startPointGPS": [
+          135.49502,
+          34.85333,
+          323.1
+        ],
+        "endPointGPS": [
+          135.49513,
+          34.85476,
+          316.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14853,7 +19206,17 @@
         "type": "route",
         "id": "route_G-04_to_G-21",
         "startPoint": "G-04",
-        "endPoint": "G-21"
+        "endPoint": "G-21",
+        "startPointGPS": [
+          135.49334,
+          34.85427,
+          259.1
+        ],
+        "endPointGPS": [
+          135.49252,
+          34.85774,
+          342.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14922,7 +19285,17 @@
         "type": "route",
         "id": "route_G-02_to_G-15",
         "startPoint": "G-02",
-        "endPoint": "G-15"
+        "endPoint": "G-15",
+        "startPointGPS": [
+          135.48577,
+          34.84866,
+          301.7
+        ],
+        "endPointGPS": [
+          135.48544,
+          34.84906,
+          313.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -14946,7 +19319,17 @@
         "type": "route",
         "id": "route_C-12_to_C-13",
         "startPoint": "C-12",
-        "endPoint": "C-13"
+        "endPoint": "C-13",
+        "startPointGPS": [
+          135.49959,
+          34.84635,
+          143.5
+        ],
+        "endPointGPS": [
+          135.49647,
+          34.85005,
+          266.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15020,7 +19403,17 @@
         "type": "route",
         "id": "route_C-15_to_C-16",
         "startPoint": "C-15",
-        "endPoint": "C-16"
+        "endPoint": "C-16",
+        "startPointGPS": [
+          135.49513,
+          34.85476,
+          316.8
+        ],
+        "endPointGPS": [
+          135.49527,
+          34.85567,
+          308.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15049,7 +19442,17 @@
         "type": "route",
         "id": "route_C-19_to_C-18",
         "startPoint": "C-19",
-        "endPoint": "C-18"
+        "endPoint": "C-18",
+        "startPointGPS": [
+          135.49259,
+          34.85975,
+          346.4
+        ],
+        "endPointGPS": [
+          135.49442,
+          34.86205,
+          417.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15113,7 +19516,17 @@
         "type": "route",
         "id": "route_C-13_to_C-14",
         "startPoint": "C-13",
-        "endPoint": "C-14"
+        "endPoint": "C-14",
+        "startPointGPS": [
+          135.49647,
+          34.85005,
+          266.7
+        ],
+        "endPointGPS": [
+          135.49502,
+          34.85333,
+          323.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15172,7 +19585,17 @@
         "type": "route",
         "id": "route_G-21_to_C-19",
         "startPoint": "G-21",
-        "endPoint": "C-19"
+        "endPoint": "C-19",
+        "startPointGPS": [
+          135.49252,
+          34.85774,
+          342.2
+        ],
+        "endPointGPS": [
+          135.49259,
+          34.85975,
+          346.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15216,7 +19639,17 @@
         "type": "route",
         "id": "route_C-01_to_C-14",
         "startPoint": "C-01",
-        "endPoint": "C-14"
+        "endPoint": "C-14",
+        "startPointGPS": [
+          135.49939,
+          34.84988,
+          205.2
+        ],
+        "endPointGPS": [
+          135.49502,
+          34.85333,
+          323.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15310,7 +19743,17 @@
         "type": "route",
         "id": "route_C-24_to_C-03",
         "startPoint": "C-24",
-        "endPoint": "C-03"
+        "endPoint": "C-03",
+        "startPointGPS": [
+          135.49396,
+          34.86264,
+          409.1
+        ],
+        "endPointGPS": [
+          135.49334,
+          34.86425,
+          357.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15349,7 +19792,17 @@
         "type": "route",
         "id": "route_G-21_to_G-22",
         "startPoint": "G-21",
-        "endPoint": "G-22"
+        "endPoint": "G-22",
+        "startPointGPS": [
+          135.49252,
+          34.85774,
+          342.2
+        ],
+        "endPointGPS": [
+          135.49147,
+          34.85803,
+          375.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15378,7 +19831,17 @@
         "type": "route",
         "id": "route_G-02_to_G-08",
         "startPoint": "G-02",
-        "endPoint": "G-08"
+        "endPoint": "G-08",
+        "startPointGPS": [
+          135.48577,
+          34.84866,
+          301.7
+        ],
+        "endPointGPS": [
+          135.48631,
+          34.85173,
+          262
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15437,7 +19900,17 @@
         "type": "route",
         "id": "route_G-22_to_G-23",
         "startPoint": "G-22",
-        "endPoint": "G-23"
+        "endPoint": "G-23",
+        "startPointGPS": [
+          135.49147,
+          34.85803,
+          375.9
+        ],
+        "endPointGPS": [
+          135.49097,
+          34.85848,
+          394.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15461,7 +19934,17 @@
         "type": "route",
         "id": "route_G-05_to_G-29",
         "startPoint": "G-05",
-        "endPoint": "G-29"
+        "endPoint": "G-29",
+        "startPointGPS": [
+          135.49201,
+          34.84933,
+          284.9
+        ],
+        "endPointGPS": [
+          135.49185,
+          34.85125,
+          302.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15505,7 +19988,17 @@
         "type": "route",
         "id": "route_G-08_to_G-18",
         "startPoint": "G-08",
-        "endPoint": "G-18"
+        "endPoint": "G-18",
+        "startPointGPS": [
+          135.48631,
+          34.85173,
+          262
+        ],
+        "endPointGPS": [
+          135.4861,
+          34.85266,
+          274.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15534,7 +20027,17 @@
         "type": "route",
         "id": "route_G-20_to_C-21",
         "startPoint": "G-20",
-        "endPoint": "C-21"
+        "endPoint": "C-21",
+        "startPointGPS": [
+          135.4912,
+          34.85725,
+          345.8
+        ],
+        "endPointGPS": [
+          135.48711,
+          34.85934,
+          318
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15613,7 +20116,17 @@
         "type": "route",
         "id": "route_C-02_to_C-17",
         "startPoint": "C-02",
-        "endPoint": "C-17"
+        "endPoint": "C-17",
+        "startPointGPS": [
+          135.49547,
+          34.85638,
+          290.3
+        ],
+        "endPointGPS": [
+          135.49376,
+          34.85945,
+          348
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15697,7 +20210,17 @@
         "type": "route",
         "id": "route_G-09_to_G-20",
         "startPoint": "G-09",
-        "endPoint": "G-20"
+        "endPoint": "G-20",
+        "startPointGPS": [
+          135.48587,
+          34.85498,
+          327
+        ],
+        "endPointGPS": [
+          135.4912,
+          34.85725,
+          345.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15801,7 +20324,17 @@
         "type": "route",
         "id": "route_G-18_to_G-09",
         "startPoint": "G-18",
-        "endPoint": "G-09"
+        "endPoint": "G-09",
+        "startPointGPS": [
+          135.4861,
+          34.85266,
+          274.8
+        ],
+        "endPointGPS": [
+          135.48587,
+          34.85498,
+          327
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15845,7 +20378,17 @@
         "type": "route",
         "id": "route_G-03_to_G-21",
         "startPoint": "G-03",
-        "endPoint": "G-21"
+        "endPoint": "G-21",
+        "startPointGPS": [
+          135.49142,
+          34.85708,
+          343.6
+        ],
+        "endPointGPS": [
+          135.49252,
+          34.85774,
+          342.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15879,7 +20422,17 @@
         "type": "route",
         "id": "route_G-07_to_G-08",
         "startPoint": "G-07",
-        "endPoint": "G-08"
+        "endPoint": "G-08",
+        "startPointGPS": [
+          135.48813,
+          34.84837,
+          195.2
+        ],
+        "endPointGPS": [
+          135.48631,
+          34.85173,
+          262
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15953,7 +20506,17 @@
         "type": "route",
         "id": "route_G-03_to_G-22",
         "startPoint": "G-03",
-        "endPoint": "G-22"
+        "endPoint": "G-22",
+        "startPointGPS": [
+          135.49142,
+          34.85708,
+          343.6
+        ],
+        "endPointGPS": [
+          135.49147,
+          34.85803,
+          375.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -15982,7 +20545,17 @@
         "type": "route",
         "id": "route_C-12_to_C-22",
         "startPoint": "C-12",
-        "endPoint": "C-22"
+        "endPoint": "C-22",
+        "startPointGPS": [
+          135.49959,
+          34.84635,
+          143.5
+        ],
+        "endPointGPS": [
+          135.49762,
+          34.84694,
+          150.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -16016,7 +20589,17 @@
         "type": "route",
         "id": "route_C-01_to_C-02",
         "startPoint": "C-01",
-        "endPoint": "C-02"
+        "endPoint": "C-02",
+        "startPointGPS": [
+          135.49939,
+          34.84988,
+          205.2
+        ],
+        "endPointGPS": [
+          135.49547,
+          34.85638,
+          290.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -16145,7 +20728,17 @@
         "type": "route",
         "id": "route_G-14_to_G-02",
         "startPoint": "G-14",
-        "endPoint": "G-02"
+        "endPoint": "G-02",
+        "startPointGPS": [
+          135.4861,
+          34.84785,
+          289.5
+        ],
+        "endPointGPS": [
+          135.48577,
+          34.84866,
+          301.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -16179,7 +20772,17 @@
         "type": "route",
         "id": "route_C-22_to_G-04",
         "startPoint": "C-22",
-        "endPoint": "G-04"
+        "endPoint": "G-04",
+        "startPointGPS": [
+          135.49762,
+          34.84694,
+          150.7
+        ],
+        "endPointGPS": [
+          135.49334,
+          34.85427,
+          259.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -16293,7 +20896,17 @@
         "type": "route",
         "id": "route_C-21_to_C-04",
         "startPoint": "C-21",
-        "endPoint": "C-04"
+        "endPoint": "C-04",
+        "startPointGPS": [
+          135.48711,
+          34.85934,
+          318
+        ],
+        "endPointGPS": [
+          135.48617,
+          34.85992,
+          311.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -16327,7 +20940,17 @@
         "type": "route",
         "id": "route_C-19_to_C-20",
         "startPoint": "C-19",
-        "endPoint": "C-20"
+        "endPoint": "C-20",
+        "startPointGPS": [
+          135.49259,
+          34.85975,
+          346.4
+        ],
+        "endPointGPS": [
+          135.48653,
+          34.86087,
+          314.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -16411,7 +21034,17 @@
         "type": "route",
         "id": "route_D-04_to_D-42",
         "startPoint": "D-04",
-        "endPoint": "D-42"
+        "endPoint": "D-42",
+        "startPointGPS": [
+          135.46494,
+          34.84184,
+          319.3
+        ],
+        "endPointGPS": [
+          135.4653,
+          34.84354,
+          323.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -16485,7 +21118,17 @@
         "type": "route",
         "id": "route_D-37_to_D-24",
         "startPoint": "D-37",
-        "endPoint": "D-24"
+        "endPoint": "D-24",
+        "startPointGPS": [
+          135.46453,
+          34.84212,
+          309.9
+        ],
+        "endPointGPS": [
+          135.46246,
+          34.84072,
+          234.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -16619,7 +21262,17 @@
         "type": "route",
         "id": "route_D-23_to_D-32",
         "startPoint": "D-23",
-        "endPoint": "D-32"
+        "endPoint": "D-32",
+        "startPointGPS": [
+          135.45891,
+          34.84211,
+          340.5
+        ],
+        "endPointGPS": [
+          135.45542,
+          34.84292,
+          371.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -16803,7 +21456,17 @@
         "type": "route",
         "id": "route_D-22_to_D-35",
         "startPoint": "D-22",
-        "endPoint": "D-35"
+        "endPoint": "D-35",
+        "startPointGPS": [
+          135.46003,
+          34.84242,
+          339.6
+        ],
+        "endPointGPS": [
+          135.45955,
+          34.84491,
+          364.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -16992,7 +21655,17 @@
         "type": "route",
         "id": "route_D-05_to_D-41",
         "startPoint": "D-05",
-        "endPoint": "D-41"
+        "endPoint": "D-41",
+        "startPointGPS": [
+          135.46649,
+          34.84536,
+          339
+        ],
+        "endPointGPS": [
+          135.46523,
+          34.84498,
+          343.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -17031,7 +21704,17 @@
         "type": "route",
         "id": "route_D-13_to_D-24",
         "startPoint": "D-13",
-        "endPoint": "D-24"
+        "endPoint": "D-24",
+        "startPointGPS": [
+          135.463,
+          34.8396,
+          171
+        ],
+        "endPointGPS": [
+          135.46246,
+          34.84072,
+          234.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -17080,7 +21763,17 @@
         "type": "route",
         "id": "route_D-24_to_D-20",
         "startPoint": "D-24",
-        "endPoint": "D-20"
+        "endPoint": "D-20",
+        "startPointGPS": [
+          135.46246,
+          34.84072,
+          234.3
+        ],
+        "endPointGPS": [
+          135.45978,
+          34.84134,
+          304.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -17204,7 +21897,17 @@
         "type": "route",
         "id": "route_D-42_to_D-02",
         "startPoint": "D-42",
-        "endPoint": "D-02"
+        "endPoint": "D-02",
+        "startPointGPS": [
+          135.4653,
+          34.84354,
+          323.9
+        ],
+        "endPointGPS": [
+          135.46116,
+          34.84367,
+          333.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -17773,7 +22476,17 @@
         "type": "route",
         "id": "route_D-14_to_D-15",
         "startPoint": "D-14",
-        "endPoint": "D-15"
+        "endPoint": "D-15",
+        "startPointGPS": [
+          135.45934,
+          34.8381,
+          204.4
+        ],
+        "endPointGPS": [
+          135.45934,
+          34.8392,
+          248.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -17797,7 +22510,17 @@
         "type": "route",
         "id": "route_D-41_to_D-36",
         "startPoint": "D-41",
-        "endPoint": "D-36"
+        "endPoint": "D-36",
+        "startPointGPS": [
+          135.46523,
+          34.84498,
+          343.8
+        ],
+        "endPointGPS": [
+          135.46056,
+          34.84543,
+          355.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -18236,7 +22959,17 @@
         "type": "route",
         "id": "route_D-34_to_D-33",
         "startPoint": "D-34",
-        "endPoint": "D-33"
+        "endPoint": "D-33",
+        "startPointGPS": [
+          135.45278,
+          34.84392,
+          346.2
+        ],
+        "endPointGPS": [
+          135.45449,
+          34.84361,
+          329.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -18280,7 +23013,17 @@
         "type": "route",
         "id": "route_D-38_to_D-05",
         "startPoint": "D-38",
-        "endPoint": "D-05"
+        "endPoint": "D-05",
+        "startPointGPS": [
+          135.47018,
+          34.84225,
+          178.3
+        ],
+        "endPointGPS": [
+          135.46649,
+          34.84536,
+          339
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -18434,7 +23177,17 @@
         "type": "route",
         "id": "route_D-35_to_E-15",
         "startPoint": "D-35",
-        "endPoint": "E-15"
+        "endPoint": "E-15",
+        "startPointGPS": [
+          135.45955,
+          34.84491,
+          364.2
+        ],
+        "endPointGPS": [
+          135.45965,
+          34.84907,
+          372.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -18633,7 +23386,17 @@
         "type": "route",
         "id": "route_D-43_to_D-42",
         "startPoint": "D-43",
-        "endPoint": "D-42"
+        "endPoint": "D-42",
+        "startPointGPS": [
+          135.46661,
+          34.84448,
+          302.7
+        ],
+        "endPointGPS": [
+          135.4653,
+          34.84354,
+          323.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -18727,7 +23490,17 @@
         "type": "route",
         "id": "route_D-40_to_D-25",
         "startPoint": "D-40",
-        "endPoint": "D-25"
+        "endPoint": "D-25",
+        "startPointGPS": [
+          135.45531,
+          34.8357,
+          177
+        ],
+        "endPointGPS": [
+          135.45643,
+          34.84099,
+          307
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -19021,7 +23794,17 @@
         "type": "route",
         "id": "route_D-31_to_D-25",
         "startPoint": "D-31",
-        "endPoint": "D-25"
+        "endPoint": "D-25",
+        "startPointGPS": [
+          135.45535,
+          34.84196,
+          350.6
+        ],
+        "endPointGPS": [
+          135.45643,
+          34.84099,
+          307
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -19055,7 +23838,17 @@
         "type": "route",
         "id": "route_D-03_to_D-14",
         "startPoint": "D-03",
-        "endPoint": "D-14"
+        "endPoint": "D-14",
+        "startPointGPS": [
+          135.4615,
+          34.83905,
+          223.6
+        ],
+        "endPointGPS": [
+          135.45934,
+          34.8381,
+          204.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -19259,7 +24052,17 @@
         "type": "route",
         "id": "route_D-03_to_D-20",
         "startPoint": "D-03",
-        "endPoint": "D-20"
+        "endPoint": "D-20",
+        "startPointGPS": [
+          135.4615,
+          34.83905,
+          223.6
+        ],
+        "endPointGPS": [
+          135.45978,
+          34.84134,
+          304.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -19423,7 +24226,17 @@
         "type": "route",
         "id": "route_E-12_to_E-13",
         "startPoint": "E-12",
-        "endPoint": "E-13"
+        "endPoint": "E-13",
+        "startPointGPS": [
+          135.47085,
+          34.84575,
+          158.1
+        ],
+        "endPointGPS": [
+          135.46233,
+          34.84855,
+          332.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -19812,7 +24625,17 @@
         "type": "route",
         "id": "route_D-36_to_D-21",
         "startPoint": "D-36",
-        "endPoint": "D-21"
+        "endPoint": "D-21",
+        "startPointGPS": [
+          135.46056,
+          34.84543,
+          355.5
+        ],
+        "endPointGPS": [
+          135.46012,
+          34.84174,
+          324.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -19901,7 +24724,17 @@
         "type": "route",
         "id": "route_D-44_to_D-04",
         "startPoint": "D-44",
-        "endPoint": "D-04"
+        "endPoint": "D-04",
+        "startPointGPS": [
+          135.46729,
+          34.844,
+          278.7
+        ],
+        "endPointGPS": [
+          135.46494,
+          34.84184,
+          319.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -20100,7 +24933,17 @@
         "type": "route",
         "id": "route_D-42_to_D-41",
         "startPoint": "D-42",
-        "endPoint": "D-41"
+        "endPoint": "D-41",
+        "startPointGPS": [
+          135.4653,
+          34.84354,
+          323.9
+        ],
+        "endPointGPS": [
+          135.46523,
+          34.84498,
+          343.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -20144,7 +24987,17 @@
         "type": "route",
         "id": "route_D-01_to_D-40",
         "startPoint": "D-01",
-        "endPoint": "D-40"
+        "endPoint": "D-40",
+        "startPointGPS": [
+          135.4564,
+          34.83791,
+          242
+        ],
+        "endPointGPS": [
+          135.45531,
+          34.8357,
+          177
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -20298,7 +25151,17 @@
         "type": "route",
         "id": "route_D-06_to_D-44",
         "startPoint": "D-06",
-        "endPoint": "D-44"
+        "endPoint": "D-44",
+        "startPointGPS": [
+          135.47011,
+          34.84153,
+          168.6
+        ],
+        "endPointGPS": [
+          135.46729,
+          34.844,
+          278.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -20442,7 +25305,17 @@
         "type": "route",
         "id": "route_D-15_to_D-01",
         "startPoint": "D-15",
-        "endPoint": "D-01"
+        "endPoint": "D-01",
+        "startPointGPS": [
+          135.45934,
+          34.8392,
+          248.2
+        ],
+        "endPointGPS": [
+          135.4564,
+          34.83791,
+          242
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -20606,7 +25479,17 @@
         "type": "route",
         "id": "route_D-35_to_D-23",
         "startPoint": "D-35",
-        "endPoint": "D-23"
+        "endPoint": "D-23",
+        "startPointGPS": [
+          135.45955,
+          34.84491,
+          364.2
+        ],
+        "endPointGPS": [
+          135.45891,
+          34.84211,
+          340.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -20785,7 +25668,17 @@
         "type": "route",
         "id": "route_D-11_to_D-45",
         "startPoint": "D-11",
-        "endPoint": "D-45"
+        "endPoint": "D-45",
+        "startPointGPS": [
+          135.46248,
+          34.83746,
+          146.4
+        ],
+        "endPointGPS": [
+          135.4612,
+          34.83786,
+          203.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -20814,7 +25707,17 @@
         "type": "route",
         "id": "route_G-16_to_B-29",
         "startPoint": "G-16",
-        "endPoint": "B-29"
+        "endPoint": "B-29",
+        "startPointGPS": [
+          135.4837,
+          34.85003,
+          300.1
+        ],
+        "endPointGPS": [
+          135.48049,
+          34.84903,
+          285.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -20873,7 +25776,17 @@
         "type": "route",
         "id": "route_B-02_to_B-33",
         "startPoint": "B-02",
-        "endPoint": "B-33"
+        "endPoint": "B-33",
+        "startPointGPS": [
+          135.47454,
+          34.84046,
+          256.1
+        ],
+        "endPointGPS": [
+          135.47599,
+          34.84496,
+          253
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -20982,7 +25895,17 @@
         "type": "route",
         "id": "route_G-15_to_G-16",
         "startPoint": "G-15",
-        "endPoint": "G-16"
+        "endPoint": "G-16",
+        "startPointGPS": [
+          135.48544,
+          34.84906,
+          313.9
+        ],
+        "endPointGPS": [
+          135.4837,
+          34.85003,
+          300.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21031,7 +25954,17 @@
         "type": "route",
         "id": "route_B-31_to_B-32",
         "startPoint": "B-31",
-        "endPoint": "B-32"
+        "endPoint": "B-32",
+        "startPointGPS": [
+          135.48143,
+          34.84611,
+          300.8
+        ],
+        "endPointGPS": [
+          135.48042,
+          34.8449,
+          303.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21065,7 +25998,17 @@
         "type": "route",
         "id": "route_G-25_to_G-26",
         "startPoint": "G-25",
-        "endPoint": "G-26"
+        "endPoint": "G-26",
+        "startPointGPS": [
+          135.48932,
+          34.84172,
+          158.8
+        ],
+        "endPointGPS": [
+          135.48843,
+          34.84469,
+          254.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21134,7 +26077,17 @@
         "type": "route",
         "id": "route_G-27_to_G-14",
         "startPoint": "G-27",
-        "endPoint": "G-14"
+        "endPoint": "G-14",
+        "startPointGPS": [
+          135.48868,
+          34.84546,
+          268.5
+        ],
+        "endPointGPS": [
+          135.4861,
+          34.84785,
+          289.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21208,7 +26161,17 @@
         "type": "route",
         "id": "route_B-33_to_B-11",
         "startPoint": "B-33",
-        "endPoint": "B-11"
+        "endPoint": "B-11",
+        "startPointGPS": [
+          135.47599,
+          34.84496,
+          253
+        ],
+        "endPointGPS": [
+          135.4794,
+          34.8485,
+          295.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21327,7 +26290,17 @@
         "type": "route",
         "id": "route_G-14_to_G-13",
         "startPoint": "G-14",
-        "endPoint": "G-13"
+        "endPoint": "G-13",
+        "startPointGPS": [
+          135.4861,
+          34.84785,
+          289.5
+        ],
+        "endPointGPS": [
+          135.48669,
+          34.84587,
+          204.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21381,7 +26354,17 @@
         "type": "route",
         "id": "route_B-21_to_B-02",
         "startPoint": "B-21",
-        "endPoint": "B-02"
+        "endPoint": "B-02",
+        "startPointGPS": [
+          135.47309,
+          34.83917,
+          192.5
+        ],
+        "endPointGPS": [
+          135.47454,
+          34.84046,
+          256.1
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21440,7 +26423,17 @@
         "type": "route",
         "id": "route_B-40_to_B-41",
         "startPoint": "B-40",
-        "endPoint": "B-41"
+        "endPoint": "B-41",
+        "startPointGPS": [
+          135.47819,
+          34.84931,
+          279
+        ],
+        "endPointGPS": [
+          135.47635,
+          34.84852,
+          254.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21484,7 +26477,17 @@
         "type": "route",
         "id": "route_G-07_to_G-02",
         "startPoint": "G-07",
-        "endPoint": "G-02"
+        "endPoint": "G-02",
+        "startPointGPS": [
+          135.48813,
+          34.84837,
+          195.2
+        ],
+        "endPointGPS": [
+          135.48577,
+          34.84866,
+          301.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21533,7 +26536,17 @@
         "type": "route",
         "id": "route_D-39_to_D-06",
         "startPoint": "D-39",
-        "endPoint": "D-06"
+        "endPoint": "D-06",
+        "startPointGPS": [
+          135.47059,
+          34.84082,
+          172.9
+        ],
+        "endPointGPS": [
+          135.47011,
+          34.84153,
+          168.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21572,7 +26585,17 @@
         "type": "route",
         "id": "route_B-29_to_B-11",
         "startPoint": "B-29",
-        "endPoint": "B-11"
+        "endPoint": "B-11",
+        "startPointGPS": [
+          135.48049,
+          34.84903,
+          285.2
+        ],
+        "endPointGPS": [
+          135.4794,
+          34.8485,
+          295.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21606,7 +26629,17 @@
         "type": "route",
         "id": "route_G-24_to_G-25",
         "startPoint": "G-24",
-        "endPoint": "G-25"
+        "endPoint": "G-25",
+        "startPointGPS": [
+          135.48981,
+          34.84069,
+          138.6
+        ],
+        "endPointGPS": [
+          135.48932,
+          34.84172,
+          158.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21650,7 +26683,17 @@
         "type": "route",
         "id": "route_G-02_to_B-31",
         "startPoint": "G-02",
-        "endPoint": "B-31"
+        "endPoint": "B-31",
+        "startPointGPS": [
+          135.48577,
+          34.84866,
+          301.7
+        ],
+        "endPointGPS": [
+          135.48143,
+          34.84611,
+          300.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21739,7 +26782,17 @@
         "type": "route",
         "id": "route_B-28_to_B-33",
         "startPoint": "B-28",
-        "endPoint": "B-33"
+        "endPoint": "B-33",
+        "startPointGPS": [
+          135.47657,
+          34.84736,
+          241.6
+        ],
+        "endPointGPS": [
+          135.47599,
+          34.84496,
+          253
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21838,7 +26891,17 @@
         "type": "route",
         "id": "route_G-12_to_G-01",
         "startPoint": "G-12",
-        "endPoint": "G-01"
+        "endPoint": "G-01",
+        "startPointGPS": [
+          135.48655,
+          34.84485,
+          189.2
+        ],
+        "endPointGPS": [
+          135.48627,
+          34.84215,
+          147.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21897,7 +26960,17 @@
         "type": "route",
         "id": "route_G-26_to_G-27",
         "startPoint": "G-26",
-        "endPoint": "G-27"
+        "endPoint": "G-27",
+        "startPointGPS": [
+          135.48843,
+          34.84469,
+          254.6
+        ],
+        "endPointGPS": [
+          135.48868,
+          34.84546,
+          268.5
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -21926,7 +26999,17 @@
         "type": "route",
         "id": "route_D-44_to_D-06",
         "startPoint": "D-44",
-        "endPoint": "D-06"
+        "endPoint": "D-06",
+        "startPointGPS": [
+          135.46729,
+          34.844,
+          278.7
+        ],
+        "endPointGPS": [
+          135.47011,
+          34.84153,
+          168.6
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22015,7 +27098,17 @@
         "type": "route",
         "id": "route_B-11_to_B-40",
         "startPoint": "B-11",
-        "endPoint": "B-40"
+        "endPoint": "B-40",
+        "startPointGPS": [
+          135.4794,
+          34.8485,
+          295.5
+        ],
+        "endPointGPS": [
+          135.47819,
+          34.84931,
+          279
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22069,7 +27162,17 @@
         "type": "route",
         "id": "route_G-13_to_G-12",
         "startPoint": "G-13",
-        "endPoint": "G-12"
+        "endPoint": "G-12",
+        "startPointGPS": [
+          135.48669,
+          34.84587,
+          204.4
+        ],
+        "endPointGPS": [
+          135.48655,
+          34.84485,
+          189.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22093,7 +27196,17 @@
         "type": "route",
         "id": "route_D-06_to_D-38",
         "startPoint": "D-06",
-        "endPoint": "D-38"
+        "endPoint": "D-38",
+        "startPointGPS": [
+          135.47011,
+          34.84153,
+          168.6
+        ],
+        "endPointGPS": [
+          135.47018,
+          34.84225,
+          178.3
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22127,7 +27240,17 @@
         "type": "route",
         "id": "route_G-01_to_G-11",
         "startPoint": "G-01",
-        "endPoint": "G-11"
+        "endPoint": "G-11",
+        "startPointGPS": [
+          135.48627,
+          34.84215,
+          147.8
+        ],
+        "endPointGPS": [
+          135.48617,
+          34.84035,
+          129.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22176,7 +27299,17 @@
         "type": "route",
         "id": "route_G-11_to_G-01",
         "startPoint": "G-11",
-        "endPoint": "G-01"
+        "endPoint": "G-01",
+        "startPointGPS": [
+          135.48617,
+          34.84035,
+          129.8
+        ],
+        "endPointGPS": [
+          135.48627,
+          34.84215,
+          147.8
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22215,7 +27348,17 @@
         "type": "route",
         "id": "route_G-28_to_G-05",
         "startPoint": "G-28",
-        "endPoint": "G-05"
+        "endPoint": "G-05",
+        "startPointGPS": [
+          135.49289,
+          34.84396,
+          183.9
+        ],
+        "endPointGPS": [
+          135.49201,
+          34.84933,
+          284.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22339,7 +27482,17 @@
         "type": "route",
         "id": "route_C-11_to_C-01",
         "startPoint": "C-11",
-        "endPoint": "C-01"
+        "endPoint": "C-01",
+        "startPointGPS": [
+          135.50274,
+          34.84427,
+          117.7
+        ],
+        "endPointGPS": [
+          135.49939,
+          34.84988,
+          205.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22463,7 +27616,17 @@
         "type": "route",
         "id": "route_G-06_to_G-07",
         "startPoint": "G-06",
-        "endPoint": "G-07"
+        "endPoint": "G-07",
+        "startPointGPS": [
+          135.49177,
+          34.84244,
+          136.9
+        ],
+        "endPointGPS": [
+          135.48813,
+          34.84837,
+          195.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22602,7 +27765,17 @@
         "type": "route",
         "id": "route_C-23_to_C-22",
         "startPoint": "C-23",
-        "endPoint": "C-22"
+        "endPoint": "C-22",
+        "startPointGPS": [
+          135.49648,
+          34.84472,
+          148.3
+        ],
+        "endPointGPS": [
+          135.49762,
+          34.84694,
+          150.7
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22656,7 +27829,17 @@
         "type": "route",
         "id": "route_G-01_to_G-12",
         "startPoint": "G-01",
-        "endPoint": "G-12"
+        "endPoint": "G-12",
+        "startPointGPS": [
+          135.48627,
+          34.84215,
+          147.8
+        ],
+        "endPointGPS": [
+          135.48655,
+          34.84485,
+          189.2
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22750,7 +27933,17 @@
         "type": "route",
         "id": "route_G-12_to_G-13",
         "startPoint": "G-12",
-        "endPoint": "G-13"
+        "endPoint": "G-13",
+        "startPointGPS": [
+          135.48655,
+          34.84485,
+          189.2
+        ],
+        "endPointGPS": [
+          135.48669,
+          34.84587,
+          204.4
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22779,7 +27972,17 @@
         "type": "route",
         "id": "route_G-06_to_G-28",
         "startPoint": "G-06",
-        "endPoint": "G-28"
+        "endPoint": "G-28",
+        "startPointGPS": [
+          135.49177,
+          34.84244,
+          136.9
+        ],
+        "endPointGPS": [
+          135.49289,
+          34.84396,
+          183.9
+        ]
       },
       "geometry": {
         "type": "LineString",
@@ -22833,7 +28036,17 @@
         "type": "route",
         "id": "route_C-23_to_G-05",
         "startPoint": "C-23",
-        "endPoint": "G-05"
+        "endPoint": "G-05",
+        "startPointGPS": [
+          135.49648,
+          34.84472,
+          148.3
+        ],
+        "endPointGPS": [
+          135.49201,
+          34.84933,
+          284.9
+        ]
       },
       "geometry": {
         "type": "LineString",
