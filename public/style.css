@@ -357,6 +357,11 @@ body.view-state-nav .leaflet-control-container {
   border-color: #1742c4;
 }
 
+/* 連続するボタン(マーカー設定・撮影画像の解像度の設定)の間に余白を設ける */
+.map-layer-panel .panel-btn + .panel-btn {
+  margin-top: 0.5rem;
+}
+
 /* 起動時の画面に戻るボタン(白基調) */
 .map-layer-panel .panel-btn-back {
   background: #fff;
