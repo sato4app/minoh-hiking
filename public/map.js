@@ -185,7 +185,7 @@ export async function loadHikingRoutesLayer(url, routeStyle, spotStyle) {
     hikingLayer = buildHikingLayer();
     return hikingLayer;
   } catch (err) {
-    console.warn('ハイキングコースGeoJSON読込失敗:', err);
+    console.warn('ハイキングルートGeoJSON読込失敗:', err);
     return null;
   }
 }

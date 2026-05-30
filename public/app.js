@@ -266,7 +266,7 @@ function showView(name) {
     el.btnMapLayers.hidden = false;
     el.btnMapLayers.style.display = '';
 
-    // マップビュー: 緊急ポイント・ハイキングコースを表示(トグル状態に従う)
+    // マップビュー: 緊急ポイント・ハイキングルートを表示(トグル状態に従う)
     setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
     setHikingRoutesVisible(el.toggleHikingRoutes.checked);
     setCurrentLocationVisible(el.toggleTrackRecording.checked, {
