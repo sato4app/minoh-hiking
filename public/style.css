@@ -686,9 +686,10 @@ body.view-state-nav .leaflet-control-container {
   margin-left: 0;
 }
 
-/* アプリ名等の各項目の値を右寄せ */
+/* アプリ名等の各項目の値を右寄せ(ラベルの左余白と同程度の右余白を設ける) */
 #versionModal .info-value {
   text-align: right;
+  padding-right: 1.5rem;
 }
 
 /* ===== ボタン共通 ===== */
