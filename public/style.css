@@ -668,15 +668,27 @@ body.view-state-nav .leaflet-control-container {
   font-variant-numeric: tabular-nums;
 }
 
-/* バージョン情報モーダル: ラベルと値の間の余白を広げる */
+/* バージョン情報モーダル: ラベルを左、値を右寄せに配置 */
 #versionModal .info-row {
-  justify-content: flex-start;
+  justify-content: space-between;
+  align-items: baseline;
 }
 
 #versionModal .info-label {
   padding-left: 1.5rem;
   margin-right: 1.5rem;
   min-width: 10rem;
+}
+
+/* タイルマニフェスト/アプリシェルをラベルの2行目に小さく表示 */
+#versionModal .info-sublabel {
+  display: block;
+  margin-left: 0;
+}
+
+/* アプリ名等の各項目の値を右寄せ */
+#versionModal .info-value {
+  text-align: right;
 }
 
 /* ===== ボタン共通 ===== */
