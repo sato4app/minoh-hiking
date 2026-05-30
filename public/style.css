@@ -339,52 +339,63 @@ body.view-state-nav .leaflet-control-container {
   margin: 0.4rem 0;
 }
 
-.map-layer-panel .panel-link {
+/* パネル内のボタン(マーカー設定/画像解像度設定/戻る): 右寄せ配置 */
+.map-layer-panel .panel-btn {
   display: block;
-  width: 100%;
-  padding: 0.4rem 0.2rem;
-  background: transparent;
-  border: 0;
-  text-align: left;
-  font: inherit;
-  color: #1d4ed8;
-  cursor: pointer;
-}
-
-.map-layer-panel .panel-link:hover {
-  text-decoration: underline;
-}
-
-.map-layer-panel .track-row {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.map-layer-panel .track-row .toggle {
-  flex: 1 1 auto;
-}
-
-.map-layer-panel .btn-track-toggle {
-  flex: 0 0 auto;
-  padding: 0.35rem 0.8rem;
+  margin-left: auto;
+  padding: 0.4rem 0.9rem;
   font: inherit;
   border: 1px solid #1d4ed8;
   background: #1d4ed8;
   color: #fff;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
-.map-layer-panel .btn-track-toggle:disabled {
-  background: #aaa;
-  border-color: #aaa;
-  cursor: not-allowed;
+.map-layer-panel .panel-btn:hover {
+  background: #1742c4;
+  border-color: #1742c4;
 }
 
-.map-layer-panel .btn-track-toggle.recording {
-  background: #dc2626;
-  border-color: #dc2626;
+/* 起動時の画面に戻るボタン(白基調) */
+.map-layer-panel .panel-btn-back {
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.map-layer-panel .panel-btn-back:hover {
+  background: #eef2ff;
+  color: #1742c4;
+}
+
+/* 移動経路を記録 ON 時の操作ボタン群(メニューボタンの下に縦並び) */
+.map-track-actions {
+  position: absolute;
+  top: 4rem;
+  right: 0.75rem;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.map-track-actions[hidden] {
+  display: none;
+}
+
+/* 記録開始/写真撮影/記録停止のアイコンボタン(btn-float ベースだが静的配置) */
+.btn-track-action {
+  position: static;
+  color: #1f7a4d;
+}
+
+#btnTrackStop {
+  color: #b23b3b;
+}
+
+.btn-track-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ===== プレースホルダビュー ===== */
@@ -615,6 +626,55 @@ body.view-state-nav .leaflet-control-container {
   height: 20px;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+/* トグルスイッチ(チェックボックスをスライダー表示に置換) */
+.toggle-switch {
+  justify-content: flex-start;
+  gap: 0.6rem;
+}
+
+.toggle-switch input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: relative;
+  flex: none;
+  width: 2.4rem;
+  height: 1.4rem;
+  background: #ccc;
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.4rem - 4px);
+  height: calc(1.4rem - 4px);
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s;
+}
+
+.toggle-switch input[type="checkbox"]:checked + .toggle-slider {
+  background: #1f7a4d;
+}
+
+.toggle-switch input[type="checkbox"]:checked + .toggle-slider::before {
+  transform: translateX(1rem);
+}
+
+.toggle-switch input[type="checkbox"]:focus-visible + .toggle-slider {
+  outline: 2px solid #1f7a4d;
+  outline-offset: 2px;
 }
 
 .toggle-row {

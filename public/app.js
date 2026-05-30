@@ -6,7 +6,6 @@
 
 import {
   initMap, resizeMap,
-  loadBuffersLayer, setBuffersVisible,
   loadEmergencyPointsLayer, setEmergencyPointsVisible, setEmergencyStyle,
   loadHikingRoutesLayer, setHikingRoutesVisible, setHikingRouteStyle, setHikingSpotStyle,
   setCurrentLocationVisible,
@@ -25,7 +24,6 @@ import {
 const TILE_CACHE_PREFIX = 'gsi-';
 const TILE_URL_BASE = 'https://cyberjapandata.gsi.go.jp/xyz/std';
 const MANIFEST_URL = 'data/tile_manifest.json';
-const BUFFERS_URL = 'data/tile_buffers.geojson';
 const EMERGENCY_URL = 'data/minoh-emergency-points.geojson';
 const HIKING_ROUTES_URL = 'data/minoh-hiking-routes-spots.geojson';
 const CONCURRENCY = 4;
@@ -64,11 +62,14 @@ const el = {
   // マップ
   btnMapLayers: document.getElementById('btnMapLayers'),
   mapLayerPanel: document.getElementById('mapLayerPanel'),
-  toggleBuffers: document.getElementById('toggleBuffers'),
   toggleEmergencyPoints: document.getElementById('toggleEmergencyPoints'),
   toggleHikingRoutes: document.getElementById('toggleHikingRoutes'),
   toggleTrackRecording: document.getElementById('toggleTrackRecording'),
-  btnTrackToggle: document.getElementById('btnTrackToggle'),
+  // 移動経路を記録 ON のとき表示する操作ボタン群(記録開始/写真撮影/記録停止)
+  mapTrackActions: document.getElementById('mapTrackActions'),
+  btnTrackStart: document.getElementById('btnTrackStart'),
+  btnTrackPhoto: document.getElementById('btnTrackPhoto'),
+  btnTrackStop: document.getElementById('btnTrackStop'),
 
   // メッセージ履歴
   messageList: document.getElementById('messageList'),
@@ -133,9 +134,6 @@ async function init() {
   // 各オーバーレイはバックグラウンドで読込み、map ビュー時のみ表示。
   // マーカースタイルは保存済み設定(無ければ config.js の既定値)を初期描画に反映。
   const markerSettings = readMarkerSettings();
-  loadBuffersLayer(BUFFERS_URL).then(() => {
-    if (currentView === 'map') setBuffersVisible(el.toggleBuffers.checked);
-  });
   loadEmergencyPointsLayer(EMERGENCY_URL, markerSettings.emergency).then(() => {
     if (currentView === 'map') setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
   });
@@ -187,7 +185,6 @@ function bindEvents() {
       }
     });
   }
-  el.toggleBuffers.addEventListener('change', (e) => setBuffersVisible(e.target.checked));
   el.toggleEmergencyPoints.addEventListener('change', (e) => setEmergencyPointsVisible(e.target.checked));
   el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
   el.toggleTrackRecording.addEventListener('change', (e) => {
@@ -206,19 +203,21 @@ function bindEvents() {
     updateTrackButtonState(on);
   });
 
-  // 開始/停止ボタン: トグル ON のときのみ操作可
-  el.btnTrackToggle.addEventListener('click', () => {
+  // 記録開始/記録停止ボタン: 移動経路を記録トグル ON のときのみ表示・操作可
+  el.btnTrackStart.addEventListener('click', () => {
     if (!el.toggleTrackRecording.checked) return;
-    const isRecording = el.btnTrackToggle.classList.contains('recording');
-    if (isRecording) {
-      stopTrackRecording();
-      el.btnTrackToggle.textContent = '開始';
-      el.btnTrackToggle.classList.remove('recording');
-    } else {
-      startTrackRecording();
-      el.btnTrackToggle.textContent = '停止';
-      el.btnTrackToggle.classList.add('recording');
-    }
+    startTrackRecording();
+    setTrackRecordingActive(true);
+  });
+  el.btnTrackStop.addEventListener('click', () => {
+    if (!el.toggleTrackRecording.checked) return;
+    stopTrackRecording();
+    setTrackRecordingActive(false);
+  });
+  // 写真撮影ボタン(端末のカメラ/写真選択を起動)
+  el.btnTrackPhoto.addEventListener('click', () => {
+    if (!el.toggleTrackRecording.checked) return;
+    capturePhoto();
   });
 
   // マーカー設定: 規定値に戻す
@@ -263,15 +262,11 @@ function showView(name) {
   document.body.classList.add(`view-state-${name}`);
 
   if (name === 'map') {
-    // マップビュー: 戻る/メニューボタンを確実に表示(モーダル閉じ後等の表示崩れ対策)
-    const mapView = el.views.map;
-    for (const btn of mapView.querySelectorAll('.btn-float')) {
-      btn.hidden = false;
-      btn.style.display = '';
-    }
+    // マップビュー: メニューボタンを確実に表示(モーダル閉じ後等の表示崩れ対策)
+    el.btnMapLayers.hidden = false;
+    el.btnMapLayers.style.display = '';
 
     // マップビュー: 緊急ポイント・ハイキングコースを表示(トグル状態に従う)
-    setBuffersVisible(el.toggleBuffers.checked);
     setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
     setHikingRoutesVisible(el.toggleHikingRoutes.checked);
     setCurrentLocationVisible(el.toggleTrackRecording.checked, {
@@ -281,10 +276,11 @@ function showView(name) {
         updateTrackButtonState(false);
       }
     });
+    // 移動経路を記録トグルの状態に応じて操作ボタン群(記録開始/写真撮影/記録停止)の表示を更新
+    updateTrackButtonState(el.toggleTrackRecording.checked);
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'home' || name === 'nav') {
     // ホーム/ナビ: 全オーバーレイを非表示にして地理院地図のみ表示
-    setBuffersVisible(false);
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);
     setCurrentLocationVisible(false);
@@ -507,13 +503,33 @@ function applyMarkerSettingToMap(key, style) {
   // routeGuide / photoLocation はレイヤー未実装のため反映先なし
 }
 
-// 移動経路ボタンの表示制御: トグル ON で操作可、OFF で「開始」状態に戻す
+// 移動経路を記録トグルの状態に応じて、操作ボタン群(記録開始/写真撮影/記録停止)の表示を切替
 function updateTrackButtonState(enabled) {
-  el.btnTrackToggle.disabled = !enabled;
+  if (el.mapTrackActions) el.mapTrackActions.hidden = !enabled;
   if (!enabled) {
-    el.btnTrackToggle.textContent = '開始';
-    el.btnTrackToggle.classList.remove('recording');
+    // OFF に戻したら記録状態も初期化(記録開始を操作可能・記録停止を無効に)
+    setTrackRecordingActive(false);
   }
+}
+
+// 記録中フラグに応じて記録開始/記録停止ボタンの有効・無効を切り替える
+function setTrackRecordingActive(active) {
+  el.btnTrackStart.disabled = active;
+  el.btnTrackStop.disabled = !active;
+}
+
+// 写真撮影: 端末のカメラ/写真選択ダイアログを起動(取得後の保存処理は今後実装)
+function capturePhoto() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.capture = 'environment';
+  input.addEventListener('change', () => {
+    const file = input.files && input.files[0];
+    // TODO: 撮影した写真の保存・記録への紐付けは今後実装
+    if (file) console.log('写真を取得:', file.name);
+  });
+  input.click();
 }
 
 // 規定値に戻す: config.js の MARKER_TYPES の値で localStorage を上書きし、

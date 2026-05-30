@@ -24,7 +24,6 @@ const SHELL_LOCAL_PATHS = [
   './icons/icon-512.png',
   './icons/icon-180.png',
   './data/tile_manifest.json',
-  './data/tile_buffers.geojson',
   './data/minoh-emergency-points.geojson',
   './data/minoh-hiking-routes-spots.geojson'
 ];

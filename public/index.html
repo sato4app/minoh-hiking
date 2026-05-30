@@ -52,35 +52,46 @@
 
   <!-- ハイキングマップ表示(地図そのものは body 直下の #map を共有) -->
   <section class="view view-map" id="viewMap" hidden>
-    <button type="button" class="btn-float btn-back-float" data-view="home" aria-label="ホームに戻る">
-      <svg class="icon-back" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
-        <path d="M15.5 4.5L8 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
     <button type="button" class="btn-float btn-menu-float" id="btnMapLayers" aria-label="表示設定">≡</button>
+    <!-- 移動経路を記録 ON のとき、メニューボタンの下に表示する操作ボタン群 -->
+    <div class="map-track-actions" id="mapTrackActions" hidden>
+      <button type="button" class="btn-float btn-track-action" id="btnTrackStart" aria-label="記録開始" title="記録開始">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+          <path d="M8 5v14l11-7z" fill="currentColor"/>
+        </svg>
+      </button>
+      <button type="button" class="btn-float btn-track-action" id="btnTrackPhoto" aria-label="写真撮影" title="写真撮影">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
+          <path d="M9 3l-1.8 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" fill="currentColor"/>
+        </svg>
+      </button>
+      <button type="button" class="btn-float btn-track-action" id="btnTrackStop" aria-label="記録停止" title="記録停止" disabled>
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+          <rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
-      <label class="toggle">
-        <input type="checkbox" id="toggleBuffers" />
-        <span>バッファ範囲を表示</span>
-      </label>
-      <label class="toggle">
+      <label class="toggle toggle-switch">
         <input type="checkbox" id="toggleEmergencyPoints" checked />
-        <span>緊急ポイントを表示</span>
+        <span class="toggle-slider" aria-hidden="true"></span>
+        <span class="toggle-text">緊急ポイントを表示</span>
       </label>
-      <label class="toggle">
+      <label class="toggle toggle-switch">
         <input type="checkbox" id="toggleHikingRoutes" checked />
-        <span>ハイキングコースを表示</span>
+        <span class="toggle-slider" aria-hidden="true"></span>
+        <span class="toggle-text">ハイキングコースを表示</span>
       </label>
-      <div class="track-row">
-        <label class="toggle">
-          <input type="checkbox" id="toggleTrackRecording" />
-          <span>移動経路を記録</span>
-        </label>
-        <button type="button" class="btn-track-toggle" id="btnTrackToggle" disabled>開始</button>
-      </div>
+      <label class="toggle toggle-switch">
+        <input type="checkbox" id="toggleTrackRecording" />
+        <span class="toggle-slider" aria-hidden="true"></span>
+        <span class="toggle-text">移動経路を記録</span>
+      </label>
       <hr class="panel-divider" />
-      <button type="button" class="panel-link" id="btnMapOpenMarkerSettings">マーカーの設定</button>
-      <button type="button" class="panel-link" id="btnMapOpenImageSettings">撮影画像の解像度の設定</button>
+      <button type="button" class="panel-btn" id="btnMapOpenMarkerSettings">マーカーの設定</button>
+      <button type="button" class="panel-btn" id="btnMapOpenImageSettings">撮影画像の解像度の設定</button>
+      <hr class="panel-divider" />
+      <button type="button" class="panel-btn panel-btn-back" data-view="home">起動時の画面に戻る</button>
     </div>
   </section>
 

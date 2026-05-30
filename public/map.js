@@ -14,7 +14,6 @@ const MIN_ZOOM = 10;
 const MAX_ZOOM = 18;
 
 let mapInstance = null;
-let bufferLayer = null;
 
 // 緊急ポイント: GeoJSON とレイヤー、現在のスタイルを保持
 let emergencyGeoJSON = null;
@@ -124,38 +123,6 @@ function createPointMarker(latlng, style) {
     iconAnchor: [size / 2, size / 2]
   });
   return L.marker(latlng, { icon });
-}
-
-// ===== バッファ =====
-export async function loadBuffersLayer(url) {
-  if (!mapInstance) return null;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const geo = await res.json();
-
-    bufferLayer = L.geoJSON(geo, {
-      style: (feature) => styleForBuffer(feature)
-    });
-    return bufferLayer;
-  } catch (err) {
-    console.warn('バッファGeoJSON読込失敗:', err);
-    return null;
-  }
-}
-
-function styleForBuffer(feature) {
-  const layer = feature?.properties?.layer ?? '';
-  if (layer.includes('z18')) {
-    return { color: '#16a34a', weight: 1, fillColor: '#22c55e', fillOpacity: 0.15 };
-  }
-  return { color: '#1d4ed8', weight: 1, fillColor: '#3b82f6', fillOpacity: 0.15 };
-}
-
-export function setBuffersVisible(visible) {
-  if (!mapInstance || !bufferLayer) return;
-  if (visible) bufferLayer.addTo(mapInstance);
-  else mapInstance.removeLayer(bufferLayer);
 }
 
 // ===== 緊急ポイント =====
