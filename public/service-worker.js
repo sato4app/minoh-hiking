@@ -6,8 +6,13 @@
 //
 // タイルはキャッシュ優先(あれば返す、無ければネット取得・自動キャッシュしない)。
 // 全 gsi-* キャッシュを横断検索するため、version 変更後も旧タイルは引き続き利用可能。
+//
+// アプリシェルの取得戦略:
+// - 同一オリジン(HTML/CSS/JS 等): network-first(オンライン時は常に最新、
+//   オフライン時のみキャッシュ)。コード更新が即時反映される。
+// - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-05-31.11';
+const SHELL_CACHE = 'app-shell-2026-05-31.12';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 同一オリジンの相対パス
@@ -112,7 +117,8 @@ self.addEventListener('fetch', (event) => {
       return reqPath === expected;
     });
     if (isShell) {
-      event.respondWith(handleShellRequest(req));
+      // 同一オリジンのシェルは network-first(オンライン時は常に最新を反映)
+      event.respondWith(handleShellRequest(req, { networkFirst: true }));
       return;
     }
   }
@@ -136,8 +142,26 @@ async function handleTileRequest(req) {
   }
 }
 
-async function handleShellRequest(req) {
+// アプリシェルの取得。
+// - networkFirst=true(同一オリジンのシェル): オンライン時は常に最新を取得し
+//   キャッシュも更新する。取得失敗(オフライン)時のみキャッシュへフォールバック。
+//   → コード更新が即座に反映され、オフラインでも従来どおり動作する。
+// - networkFirst=false(CDN 等の安定資産): キャッシュ優先で高速・通信節約。
+async function handleShellRequest(req, { networkFirst = false } = {}) {
   const cache = await caches.open(SHELL_CACHE);
+
+  if (networkFirst) {
+    try {
+      const res = await fetch(req);
+      if (res.ok) cache.put(req, res.clone()).catch(() => { });
+      return res;
+    } catch (err) {
+      const cached = await cache.match(req);
+      return cached || new Response('', { status: 504 });
+    }
+  }
+
+  // cache-first
   const cached = await cache.match(req);
   if (cached) return cached;
   try {
