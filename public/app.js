@@ -540,6 +540,8 @@ function applyMarkerSettingToMap(key, style) {
 // 移動経路を記録トグルの状態に応じて、操作ボタン群(記録開始/写真撮影/記録停止)の表示を切替
 function updateTrackButtonState(enabled) {
   if (el.mapTrackActions) el.mapTrackActions.hidden = !enabled;
+  // ON のときはパネルを左にずらし、操作ボタン群のアイコンが見えるようにする
+  if (el.mapLayerPanel) el.mapLayerPanel.classList.toggle('track-active', enabled);
   if (!enabled) {
     // OFF に戻したら記録状態も初期化(記録開始を操作可能・記録停止を無効に)
     setTrackRecordingActive(false);
