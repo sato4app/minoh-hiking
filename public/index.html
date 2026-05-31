@@ -166,11 +166,6 @@
         <!-- ===== 設定 ===== -->
         <section class="info-section">
           <h3 class="info-section-title">設定</h3>
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleStartupUpdateCheck" />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text">起動時にアプリの更新版を確認</span>
-          </label>
           <div class="info-section-actions">
             <button type="button" class="btn btn-secondary" id="btnInfoOpenMarkerSettings">マーカーの設定</button>
             <button type="button" class="btn btn-secondary" id="btnInfoOpenImageSettings">撮影画像の解像度の設定</button>
@@ -180,6 +175,13 @@
         <!-- ===== 情報 ===== -->
         <section class="info-section">
           <h3 class="info-section-title">情報</h3>
+
+          <!-- 起動時にアプリの更新版を確認(設定から移動) -->
+          <label class="toggle toggle-switch">
+            <input type="checkbox" id="toggleStartupUpdateCheck" />
+            <span class="toggle-slider" aria-hidden="true"></span>
+            <span class="toggle-text">起動時にアプリの更新版を確認</span>
+          </label>
 
           <!-- バージョン情報(既定オン) -->
           <label class="toggle toggle-switch">

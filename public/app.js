@@ -414,6 +414,48 @@ async function openInfoSettingsModal() {
   renderMessageList();
 
   el.infoSettingsModal.hidden = false;
+
+  // バージョン情報トグルがオンなら、地図/アプリの更新有無を確認して
+  // 新しいものがあれば更新の confirm を表示する
+  checkUpdatesFromInfoModal();
+}
+
+// 設定と情報モーダルを開いたときの更新チェック。
+// 「バージョン情報」トグルがオンのとき、地図(マニフェスト)とアプリ(アプリシェル)の
+// バージョンをサイトの最新と比較し、新しいものがあれば1つの confirm にまとめて
+// 更新を促す。OK の場合は地図 → アプリの順に更新する
+// (アプリ更新は最後に再読み込みするため)。
+async function checkUpdatesFromInfoModal() {
+  if (!el.toggleInfoVersion.checked) return;
+
+  // 地図: ダウンロード済みバージョン vs サイト最新マニフェスト
+  // (オフライン地図を未ダウンロードの場合は saved が無く、対象外)
+  const savedMap = getSavedManifestVersion();
+  const latestMap = (manifest && manifest.version != null) ? String(manifest.version) : null;
+  const mapOutdated = !!(savedMap && latestMap && savedMap !== latestMap);
+
+  // アプリ: キャッシュ済みアプリシェル vs サイトの service-worker.js
+  const [cachedShell, latestShell] = await Promise.all([
+    getCachedAppShellVersion(),
+    fetchServiceWorkerShellVersion()
+  ]);
+  const appOutdated = !!(cachedShell && latestShell && cachedShell !== latestShell);
+
+  if (!mapOutdated && !appOutdated) return;
+
+  // 更新内容を1つの confirm にまとめて表示
+  const lines = ['新しいバージョンが利用可能です。', ''];
+  if (mapOutdated) lines.push(`地図バージョン: ${savedMap} → ${latestMap}`);
+  if (appOutdated) lines.push(`アプリバージョン: ${cachedShell} → ${latestShell}`);
+  lines.push('', '最新の状態に更新しますか?');
+  if (mapOutdated) lines.push('(地図タイルを再ダウンロードします)');
+  if (appOutdated) lines.push('(アプリは再読み込みされます)');
+
+  if (!confirm(lines.join('\n'))) return;
+
+  // 地図 → アプリの順に更新。アプリ更新は location.reload() するため最後に実行。
+  if (mapOutdated) await startManifestUpdate('diff');
+  if (appOutdated) await updateAppToLatest();
 }
 
 // ===== 起動時の更新確認の設定(localStorage) =====
