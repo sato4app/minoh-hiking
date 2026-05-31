@@ -88,6 +88,37 @@ body {
   color: #422006;
 }
 
+/* ===== 一時メッセージ(トースト) ===== */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 2.5rem;
+  transform: translateX(-50%) translateY(0.5rem);
+  max-width: min(90vw, 420px);
+  padding: 0.7rem 1.1rem;
+  background: rgba(33, 33, 33, 0.92);
+  color: #fff;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  z-index: 1100;
+  opacity: 0;
+  transition: opacity 0.25s, transform 0.25s;
+  pointer-events: none;
+}
+
+.toast[hidden] {
+  display: none;
+}
+
+/* 表示状態(JS で付与): フェードイン */
+.toast.toast-show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* ===== ビュー切替 ===== */
 .view {
   flex: 1;

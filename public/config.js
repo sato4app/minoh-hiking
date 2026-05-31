@@ -5,6 +5,10 @@
 // localStorage キー
 export const MARKER_SETTINGS_KEY = 'minoh-hiking.marker-settings';
 
+// 画面に表示するトースト(一時メッセージ)の表示秒数。
+// 移動記録の開始・終了時などに表示し、この秒数で自動的に閉じる。
+export const TOAST_DURATION_SEC = 3;
+
 // マーカー設定の対象種別と既定値
 export const MARKER_TYPES = [
   { key: 'emergency', label: '緊急ポイント', color: '#00AA00', shape: 'circle', size: 12 },

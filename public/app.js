@@ -9,13 +9,14 @@ import {
   loadEmergencyPointsLayer, setEmergencyPointsVisible, setEmergencyStyle,
   loadHikingRoutesLayer, setHikingRoutesVisible, setHikingRouteStyle, setHikingSpotStyle,
   setCurrentLocationVisible,
-  setTrackStyle, startTrackRecording, stopTrackRecording
+  setTrackStyle, startTrackRecording, stopTrackRecording, getTrackStats
 } from './map.js';
 import { savePackage, listPackages, clearPackages, deletePackage } from './db.js';
 import {
   MARKER_SETTINGS_KEY,
   MARKER_TYPES,
-  MARKER_SHAPES
+  MARKER_SHAPES,
+  TOAST_DURATION_SEC
 } from './config.js';
 
 // ===== 定数 =====
@@ -50,6 +51,9 @@ const el = {
     map: document.getElementById('viewMap'),
     nav: document.getElementById('viewNav')
   },
+
+  // 一時メッセージ(トースト)
+  toast: document.getElementById('toast'),
 
   // ホーム
   btnOpenDownload: document.getElementById('btnOpenDownload'),
@@ -227,6 +231,10 @@ function bindEvents() {
   el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
   el.toggleTrackRecording.addEventListener('change', (e) => {
     const on = e.target.checked;
+    if (!on) {
+      // OFF: 軌跡が消去される前に終了処理(統計の出力)を行ってから現在地表示を停止
+      finishTrackRecording();
+    }
     setCurrentLocationVisible(on, {
       onError: (msg) => {
         setStatus(msg, 'error');
@@ -234,10 +242,6 @@ function bindEvents() {
         updateTrackButtonState(false);
       }
     });
-    if (!on) {
-      // OFF: 記録中だった場合も停止し、ボタンを「開始」(無効)に戻す
-      finishTrackRecording();
-    }
     updateTrackButtonState(on);
   });
 
@@ -281,6 +285,29 @@ function bindEvents() {
   // オンライン状態
   window.addEventListener('online', handleOnline);
   window.addEventListener('offline', handleOffline);
+}
+
+// ===== 一時メッセージ(トースト) =====
+let toastTimerId = null;
+
+// 画面中央下に一時メッセージを表示し、config.js の秒数で自動的に閉じる
+function showToast(text) {
+  if (!el.toast || !text) return;
+  el.toast.textContent = text;
+  el.toast.hidden = false;
+  // hidden 解除直後に表示クラスを付けてフェードインさせる
+  requestAnimationFrame(() => el.toast.classList.add('toast-show'));
+
+  if (toastTimerId !== null) clearTimeout(toastTimerId);
+  const ms = Math.max(0, (Number(TOAST_DURATION_SEC) || 0) * 1000);
+  toastTimerId = setTimeout(() => {
+    el.toast.classList.remove('toast-show');
+    // フェードアウト(0.25s)後に hidden へ
+    toastTimerId = setTimeout(() => {
+      el.toast.hidden = true;
+      toastTimerId = null;
+    }, 250);
+  }, ms);
 }
 
 // ===== 時刻表示 =====
@@ -347,8 +374,9 @@ function showView(name) {
     // ホーム/ナビ: 全オーバーレイを非表示にして地理院地図のみ表示
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);
-    setCurrentLocationVisible(false);
+    // 軌跡が消去される前に終了処理(統計の出力)を行ってから現在地表示を停止
     finishTrackRecording();
+    setCurrentLocationVisible(false);
     updateTrackButtonState(false);
     // マップ以外では時刻表示を停止・非表示(トグル状態は保持)
     setClockVisible(false);
@@ -610,22 +638,35 @@ function setTrackRecordingActive(active) {
 
 // 実際に移動記録中かどうか(開始ボタン押下〜停止まで)
 let isTrackRecording = false;
+// 今回の記録中に撮影した写真の枚数
+let trackPhotoCount = 0;
 
 // 移動記録を開始(記録開始ボタン)。開始を履歴に残す
 function beginTrackRecording() {
   startTrackRecording();
   setTrackRecordingActive(true);
   isTrackRecording = true;
+  trackPhotoCount = 0;
   logHistory('移動記録を開始しました', 'success');
+  showToast('移動記録を開始しました');
 }
 
-// 移動記録を終了(記録停止/トグルOFF/画面遷移)。記録中だったときのみ履歴に残す
+// 移動記録を終了(記録停止/トグルOFF/画面遷移)。記録中だったときのみ、
+// 記録地点数・撮影写真枚数・合計移動距離を履歴(メッセージ)に出力する。
+// 軌跡が消去される前に統計を取得する必要がある点に注意。
 function finishTrackRecording() {
   const wasRecording = isTrackRecording;
+  const stats = getTrackStats();
   stopTrackRecording();
   setTrackRecordingActive(false);
   isTrackRecording = false;
-  if (wasRecording) logHistory('移動記録を終了しました');
+  if (wasRecording) {
+    const km = (stats.distanceM / 1000).toFixed(2);
+    const summary = `移動記録を終了しました(記録地点 ${stats.pointCount} 点 / 写真 ${trackPhotoCount} 枚 / 移動距離 ${km} km)`;
+    logHistory(summary, 'success');
+    showToast(summary);
+  }
+  trackPhotoCount = 0;
 }
 
 // 写真撮影: 端末のカメラ/写真選択ダイアログを起動(取得後の保存処理は今後実装)
@@ -637,7 +678,11 @@ function capturePhoto() {
   input.addEventListener('change', () => {
     const file = input.files && input.files[0];
     // TODO: 撮影した写真の保存・記録への紐付けは今後実装
-    if (file) console.log('写真を取得:', file.name);
+    if (file) {
+      // 記録中の撮影枚数をカウント(終了時の統計メッセージに使用)
+      if (isTrackRecording) trackPhotoCount++;
+      console.log('写真を取得:', file.name);
+    }
   });
   input.click();
 }

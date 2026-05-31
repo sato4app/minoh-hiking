@@ -344,6 +344,21 @@ export function stopTrackRecording() {
   isRecordingTrack = false;
 }
 
+// 現在の移動経路の統計(記録地点数・合計移動距離[m])を返す。
+// 軌跡が消去(clearTrack)される前に呼ぶこと。
+export function getTrackStats() {
+  let pointCount = 0;
+  let distanceM = 0;
+  if (trackPolyline) {
+    const latlngs = trackPolyline.getLatLngs();
+    pointCount = latlngs.length;
+    for (let i = 1; i < latlngs.length; i++) {
+      distanceM += latlngs[i - 1].distanceTo(latlngs[i]);
+    }
+  }
+  return { pointCount, distanceM };
+}
+
 // トラック表示を全削除(トグル OFF 時に呼び出す)
 function clearTrack() {
   isRecordingTrack = false;

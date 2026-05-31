@@ -27,6 +27,9 @@
   <!-- 全画面の地理院地図(ホーム/マップビューで共有、常時表示) -->
   <div id="map" role="application" aria-label="箕面エリア地理院地図"></div>
 
+  <!-- 一時メッセージ(トースト): 移動記録の開始・終了時などに表示し自動で閉じる -->
+  <div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+
   <!-- 全ビュー共通の固定トップエリア(オンライン状態 + マニフェスト更新バナー) -->
   <div id="updateBanner" class="update-banner" hidden role="status" aria-live="polite">
     <div class="update-banner-message" id="updateBannerMessage"></div>
@@ -226,7 +229,7 @@
             <span class="toggle-text">このアプリについて</span>
           </label>
           <div class="info-collapse" id="infoAboutBody" hidden>
-            <p class="placeholder-message">詳細未定</p>
+            <p class="placeholder-message">表示内容の詳細未定</p>
           </div>
         </section>
       </div>
