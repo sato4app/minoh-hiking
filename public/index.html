@@ -53,6 +53,8 @@
   <!-- ハイキングマップ表示(地図そのものは body 直下の #map を共有) -->
   <section class="view view-map" id="viewMap" hidden>
     <button type="button" class="btn-float btn-menu-float" id="btnMapLayers" aria-label="表示設定">≡</button>
+    <!-- 時刻表示(メニューボタンの左): 「時刻を表示」トグル ON のときのみ表示 -->
+    <div class="map-clock" id="mapClock" hidden role="status" aria-live="off"></div>
     <!-- 移動経路を記録 ON のとき、メニューボタンの下に表示する操作ボタン群 -->
     <div class="map-track-actions" id="mapTrackActions" hidden>
       <button type="button" class="btn-float btn-track-action" id="btnTrackStart" aria-label="記録開始" title="記録開始">
@@ -72,6 +74,11 @@
       </button>
     </div>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
+      <label class="toggle toggle-switch">
+        <input type="checkbox" id="toggleClock" checked />
+        <span class="toggle-slider" aria-hidden="true"></span>
+        <span class="toggle-text">時刻を表示</span>
+      </label>
       <label class="toggle toggle-switch">
         <input type="checkbox" id="toggleEmergencyPoints" checked />
         <span class="toggle-slider" aria-hidden="true"></span>

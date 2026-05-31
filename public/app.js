@@ -62,6 +62,8 @@ const el = {
   // マップ
   btnMapLayers: document.getElementById('btnMapLayers'),
   mapLayerPanel: document.getElementById('mapLayerPanel'),
+  mapClock: document.getElementById('mapClock'),
+  toggleClock: document.getElementById('toggleClock'),
   toggleEmergencyPoints: document.getElementById('toggleEmergencyPoints'),
   toggleHikingRoutes: document.getElementById('toggleHikingRoutes'),
   toggleTrackRecording: document.getElementById('toggleTrackRecording'),
@@ -185,6 +187,8 @@ function bindEvents() {
       }
     });
   }
+  // 時刻表示トグル: ON でメニューボタンの左に現在時刻を表示
+  el.toggleClock.addEventListener('change', (e) => setClockVisible(e.target.checked));
   el.toggleEmergencyPoints.addEventListener('change', (e) => setEmergencyPointsVisible(e.target.checked));
   el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
   el.toggleTrackRecording.addEventListener('change', (e) => {
@@ -247,6 +251,32 @@ function bindEvents() {
   window.addEventListener('offline', handleOffline);
 }
 
+// ===== 時刻表示 =====
+let clockTimerId = null;
+
+// 現在時刻を HH:MM 形式で時刻表示要素に反映
+function updateClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  el.mapClock.textContent = `${hh}:${mm}`;
+}
+
+// 時刻表示の ON/OFF。ON で要素を表示し1秒ごとに更新、OFF で停止・非表示
+function setClockVisible(on) {
+  if (clockTimerId !== null) {
+    clearInterval(clockTimerId);
+    clockTimerId = null;
+  }
+  if (on) {
+    updateClock();
+    clockTimerId = setInterval(updateClock, 1000);
+    el.mapClock.hidden = false;
+  } else {
+    el.mapClock.hidden = true;
+  }
+}
+
 // ===== ビュー切替 =====
 function showView(name) {
   if (!el.views[name]) return;
@@ -278,6 +308,8 @@ function showView(name) {
     });
     // 移動経路を記録トグルの状態に応じて操作ボタン群(記録開始/写真撮影/記録停止)の表示を更新
     updateTrackButtonState(el.toggleTrackRecording.checked);
+    // 時刻表示トグルの状態に従って時刻を表示
+    setClockVisible(el.toggleClock.checked);
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'home' || name === 'nav') {
     // ホーム/ナビ: 全オーバーレイを非表示にして地理院地図のみ表示
@@ -286,6 +318,8 @@ function showView(name) {
     setCurrentLocationVisible(false);
     stopTrackRecording();
     updateTrackButtonState(false);
+    // マップ以外では時刻表示を停止・非表示(トグル状態は保持)
+    setClockVisible(false);
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'messages') {
     renderMessageList();

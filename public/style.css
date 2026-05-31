@@ -275,6 +275,32 @@ body {
   right: 0.75rem;
 }
 
+/* 時刻表示: メニューボタン(≡)の左に配置。メニューボタンと縦位置・高さを揃える */
+.map-clock {
+  position: absolute;
+  top: 0.75rem;
+  right: calc(0.75rem + 44px + 0.5rem);
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.7rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #1f2937;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  z-index: 500;
+}
+
+.map-clock[hidden] {
+  display: none;
+}
+
 /* ナビ画面の準備中メッセージ(中央オーバーレイ) */
 .nav-pending {
   position: absolute;
