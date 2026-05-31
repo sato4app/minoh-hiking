@@ -841,6 +841,12 @@ body.view-state-nav .leaflet-control-container {
   padding-right: 1.5rem;
 }
 
+/* 参照先URL: 長い URL は途中でも折り返して枠からはみ出さないようにする */
+#infoSettingsModal .info-value-url {
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
 /* ===== 設定と情報モーダル: セクション ===== */
 .info-section {
   padding: 0.5rem 1rem 1rem;

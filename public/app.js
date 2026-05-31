@@ -72,6 +72,7 @@ const el = {
   infoMessagesBody: document.getElementById('infoMessagesBody'),
   toggleInfoAbout: document.getElementById('toggleInfoAbout'),
   infoAboutBody: document.getElementById('infoAboutBody'),
+  currentUrl: document.getElementById('currentUrl'),
   versionManifest: document.getElementById('versionManifest'),
   versionAppShell: document.getElementById('versionAppShell'),
 
@@ -412,6 +413,8 @@ async function openInfoSettingsModal() {
   el.infoAboutBody.hidden = true;
 
   // バージョン情報を反映
+  // 参照先URL: 現在表示しているページのURL(クエリ・ハッシュを除いた本体)
+  el.currentUrl.textContent = location.origin + location.pathname;
   const mv = (manifest && manifest.version != null) ? String(manifest.version) : '不明';
   el.versionManifest.textContent = mv;
   const shell = (await getCachedAppShellVersion()) || '不明';

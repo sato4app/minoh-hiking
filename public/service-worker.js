@@ -8,11 +8,13 @@
 // 全 gsi-* キャッシュを横断検索するため、version 変更後も旧タイルは引き続き利用可能。
 //
 // アプリシェルの取得戦略:
-// - 同一オリジン(HTML/CSS/JS 等): network-first(オンライン時は常に最新、
-//   オフライン時のみキャッシュ)。コード更新が即時反映される。
+// - 同一オリジン(HTML/CSS/JS 等): stale-while-revalidate(キャッシュ即返し+裏で
+//   ネット更新)。高速・弱電波に強く、オンライン時は次回読み込みで最新化される。
+//   新バージョンの明示更新は、アプリ側の「起動時/設定と情報の更新確認」
+//   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-05-31.13';
+const SHELL_CACHE = 'app-shell-2026-05-31.15';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 同一オリジンの相対パス
@@ -100,9 +102,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // CDN(leaflet): シェルキャッシュ優先
+  // CDN(leaflet): cache-first(安定資産)
   if (SHELL_CDN_URLS.includes(req.url)) {
-    event.respondWith(handleShellRequest(req));
+    event.respondWith(handleShellRequest(event));
     return;
   }
 
@@ -117,8 +119,8 @@ self.addEventListener('fetch', (event) => {
       return reqPath === expected;
     });
     if (isShell) {
-      // 同一オリジンのシェルは network-first(オンライン時は常に最新を反映)
-      event.respondWith(handleShellRequest(req, { networkFirst: true }));
+      // 同一オリジンのシェルは stale-while-revalidate(即返し+裏で更新)
+      event.respondWith(handleShellRequest(event, { swr: true }));
       return;
     }
   }
@@ -143,32 +145,37 @@ async function handleTileRequest(req) {
 }
 
 // アプリシェルの取得。
-// - networkFirst=true(同一オリジンのシェル): オンライン時は常に最新を取得し
-//   キャッシュも更新する。取得失敗(オフライン)時のみキャッシュへフォールバック。
-//   → コード更新が即座に反映され、オフラインでも従来どおり動作する。
-// - networkFirst=false(CDN 等の安定資産): キャッシュ優先で高速・通信節約。
-async function handleShellRequest(req, { networkFirst = false } = {}) {
+// - swr=true(同一オリジンのシェル): stale-while-revalidate。
+//   キャッシュを即返して高速・弱電波に強く、裏でネット取得して次回用に更新する。
+//   → オンライン時は自然に最新化(反映は次回読み込み)。バージョン更新の明示通知は
+//     アプリ側の「起動時/設定と情報の更新確認」(SHELL_CACHE 比較→confirm)が担う。
+// - swr=false(CDN 等の安定資産): cache-first(高速・通信節約)。
+async function handleShellRequest(event, { swr = false } = {}) {
+  const req = event.request;
   const cache = await caches.open(SHELL_CACHE);
+  const cached = await cache.match(req);
 
-  if (networkFirst) {
-    try {
-      const res = await fetch(req);
-      if (res.ok) cache.put(req, res.clone()).catch(() => { });
-      return res;
-    } catch (err) {
-      const cached = await cache.match(req);
-      return cached || new Response('', { status: 504 });
-    }
+  if (swr) {
+    // 裏でネット取得→キャッシュ更新(失敗時は null)。SW が早期終了しないよう待機登録。
+    const networkUpdate = fetch(req)
+      .then((res) => {
+        if (res.ok) cache.put(req, res.clone()).catch(() => { });
+        return res;
+      })
+      .catch(() => null);
+    event.waitUntil(networkUpdate);
+    // キャッシュがあれば即返す。無ければネット取得を待つ。
+    if (cached) return cached;
+    return (await networkUpdate) || new Response('', { status: 504 });
   }
 
   // cache-first
-  const cached = await cache.match(req);
   if (cached) return cached;
   try {
     const res = await fetch(req);
     if (res.ok) cache.put(req, res.clone()).catch(() => { });
     return res;
   } catch (err) {
-    return cached || new Response('', { status: 504 });
+    return new Response('', { status: 504 });
   }
 }
