@@ -292,6 +292,8 @@ function escapeHtml(s) {
 let currentLocationMarker = null;
 let currentLocationCircle = null;
 let geoWatchId = null;
+// 現在地表示中(移動経路を記録 ON)の間、地図を現在地に追従させるか
+let followCurrentLocation = false;
 
 // トラック(移動経路)
 // 「移動した」の判定: 直近の記録点から 20m 以上離れたか、1 分以上経過した場合に記録
@@ -396,11 +398,14 @@ export function setCurrentLocationVisible(visible, { onError } = {}) {
       onError && onError('この端末は位置情報に対応していません');
       return;
     }
+    followCurrentLocation = true;
     if (geoWatchId != null) return; // 既に追跡中
     geoWatchId = navigator.geolocation.watchPosition(
       (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
         const latlng = [latitude, longitude];
+        // 初回の位置取得かどうか(初回は遠距離になり得るためアニメ無しで移動)
+        const isFirstFix = !currentLocationMarker;
         if (!currentLocationMarker) {
           currentLocationMarker = L.circleMarker(latlng, {
             radius: 7,
@@ -431,6 +436,11 @@ export function setCurrentLocationVisible(visible, { onError } = {}) {
         if (isRecordingTrack && shouldRecordTrackPoint(latlng, Date.now())) {
           appendTrackPoint(latlng);
         }
+        // 移動経路を記録 ON の間は現在地が画面中央に来るよう地図を追従させる
+        if (followCurrentLocation) {
+          if (isFirstFix) mapInstance.setView(latlng, mapInstance.getZoom());
+          else mapInstance.panTo(latlng);
+        }
       },
       (err) => {
         onError && onError(`位置情報の取得に失敗: ${err.message}`);
@@ -438,6 +448,7 @@ export function setCurrentLocationVisible(visible, { onError } = {}) {
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
     );
   } else {
+    followCurrentLocation = false;
     if (geoWatchId != null) {
       navigator.geolocation.clearWatch(geoWatchId);
       geoWatchId = null;

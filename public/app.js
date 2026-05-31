@@ -83,11 +83,10 @@ const el = {
   toggleEmergencyPoints: document.getElementById('toggleEmergencyPoints'),
   toggleHikingRoutes: document.getElementById('toggleHikingRoutes'),
   toggleTrackRecording: document.getElementById('toggleTrackRecording'),
-  // 移動経路を記録 ON のとき表示する操作ボタン群(記録開始/写真撮影/記録停止)
+  // 移動経路を記録 ON のとき表示する操作ボタン群(記録開始・停止トグル/写真撮影)
   mapTrackActions: document.getElementById('mapTrackActions'),
-  btnTrackStart: document.getElementById('btnTrackStart'),
+  btnTrackToggle: document.getElementById('btnTrackToggle'),
   btnTrackPhoto: document.getElementById('btnTrackPhoto'),
-  btnTrackStop: document.getElementById('btnTrackStop'),
 
   // メッセージ履歴
   messageList: document.getElementById('messageList'),
@@ -245,14 +244,12 @@ function bindEvents() {
     updateTrackButtonState(on);
   });
 
-  // 記録開始/記録停止ボタン: 移動経路を記録トグル ON のときのみ表示・操作可
-  el.btnTrackStart.addEventListener('click', () => {
+  // 記録開始・停止トグルボタン: 移動経路を記録トグル ON のときのみ表示・操作可。
+  // 記録中なら停止、停止中なら開始する(押下ごとにアイコンが切り替わる)。
+  el.btnTrackToggle.addEventListener('click', () => {
     if (!el.toggleTrackRecording.checked) return;
-    beginTrackRecording();
-  });
-  el.btnTrackStop.addEventListener('click', () => {
-    if (!el.toggleTrackRecording.checked) return;
-    finishTrackRecording();
+    if (isTrackRecording) finishTrackRecording();
+    else beginTrackRecording();
   });
   // 写真撮影ボタン(端末のカメラ/写真選択を起動)
   el.btnTrackPhoto.addEventListener('click', () => {
@@ -672,10 +669,12 @@ function updateTrackButtonState(enabled) {
   }
 }
 
-// 記録中フラグに応じて記録開始/記録停止ボタンの有効・無効を切り替える
+// 記録中フラグに応じてトグルボタンのアイコン(開始▶/停止■)とラベルを切り替える
 function setTrackRecordingActive(active) {
-  el.btnTrackStart.disabled = active;
-  el.btnTrackStop.disabled = !active;
+  el.btnTrackToggle.classList.toggle('is-recording', active);
+  const label = active ? '記録停止' : '記録開始';
+  el.btnTrackToggle.setAttribute('aria-label', label);
+  el.btnTrackToggle.setAttribute('title', label);
 }
 
 // 実際に移動記録中かどうか(開始ボタン押下〜停止まで)

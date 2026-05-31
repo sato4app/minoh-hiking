@@ -452,13 +452,26 @@ body.view-state-nav .leaflet-control-container {
   display: none;
 }
 
-/* 記録開始/写真撮影/記録停止のアイコンボタン(btn-float ベースだが静的配置) */
+/* 記録開始・停止/写真撮影のアイコンボタン(btn-float ベースだが静的配置) */
 .btn-track-action {
   position: static;
   color: #1f7a4d;
 }
 
-#btnTrackStop {
+/* 記録トグル: 既定は開始(▶)を表示、記録中(is-recording)は停止(■)を表示し赤色に */
+#btnTrackToggle .icon-track-stop {
+  display: none;
+}
+
+#btnTrackToggle.is-recording .icon-track-start {
+  display: none;
+}
+
+#btnTrackToggle.is-recording .icon-track-stop {
+  display: inline;
+}
+
+#btnTrackToggle.is-recording {
   color: #b23b3b;
 }
 
