@@ -12,7 +12,7 @@
 //   オフライン時のみキャッシュ)。コード更新が即時反映される。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-05-31.12';
+const SHELL_CACHE = 'app-shell-2026-05-31.13';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 同一オリジンの相対パス

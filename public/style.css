@@ -257,9 +257,12 @@ body {
   pointer-events: none;
 }
 
-/* マップ/ナビビューの操作要素(浮きボタン・パネル)はクリック可能に */
+/* マップ/ナビビューの操作要素(浮きボタン・パネル・記録ボタン群)はクリック可能に。
+   .view-map は pointer-events: none のため、操作要素ごとに auto を明示する必要がある。
+   .map-track-actions は孫要素(div>button)なので div 自体を auto にする。 */
 .view-map > .btn-float,
 .view-map > .map-layer-panel,
+.view-map > .map-track-actions,
 .view-nav > .btn-float,
 .view-nav > .nav-pending {
   pointer-events: auto;

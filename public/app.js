@@ -236,24 +236,34 @@ function bindEvents() {
     }
     setCurrentLocationVisible(on, {
       onError: (msg) => {
-        setStatus(msg, 'error');
+        // 位置情報が取得できない場合(非HTTPS環境・権限拒否など)は記録を開始できない。
+        // 失敗を画面に出さないとユーザーには「ボタンが効かない」ようにしか見えないため、
+        // トースト・履歴・ステータスの全てに出力して原因を分かるようにする。
         el.toggleTrackRecording.checked = false;
         updateTrackButtonState(false);
+        setStatus(msg, 'error');
+        showToast(msg);
+        logHistory(msg, 'error');
       }
     });
-    updateTrackButtonState(on);
+    // onError で checked が false に戻された場合に備え、古い on ではなく
+    // 現在の checked 状態でボタン表示を更新する(誤って再表示しない)
+    updateTrackButtonState(el.toggleTrackRecording.checked);
   });
 
   // 記録開始・停止トグルボタン: 移動経路を記録トグル ON のときのみ表示・操作可。
   // 記録中なら停止、停止中なら開始する(押下ごとにアイコンが切り替わる)。
   el.btnTrackToggle.addEventListener('click', () => {
-    if (!el.toggleTrackRecording.checked) return;
+    // ボタンが表示されている(=移動経路を記録 ON で現在地表示が有効)ときのみ動作。
+    // checked の値に依存すると、位置情報エラーで checked が戻されたとき無言で
+    // 効かなくなるため、ボタン自身の表示状態で判定する。
+    if (el.mapTrackActions.hidden) return;
     if (isTrackRecording) finishTrackRecording();
     else beginTrackRecording();
   });
   // 写真撮影ボタン(端末のカメラ/写真選択を起動)
   el.btnTrackPhoto.addEventListener('click', () => {
-    if (!el.toggleTrackRecording.checked) return;
+    if (el.mapTrackActions.hidden) return;
     capturePhoto();
   });
 
