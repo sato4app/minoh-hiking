@@ -406,6 +406,28 @@ body.view-state-nav .leaflet-control-container {
   margin: 0.4rem 0;
 }
 
+/* 移動経路の「サイズ」「クリア」ボタン: トグルの下に右寄せで横並び */
+.track-inline-actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+  margin: 0.3rem 0 0.1rem;
+}
+
+.btn-track-mini {
+  padding: 0.3rem 0.8rem;
+  font: inherit;
+  border: 1px solid #1d4ed8;
+  background: #fff;
+  color: #1d4ed8;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-track-mini:hover {
+  background: #eef2ff;
+}
+
 /* パネル内のボタン(マーカー設定/画像解像度設定/戻る): 右寄せ配置 */
 .map-layer-panel .panel-btn {
   display: block;

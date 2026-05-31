@@ -9,7 +9,8 @@ import {
   loadEmergencyPointsLayer, setEmergencyPointsVisible, setEmergencyStyle,
   loadHikingRoutesLayer, setHikingRoutesVisible, setHikingRouteStyle, setHikingSpotStyle,
   setCurrentLocationVisible,
-  setTrackStyle, startTrackRecording, stopTrackRecording, getTrackStats
+  setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
+  startTrackRecording, stopTrackRecording, getTrackStats, clearTrack
 } from './map.js';
 import { savePackage, listPackages, clearPackages, deletePackage } from './db.js';
 import {
@@ -88,6 +89,9 @@ const el = {
   mapTrackActions: document.getElementById('mapTrackActions'),
   btnTrackToggle: document.getElementById('btnTrackToggle'),
   btnTrackPhoto: document.getElementById('btnTrackPhoto'),
+  // レイヤーパネル内: 移動経路の統計表示(サイズ)・クリア
+  btnTrackStats: document.getElementById('btnTrackStats'),
+  btnTrackClear: document.getElementById('btnTrackClear'),
 
   // メッセージ履歴
   messageList: document.getElementById('messageList'),
@@ -162,6 +166,8 @@ async function init() {
     if (currentView === 'map') setHikingRoutesVisible(el.toggleHikingRoutes.checked);
   });
   setTrackStyle(markerSettings.track);
+  setTrackStartStyle(markerSettings.trackStart);
+  setTrackCurrentStyle(markerSettings.trackCurrent);
 
   // 初期表示はホーム(オーバーレイは非表示のまま)
   showView('home');
@@ -266,6 +272,29 @@ function bindEvents() {
   el.btnTrackPhoto.addEventListener('click', () => {
     if (el.mapTrackActions.hidden) return;
     capturePhoto();
+  });
+
+  // サイズ: 現在の移動経路の統計(記録地点数・写真枚数・移動距離)を表示
+  el.btnTrackStats.addEventListener('click', () => {
+    const stats = getTrackStats();
+    const km = (stats.distanceM / 1000).toFixed(2);
+    showToast(`記録地点 ${stats.pointCount} 点 / 写真 ${trackPhotoCount} 枚 / 移動距離 ${km} km`);
+  });
+
+  // クリア: 記録した移動経路(線・開始点・現在地点)を消去
+  el.btnTrackClear.addEventListener('click', () => {
+    const stats = getTrackStats();
+    if (stats.pointCount === 0) {
+      showToast('クリアする移動経路がありません');
+      return;
+    }
+    if (!confirm('記録した移動経路をクリアします。よろしいですか?')) return;
+    clearTrack();
+    isTrackRecording = false;
+    setTrackRecordingActive(false);
+    trackPhotoCount = 0;
+    logHistory('移動経路をクリアしました', '');
+    showToast('移動経路をクリアしました');
   });
 
   // マーカー設定: 規定値に戻す
@@ -668,6 +697,8 @@ function applyMarkerSettingToMap(key, style) {
   else if (key === 'hikingRoute') setHikingRouteStyle(style);
   else if (key === 'spot') setHikingSpotStyle(style);
   else if (key === 'track') setTrackStyle(style);
+  else if (key === 'trackStart') setTrackStartStyle(style);
+  else if (key === 'trackCurrent') setTrackCurrentStyle(style);
   // routeGuide / photoLocation はレイヤー未実装のため反映先なし
 }
 
@@ -695,12 +726,12 @@ let isTrackRecording = false;
 // 今回の記録中に撮影した写真の枚数
 let trackPhotoCount = 0;
 
-// 移動記録を開始(記録開始ボタン)。開始を履歴に残す
+// 移動記録を開始(記録開始ボタン)。開始を履歴に残す。
+// 写真枚数や軌跡は「クリア」までトラックと共に保持するため、ここではリセットしない。
 function beginTrackRecording() {
   startTrackRecording();
   setTrackRecordingActive(true);
   isTrackRecording = true;
-  trackPhotoCount = 0;
   logHistory('移動記録を開始しました', 'success');
   showToast('移動記録を開始しました');
 }
@@ -720,7 +751,7 @@ function finishTrackRecording() {
     logHistory(summary, 'success');
     showToast(summary);
   }
-  trackPhotoCount = 0;
+  // 写真枚数・軌跡は「クリア」まで保持するため、ここではリセットしない。
 }
 
 // 写真撮影: 端末のカメラ/写真選択ダイアログを起動(取得後の保存処理は今後実装)

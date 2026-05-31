@@ -294,15 +294,20 @@ let currentLocationCircle = null;
 let geoWatchId = null;
 // 現在地表示中(移動経路を記録 ON)の間、地図を現在地に追従させるか
 let followCurrentLocation = false;
+// 現在地表示開始後、最初の位置取得を受け取ったか(初回はアニメ無しで移動)
+let hasHadFirstFix = false;
 
 // トラック(移動経路)
 // 「移動した」の判定: 直近の記録点から 20m 以上離れたか、1 分以上経過した場合に記録
 const TRACK_MIN_DISTANCE_M = 20;
 const TRACK_MIN_INTERVAL_MS = 60 * 1000;
 let isRecordingTrack = false;
-let trackPolyline = null;
-let trackPointMarkers = [];
-let trackStyle = null;
+let trackPolyline = null;        // 記録点を順に結ぶ線(トラック)
+let trackStartMarker = null;     // 開始地点マーカー(トラック開始点)
+let trackCurrentMarker = null;   // 最終記録地点マーカー(トラック現在地点・進行方向)
+let trackStyle = null;           // 線のスタイル(トラック)
+let trackStartStyle = null;      // 開始点マーカーのスタイル(トラック開始点)
+let trackCurrentStyle = null;    // 現在地点マーカーのスタイル(トラック現在地点)
 let lastTrackLatLng = null;
 let lastTrackTimeMs = 0;
 
@@ -316,6 +321,80 @@ export function setTrackStyle(style) {
   }
 }
 
+// トラック開始点マーカーのスタイル。既存マーカーがあれば即時反映。
+export function setTrackStartStyle(style) {
+  trackStartStyle = style;
+  if (trackStartMarker) {
+    trackStartMarker.setIcon(buildShapeIcon(trackStartStyle, 'square'));
+  }
+}
+
+// トラック現在地点マーカーのスタイル。既存マーカーがあれば即時反映(進行方向を再計算)。
+export function setTrackCurrentStyle(style) {
+  trackCurrentStyle = style;
+  if (trackCurrentMarker) updateTrackCurrentMarker();
+}
+
+// マーカー用 divIcon を生成(rotationDeg を与えると中心まわりに回転)
+function buildShapeIcon(style, fallbackShape, rotationDeg = 0) {
+  const size = Math.max(4, Math.min(80, style?.size || 8));
+  const shape = style?.shape || fallbackShape;
+  const color = style?.color || '#000080';
+  const svg = shapeToSVG(shape, color, size);
+  const html = rotationDeg
+    ? `<div style="width:${size}px;height:${size}px;transform:rotate(${rotationDeg}deg);transform-origin:50% 50%;">${svg}</div>`
+    : svg;
+  return L.divIcon({
+    html,
+    className: 'custom-marker',
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2]
+  });
+}
+
+// 2点間の方位角(度・北=0、時計回り)。三角マーカーの回転に用いる。
+function bearingDeg(a, b) {
+  const toRad = (d) => d * Math.PI / 180;
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const y = Math.sin(dLng) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+// 進行方向: 過去最大3点(記録点)の平均座標から、現在位置へ向かう方位。
+// current は現在位置(記録中はライブ現在地、停止後は最終記録点)。
+// 方向が定まらない(平均と現在が同じ等)場合は 0(北・上向き)を返す。
+function computeHeading(latlngs, current) {
+  const n = latlngs.length;
+  if (n === 0) return 0;
+  const k = Math.min(3, n);
+  const recent = latlngs.slice(n - k);
+  let lat = 0;
+  let lng = 0;
+  for (const p of recent) { lat += p.lat; lng += p.lng; }
+  const avg = { lat: lat / k, lng: lng / k };
+  if (Math.abs(avg.lat - current.lat) < 1e-9 && Math.abs(avg.lng - current.lng) < 1e-9) return 0;
+  return bearingDeg(avg, current);
+}
+
+// 現在地点マーカー(三角)を配置し、進行方向に回転させる。
+// liveLatLng を与えると現在地(ライブ)へ、無ければ最終記録点へ配置する。
+function updateTrackCurrentMarker(liveLatLng) {
+  if (!trackPolyline || !mapInstance) return;
+  const latlngs = trackPolyline.getLatLngs();
+  if (latlngs.length === 0) return;
+  const pos = liveLatLng ? L.latLng(liveLatLng) : latlngs[latlngs.length - 1];
+  const icon = buildShapeIcon(trackCurrentStyle, 'triangle', computeHeading(latlngs, pos));
+  if (!trackCurrentMarker) {
+    trackCurrentMarker = L.marker(pos, { icon }).addTo(mapInstance);
+  } else {
+    trackCurrentMarker.setLatLng(pos);
+    trackCurrentMarker.setIcon(icon);
+  }
+}
+
 export function startTrackRecording() {
   if (!mapInstance) return;
   isRecordingTrack = true;
@@ -326,10 +405,14 @@ export function startTrackRecording() {
       opacity: 0.85
     }).addTo(mapInstance);
   }
-  // 既に現在地が取得済なら、最初の点として打つ(待たずに描画開始する)
+  // 既に現在地が取得済なら、最初の点として打つ(待たずに描画開始する)。
+  // このとき現在地マーカーを青丸から三角(トラック現在地点)へ切り替える。
   if (currentLocationMarker) {
     const ll = currentLocationMarker.getLatLng();
     appendTrackPoint([ll.lat, ll.lng]);
+    updateTrackCurrentMarker(ll);
+    mapInstance.removeLayer(currentLocationMarker);
+    currentLocationMarker = null;
   }
 }
 
@@ -344,6 +427,8 @@ function shouldRecordTrackPoint(latlng, nowMs) {
 
 export function stopTrackRecording() {
   isRecordingTrack = false;
+  // 三角(現在地点)を最終記録点へスナップして固定する。
+  updateTrackCurrentMarker();
 }
 
 // 現在の移動経路の統計(記録地点数・合計移動距離[m])を返す。
@@ -361,33 +446,48 @@ export function getTrackStats() {
   return { pointCount, distanceM };
 }
 
-// トラック表示を全削除(トグル OFF 時に呼び出す)
-function clearTrack() {
+// トラック表示(線・開始点・現在地点)を全削除する。
+// 「移動経路をクリア」ボタンからのみ呼び出す(トグル OFF では消さない)。
+export function clearTrack() {
   isRecordingTrack = false;
   if (trackPolyline) {
     mapInstance.removeLayer(trackPolyline);
     trackPolyline = null;
   }
-  for (const m of trackPointMarkers) {
-    mapInstance.removeLayer(m);
+  if (trackStartMarker) {
+    mapInstance.removeLayer(trackStartMarker);
+    trackStartMarker = null;
   }
-  trackPointMarkers = [];
+  if (trackCurrentMarker) {
+    mapInstance.removeLayer(trackCurrentMarker);
+    trackCurrentMarker = null;
+  }
   lastTrackLatLng = null;
   lastTrackTimeMs = 0;
 }
 
+// 記録点を追加: 線に頂点を足し、最初の点なら開始点マーカー、
+// 毎回 現在地点マーカー(進行方向つき)を最終点へ更新する。
 function appendTrackPoint(latlng) {
   if (!trackPolyline) return;
+  const wasEmpty = trackPolyline.getLatLngs().length === 0;
   trackPolyline.addLatLng(latlng);
-  const dot = L.circleMarker(latlng, {
-    radius: Math.max(2, Math.round((trackStyle?.size || 4) * 0.6)),
-    color: trackStyle?.color || '#000080',
-    weight: 1,
-    fillColor: trackStyle?.color || '#000080',
-    fillOpacity: 0.9
-  }).addTo(mapInstance);
-  trackPointMarkers.push(dot);
-  lastTrackLatLng = Array.isArray(latlng) ? [latlng[0], latlng[1]] : [latlng.lat, latlng.lng];
+  const lat = Array.isArray(latlng) ? latlng[0] : latlng.lat;
+  const lng = Array.isArray(latlng) ? latlng[1] : latlng.lng;
+
+  // 開始地点マーカー(最初の記録点のみ)
+  if (wasEmpty) {
+    if (trackStartMarker) {
+      mapInstance.removeLayer(trackStartMarker);
+      trackStartMarker = null;
+    }
+    trackStartMarker = L.marker([lat, lng], {
+      icon: buildShapeIcon(trackStartStyle, 'square')
+    }).addTo(mapInstance);
+  }
+
+  // 現在地点マーカー(三角)の位置・向きは呼び出し側(記録中はライブ現在地)で更新する。
+  lastTrackLatLng = [lat, lng];
   lastTrackTimeMs = Date.now();
 }
 
@@ -405,19 +505,33 @@ export function setCurrentLocationVisible(visible, { onError } = {}) {
         const { latitude, longitude, accuracy } = pos.coords;
         const latlng = [latitude, longitude];
         // 初回の位置取得かどうか(初回は遠距離になり得るためアニメ無しで移動)
-        const isFirstFix = !currentLocationMarker;
-        if (!currentLocationMarker) {
-          currentLocationMarker = L.circleMarker(latlng, {
-            radius: 7,
-            color: '#ffffff',
-            weight: 2,
-            fillColor: '#1d4ed8',
-            fillOpacity: 0.95
-          }).addTo(mapInstance);
-          currentLocationMarker.bindPopup('現在地');
-        } else {
-          currentLocationMarker.setLatLng(latlng);
+        const isFirstFix = !hasHadFirstFix;
+        hasHadFirstFix = true;
+
+        // ライブ現在地の表し方:
+        // - 記録中: 三角(トラック現在地点)をライブ現在地へ追従(青丸は出さない)
+        // - それ以外(記録開始前・記録停止後): 青丸でライブ現在地を表示
+        //   ※記録停止後は三角を最終記録点に固定したまま、青丸のライブ表示を継続する
+        if (!isRecordingTrack) {
+          if (!currentLocationMarker) {
+            currentLocationMarker = L.circleMarker(latlng, {
+              radius: 7,
+              color: '#ffffff',
+              weight: 2,
+              fillColor: '#1d4ed8',
+              fillOpacity: 0.95
+            }).addTo(mapInstance);
+            currentLocationMarker.bindPopup('現在地');
+          } else {
+            currentLocationMarker.setLatLng(latlng);
+          }
+        } else if (currentLocationMarker) {
+          // 記録中は青丸を消して三角で表す
+          mapInstance.removeLayer(currentLocationMarker);
+          currentLocationMarker = null;
         }
+
+        // 精度円: 常に現在地へ追従
         if (Number.isFinite(accuracy)) {
           if (!currentLocationCircle) {
             currentLocationCircle = L.circle(latlng, {
@@ -432,11 +546,14 @@ export function setCurrentLocationVisible(visible, { onError } = {}) {
             currentLocationCircle.setRadius(accuracy);
           }
         }
-        // 記録中: 直近の記録点から 20m 以上移動、または 1 分以上経過した場合のみ追加
-        if (isRecordingTrack && shouldRecordTrackPoint(latlng, Date.now())) {
-          appendTrackPoint(latlng);
+
+        // 記録中: 条件を満たせば記録点を追加し、三角をライブ現在地へ追従(進行方向つき)
+        if (isRecordingTrack) {
+          if (shouldRecordTrackPoint(latlng, Date.now())) appendTrackPoint(latlng);
+          updateTrackCurrentMarker(latlng);
         }
-        // 移動経路を記録 ON の間は現在地が画面中央に来るよう地図を追従させる
+
+        // 現在地が画面中央に来るよう地図を追従させる
         if (followCurrentLocation) {
           if (isFirstFix) mapInstance.setView(latlng, mapInstance.getZoom());
           else mapInstance.panTo(latlng);
@@ -449,6 +566,7 @@ export function setCurrentLocationVisible(visible, { onError } = {}) {
     );
   } else {
     followCurrentLocation = false;
+    hasHadFirstFix = false;
     if (geoWatchId != null) {
       navigator.geolocation.clearWatch(geoWatchId);
       geoWatchId = null;
@@ -461,7 +579,8 @@ export function setCurrentLocationVisible(visible, { onError } = {}) {
       mapInstance.removeLayer(currentLocationCircle);
       currentLocationCircle = null;
     }
-    // トグル OFF 時は記録済の移動経路も消す
-    clearTrack();
+    // トグル OFF でも記録済みの移動経路(線・開始点・現在地点)は残す。
+    // 記録の追加だけ止める。クリアは「移動経路をクリア」ボタンでのみ行う。
+    isRecordingTrack = false;
   }
 }
