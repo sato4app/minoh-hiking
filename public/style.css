@@ -839,16 +839,17 @@ body.view-state-nav .leaflet-control-container {
 }
 
 /* 設定セクション内のボタン(マーカー設定/画像解像度設定): 縦並び。
-   ボタン幅はラベルが収まる分だけにする(全幅に伸ばさない) */
+   2つのボタンを同じ幅にし(stretch)、左に約10文字分の余白を設ける */
 .info-section-actions {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 0.5rem;
   margin-top: 0.6rem;
+  margin-left: 10em;
 }
 
-/* ラベル幅に合わせる: .btn の最小幅・余白を抑えてコンパクトに */
+/* .btn の最小幅・余白を抑えてコンパクトに */
 .info-section-actions .btn {
   min-height: 40px;
   padding: 0.5rem 0.9rem;
