@@ -806,7 +806,7 @@ body.view-state-nav .leaflet-control-container {
 #infoSettingsModal .info-label {
   padding-left: 1.5rem;
   margin-right: 1.5rem;
-  min-width: 10rem;
+  flex-shrink: 0;
 }
 
 /* タイルマニフェスト/アプリシェルをラベルの2行目に小さく表示 */
@@ -815,8 +815,12 @@ body.view-state-nav .leaflet-control-container {
   margin-left: 0;
 }
 
-/* アプリ名等の各項目の値を右寄せ(ラベルの左余白と同程度の右余白を設ける) */
+/* アプリ名等の各項目の値を右寄せ(ラベルの左余白と同程度の右余白を設ける)
+   値ボックスを残り幅いっぱいに広げ、テキストは右寄せのまま開始位置を左へ寄せて
+   スマホでの折り返しを抑制する */
 #infoSettingsModal .info-value {
+  flex: 1;
+  min-width: 0;
   text-align: right;
   padding-right: 1.5rem;
 }
