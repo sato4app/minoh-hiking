@@ -32,6 +32,8 @@ const AVG_TILE_KB = 12;
 const VERSION_STORAGE_KEY = 'minoh-hiking.tile-manifest-version';
 const MESSAGE_LOG_KEY = 'minoh-hiking.message-log';
 const MESSAGE_LOG_MAX = 100;
+// 起動時にアプリの更新版を確認するかの設定(既定 ON)
+const STARTUP_UPDATE_CHECK_KEY = 'minoh-hiking.startup-update-check';
 // マーカー設定の既定値・選択肢・localStorage キーは ./config.js から import
 
 // ===== 状態 =====
@@ -46,16 +48,26 @@ const el = {
   views: {
     home: document.getElementById('viewHome'),
     map: document.getElementById('viewMap'),
-    nav: document.getElementById('viewNav'),
-    messages: document.getElementById('viewMessages')
+    nav: document.getElementById('viewNav')
   },
 
   // ホーム
   btnOpenDownload: document.getElementById('btnOpenDownload'),
   btnOpenSettings: document.getElementById('btnOpenSettings'),
 
-  // バージョン情報モーダル
-  versionModal: document.getElementById('versionModal'),
+  // 設定と情報モーダル
+  infoSettingsModal: document.getElementById('infoSettingsModal'),
+  // 設定: 起動時の更新確認トグル + マップ設定への導線
+  toggleStartupUpdateCheck: document.getElementById('toggleStartupUpdateCheck'),
+  btnInfoOpenMarkerSettings: document.getElementById('btnInfoOpenMarkerSettings'),
+  btnInfoOpenImageSettings: document.getElementById('btnInfoOpenImageSettings'),
+  // 情報: 3つの開閉トグルとその内容領域
+  toggleInfoVersion: document.getElementById('toggleInfoVersion'),
+  infoVersionBody: document.getElementById('infoVersionBody'),
+  toggleInfoMessages: document.getElementById('toggleInfoMessages'),
+  infoMessagesBody: document.getElementById('infoMessagesBody'),
+  toggleInfoAbout: document.getElementById('toggleInfoAbout'),
+  infoAboutBody: document.getElementById('infoAboutBody'),
   versionManifest: document.getElementById('versionManifest'),
   versionAppShell: document.getElementById('versionAppShell'),
 
@@ -127,9 +139,12 @@ async function init() {
   await migrateLegacyPackages();
   await refreshStorageInfo();
   evaluateManifestVersion();
+  // 起動時に確認したバージョンを履歴に残す
+  logStartupVersionCheck();
   // service-worker.js の SHELL_CACHE とキャッシュ済みバージョンを比較し
   // 不一致なら confirm を出してアプリ全体を最新に更新
-  checkAppShellUpdate();
+  // (「起動時にアプリの更新版を確認」が ON のときのみ)
+  if (readStartupUpdateCheckEnabled()) checkAppShellUpdate();
 
   // 共有地図を初期化(箕面大滝中心 / z=15、ホーム/マップで共通)
   initMap('map');
@@ -155,9 +170,28 @@ function bindEvents() {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
   el.btnOpenDownload.addEventListener('click', openDownloadModal);
-  // 起動画面の「設定」ボタンはバージョン情報を表示
-  // (マーカー/画像解像度の設定はハイキングマップ画面のメニュー(≡)から開く)
-  el.btnOpenSettings.addEventListener('click', openVersionModal);
+  // 起動画面の「設定と情報」ボタンは設定・情報モーダルを表示
+  el.btnOpenSettings.addEventListener('click', openInfoSettingsModal);
+
+  // 設定: 起動時の更新確認トグル(localStorage に保存)
+  el.toggleStartupUpdateCheck.addEventListener('change', (e) => {
+    writeStartupUpdateCheckEnabled(e.target.checked);
+  });
+  // 設定: マップ画面メニューと同じ設定項目を既存モーダルで開く
+  el.btnInfoOpenMarkerSettings.addEventListener('click', () => openSettingsModal('marker'));
+  el.btnInfoOpenImageSettings.addEventListener('click', () => openSettingsModal('image'));
+
+  // 情報: 各トグルで内容領域の表示/非表示を切替
+  el.toggleInfoVersion.addEventListener('change', (e) => {
+    el.infoVersionBody.hidden = !e.target.checked;
+  });
+  el.toggleInfoMessages.addEventListener('change', (e) => {
+    el.infoMessagesBody.hidden = !e.target.checked;
+    if (e.target.checked) renderMessageList();
+  });
+  el.toggleInfoAbout.addEventListener('change', (e) => {
+    el.infoAboutBody.hidden = !e.target.checked;
+  });
 
   // モーダル閉じる(各モーダル内の [data-close-modal] が、その親モーダルを閉じる)
   for (const elem of document.querySelectorAll('[data-close-modal]')) {
@@ -202,7 +236,7 @@ function bindEvents() {
     });
     if (!on) {
       // OFF: 記録中だった場合も停止し、ボタンを「開始」(無効)に戻す
-      stopTrackRecording();
+      finishTrackRecording();
     }
     updateTrackButtonState(on);
   });
@@ -210,13 +244,11 @@ function bindEvents() {
   // 記録開始/記録停止ボタン: 移動経路を記録トグル ON のときのみ表示・操作可
   el.btnTrackStart.addEventListener('click', () => {
     if (!el.toggleTrackRecording.checked) return;
-    startTrackRecording();
-    setTrackRecordingActive(true);
+    beginTrackRecording();
   });
   el.btnTrackStop.addEventListener('click', () => {
     if (!el.toggleTrackRecording.checked) return;
-    stopTrackRecording();
-    setTrackRecordingActive(false);
+    finishTrackRecording();
   });
   // 写真撮影ボタン(端末のカメラ/写真選択を起動)
   el.btnTrackPhoto.addEventListener('click', () => {
@@ -316,13 +348,11 @@ function showView(name) {
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);
     setCurrentLocationVisible(false);
-    stopTrackRecording();
+    finishTrackRecording();
     updateTrackButtonState(false);
     // マップ以外では時刻表示を停止・非表示(トグル状態は保持)
     setClockVisible(false);
     requestAnimationFrame(() => resizeMap());
-  } else if (name === 'messages') {
-    renderMessageList();
   }
 }
 
@@ -332,20 +362,44 @@ function openDownloadModal() {
   refreshStorageInfo();
 }
 
-// バージョン情報モーダル(起動画面の「設定」から表示)
-async function openVersionModal() {
-  // タイルマニフェストの version
+// 設定と情報モーダル(起動画面の「設定と情報」から表示)
+async function openInfoSettingsModal() {
+  // --- 設定 ---
+  // 起動時の更新確認トグルを現在の設定値で初期化
+  el.toggleStartupUpdateCheck.checked = readStartupUpdateCheckEnabled();
+
+  // --- 情報: トグルを既定状態(バージョン情報のみオン)にリセット ---
+  el.toggleInfoVersion.checked = true;
+  el.infoVersionBody.hidden = false;
+  el.toggleInfoMessages.checked = false;
+  el.infoMessagesBody.hidden = true;
+  el.toggleInfoAbout.checked = false;
+  el.infoAboutBody.hidden = true;
+
+  // バージョン情報を反映
   const mv = (manifest && manifest.version != null) ? String(manifest.version) : '不明';
   el.versionManifest.textContent = mv;
-
-  // アプリシェルのキャッシュ名(service-worker.js の SHELL_CACHE)
   const shell = (await getCachedAppShellVersion()) || '不明';
   el.versionAppShell.textContent = shell;
 
-  el.versionModal.hidden = false;
+  // 履歴は開いたときにすぐ見えるよう事前に描画しておく
+  renderMessageList();
 
-  // モーダル表示のタイミングでも最新版チェックを実行
-  checkAppShellUpdate();
+  el.infoSettingsModal.hidden = false;
+}
+
+// ===== 起動時の更新確認の設定(localStorage) =====
+function readStartupUpdateCheckEnabled() {
+  try {
+    const v = localStorage.getItem(STARTUP_UPDATE_CHECK_KEY);
+    return v === null ? true : v === '1'; // 既定 ON
+  } catch {
+    return true;
+  }
+}
+
+function writeStartupUpdateCheckEnabled(on) {
+  try { localStorage.setItem(STARTUP_UPDATE_CHECK_KEY, on ? '1' : '0'); } catch { /* noop */ }
 }
 
 // キャッシュ済みアプリシェルのバージョン(app-shell-<ver> の <ver>)
@@ -554,6 +608,26 @@ function setTrackRecordingActive(active) {
   el.btnTrackStop.disabled = !active;
 }
 
+// 実際に移動記録中かどうか(開始ボタン押下〜停止まで)
+let isTrackRecording = false;
+
+// 移動記録を開始(記録開始ボタン)。開始を履歴に残す
+function beginTrackRecording() {
+  startTrackRecording();
+  setTrackRecordingActive(true);
+  isTrackRecording = true;
+  logHistory('移動記録を開始しました', 'success');
+}
+
+// 移動記録を終了(記録停止/トグルOFF/画面遷移)。記録中だったときのみ履歴に残す
+function finishTrackRecording() {
+  const wasRecording = isTrackRecording;
+  stopTrackRecording();
+  setTrackRecordingActive(false);
+  isTrackRecording = false;
+  if (wasRecording) logHistory('移動記録を終了しました');
+}
+
 // 写真撮影: 端末のカメラ/写真選択ダイアログを起動(取得後の保存処理は今後実装)
 function capturePhoto() {
   const input = document.createElement('input');
@@ -714,6 +788,7 @@ async function startDownload(layerKeys) {
 
   if (result.aborted) {
     setStatus(`中断しました(${result.completed}/${result.total} 完了, 失敗 ${result.failed.length})`, 'warning');
+    logHistory(`地図のダウンロードを中断しました(${result.completed}/${result.total})`, 'warning');
     evaluateManifestVersion();
   } else {
     // packageId は「バージョン + レイヤー」で決定的にする。
@@ -734,9 +809,11 @@ async function startDownload(layerKeys) {
     }
     if (result.failed.length > 0) {
       setStatus(`完了(失敗 ${result.failed.length} 件あり)`, 'warning');
+      logHistory(`地図のダウンロード完了(失敗 ${result.failed.length} 件あり)`, 'warning');
       evaluateManifestVersion();
     } else {
       setStatus('ダウンロード完了', 'success');
+      logHistory('地図のダウンロードが完了しました', 'success');
       const allLayerKeys = Object.keys(manifest.layers);
       const coversAll = allLayerKeys.every((k) => layerKeys.includes(k));
       if (coversAll) saveManifestVersion();
@@ -775,6 +852,7 @@ async function startManifestUpdate(mode) {
 
   if (jobs.length === 0) {
     setStatus('追加でダウンロードするタイルはありません。バージョンを更新しました', 'success');
+    logHistory('地図は最新の状態です(バージョンを更新)', 'success');
     saveManifestVersion();
     await refreshStorageInfo();
     return;
@@ -790,12 +868,15 @@ async function startManifestUpdate(mode) {
 
   if (result.aborted) {
     setStatus(`中断しました(${result.completed}/${result.total} 完了, 失敗 ${result.failed.length})`, 'warning');
+    logHistory(`地図の${label}を中断しました(${result.completed}/${result.total})`, 'warning');
     showUpdateBanner();
   } else if (result.failed.length > 0) {
     setStatus(`${label}完了(失敗 ${result.failed.length} 件あり)`, 'warning');
+    logHistory(`地図の${label}完了(失敗 ${result.failed.length} 件あり)`, 'warning');
     showUpdateBanner();
   } else {
     setStatus(`${label}が完了しました`, 'success');
+    logHistory(`地図の${label}が完了しました`, 'success');
     saveManifestVersion();
   }
 
@@ -1005,21 +1086,32 @@ async function refreshStorageInfo() {
     tileCount > 0 ? (bytes / (1024 * 1024)).toFixed(1) : '0';
 }
 
-// ===== ステータス + メッセージ履歴 =====
+// ===== ステータス表示 =====
+// ダウンロードモーダルのステータス行を更新する(履歴には残さない)
 function setStatus(text, level) {
   el.statusMessage.textContent = text;
   el.statusMessage.className = 'status-message';
   if (level) el.statusMessage.classList.add(level);
-  appendMessageLog(text, level);
 }
 
-function appendMessageLog(text, level) {
+// ===== メッセージ履歴 =====
+// 履歴に残すのは「起動時のバージョン確認」「地図のダウンロード」
+// 「移動記録の開始・終了」に限定する。
+function logHistory(text, level) {
   if (!text) return;
   const log = readMessageLog();
   log.push({ t: Date.now(), text, level: level || '' });
   while (log.length > MESSAGE_LOG_MAX) log.shift();
   try { localStorage.setItem(MESSAGE_LOG_KEY, JSON.stringify(log)); } catch { /* noop */ }
-  if (currentView === 'messages') renderMessageList();
+  // 情報モーダルで履歴を表示中なら即時再描画
+  if (el.infoMessagesBody && !el.infoMessagesBody.hidden) renderMessageList();
+}
+
+// 起動時に確認したバージョン(地図/アプリ)を履歴に残す
+async function logStartupVersionCheck() {
+  const mv = (manifest && manifest.version != null) ? `v${manifest.version}` : '不明';
+  const shell = (await getCachedAppShellVersion()) || '不明';
+  logHistory(`起動時のバージョン確認: 地図 ${mv} / アプリ ${shell}`, '');
 }
 
 function readMessageLog() {

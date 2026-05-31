@@ -766,28 +766,89 @@ body.view-state-nav .leaflet-control-container {
   font-variant-numeric: tabular-nums;
 }
 
-/* バージョン情報モーダル: ラベルを左、値を右寄せに配置 */
-#versionModal .info-row {
+/* バージョン情報: ラベルを左、値を右寄せに配置 */
+#infoSettingsModal .info-row {
   justify-content: space-between;
   align-items: baseline;
 }
 
-#versionModal .info-label {
+#infoSettingsModal .info-label {
   padding-left: 1.5rem;
   margin-right: 1.5rem;
   min-width: 10rem;
 }
 
 /* タイルマニフェスト/アプリシェルをラベルの2行目に小さく表示 */
-#versionModal .info-sublabel {
+#infoSettingsModal .info-sublabel {
   display: block;
   margin-left: 0;
 }
 
 /* アプリ名等の各項目の値を右寄せ(ラベルの左余白と同程度の右余白を設ける) */
-#versionModal .info-value {
+#infoSettingsModal .info-value {
   text-align: right;
   padding-right: 1.5rem;
+}
+
+/* ===== 設定と情報モーダル: セクション ===== */
+.info-section {
+  padding: 0.5rem 1rem 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.info-section:last-child {
+  border-bottom: none;
+}
+
+.info-section-title {
+  margin: 0.3rem 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #2c7a3d;
+}
+
+/* 設定セクション内のボタン(マーカー設定/画像解像度設定): 縦並び */
+.info-section-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+/* トグルで開閉する内容領域 */
+.info-collapse {
+  padding: 0.25rem 0 0.5rem;
+}
+
+.info-collapse[hidden] {
+  display: none;
+}
+
+.info-collapse .placeholder-message {
+  padding: 0.5rem 1.5rem;
+}
+
+/* 情報モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
+.info-collapse .message-list {
+  flex: none;
+  max-height: 240px;
+  border-top: 1px solid #eee;
+}
+
+.info-collapse .message-empty {
+  flex: none;
+  padding: 0.75rem 1.5rem;
+  justify-content: flex-start;
+}
+
+/* 履歴消去ボタンを右寄せに配置 */
+.info-messages-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.info-messages-actions .btn-icon {
+  color: #b91c1c;
 }
 
 /* ===== ボタン共通 ===== */
