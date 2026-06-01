@@ -16,8 +16,8 @@ export const MARKER_TYPES = [
   { key: 'routeGuide', label: 'ルート案内写真', color: '#2563EB', shape: 'square', size: 6 },
   { key: 'spot', label: 'スポット', color: '#1E90FF', shape: 'circle', size: 8 },
   // トラック関連(表示順はトラックの上)。色はトラックと同じ既定値。
-  { key: 'trackStart', label: 'トラック開始点', color: '#000080', shape: 'square', size: 8 },
-  { key: 'trackCurrent', label: 'トラック現在地点', color: '#000080', shape: 'triangle', size: 8 },
+  { key: 'trackStart', label: 'トラック開始点', color: '#000080', shape: 'square', size: 12 },
+  { key: 'trackCurrent', label: 'トラック現在地点', color: '#000080', shape: 'triangle', size:16 },
   { key: 'track', label: 'トラック', color: '#000080', shape: 'line', size: 4 },
   { key: 'photoLocation', label: '写真撮影場所', color: '#000080', shape: 'star', size: 6 }
 ];
