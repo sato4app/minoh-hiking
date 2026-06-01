@@ -14,7 +14,7 @@
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-06-01.1';
+const SHELL_CACHE = 'app-shell-2026-06-01.2';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 同一オリジンの相対パス
@@ -26,6 +26,10 @@ const SHELL_LOCAL_PATHS = [
   './map.js',
   './db.js',
   './config.js',
+  './messages.js',
+  './update.js',
+  './tiles.js',
+  './marker-settings.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',

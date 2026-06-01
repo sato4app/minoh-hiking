@@ -1,9 +1,31 @@
-// アプリ設定のデフォルト値。
+// アプリ設定のデフォルト値・共有定数。
 // 変更可能な設定は localStorage に保存され、次回起動時はその値が優先される。
-// (このファイルは defaults を提供するだけで、永続化は app.js 側で行う)
+// (このファイルは defaults を提供するだけで、永続化は各モジュール側で行う)
 
-// localStorage キー
+// ===== localStorage キー(全モジュール共通) =====
 export const MARKER_SETTINGS_KEY = 'minoh-hiking.marker-settings';
+export const VERSION_STORAGE_KEY = 'minoh-hiking.tile-manifest-version';
+export const MESSAGE_LOG_KEY = 'minoh-hiking.message-log';
+export const STARTUP_UPDATE_CHECK_KEY = 'minoh-hiking.startup-update-check';
+
+// ===== データファイルURL =====
+export const MANIFEST_URL = 'data/tile_manifest.json';
+export const EMERGENCY_URL = 'data/minoh-emergency-points.geojson';
+export const HIKING_ROUTES_URL = 'data/minoh-hiking-routes-spots.geojson';
+
+// ===== 地理院タイル =====
+// タイルキャッシュ名は `gsi-{version}` 形式(version は tile_manifest.json から)。
+// 旧 version のキャッシュは保持し、SW・アプリ双方で全 gsi-* を横断参照する。
+export const TILE_CACHE_PREFIX = 'gsi-';
+export const TILE_URL_BASE = 'https://cyberjapandata.gsi.go.jp/xyz/std';
+
+// ===== ダウンロード制御 =====
+export const CONCURRENCY = 4;      // タイル取得の同時実行数
+export const MAX_RETRIES = 3;      // 取得失敗時のリトライ回数
+export const AVG_TILE_KB = 12;     // 実測不能時のサイズ推定用(平均タイルサイズ)
+
+// ===== メッセージ履歴 =====
+export const MESSAGE_LOG_MAX = 100;
 
 // 画面に表示するトースト(一時メッセージ)の表示秒数。
 // 移動記録の開始・終了時などに表示し、この秒数で自動的に閉じる。
