@@ -232,6 +232,12 @@ function buildHikingLayer() {
   // ルートに開始/終了ポイントを補ったコピーを描画(緊急ポイント未読込時は中間点のみ)
   const data = withRouteEndpoints(hikingGeoJSON, buildEndpointIndex());
   return L.geoJSON(data, {
+    // Point 地物は type==='spot' のみ描画する。
+    // 同ファイルには緊急ポイントと同座標の 'ポイントGPS' も含まれるが、それらは
+    // 緊急ポイントレイヤーが描画するため除外する(二重描画とスポット色の巻き込みを防ぐ)。
+    // route(LineString)等の非 Point 地物はそのまま通す。
+    filter: (feature) =>
+      feature.geometry?.type !== 'Point' || feature.properties?.type === 'spot',
     style: () => ({
       color: hikingRouteStyle?.color || '#ea580c',
       weight: hikingRouteStyle?.size || 3,
