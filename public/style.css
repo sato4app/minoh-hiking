@@ -406,6 +406,28 @@ body.view-state-nav .leaflet-control-container {
   margin: 0.4rem 0;
 }
 
+/* データ件数(ポイント/ルート/スポット): 列タイトル + 値を3列右寄せで表示。
+   1行目が列タイトル、2行目が件数。表示トグルの状態に依らず常に表示する。 */
+.feature-counts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 0.6rem;
+  row-gap: 0.1rem;
+  margin: 0.2rem 0.75rem 0.4rem;
+}
+
+.feature-count-head {
+  text-align: right;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.feature-count-value {
+  text-align: right;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
 /* 移動経路の「サイズ」「クリア」ボタン: トグルの下に右寄せで横並び */
 .track-inline-actions {
   display: flex;

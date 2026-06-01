@@ -278,6 +278,21 @@ export function setHikingRoutesVisible(visible) {
   else mapInstance.removeLayer(hikingLayer);
 }
 
+// 読み込んだデータの件数を返す(未読込は null)。表示状態に依らず常に実データの件数。
+// ポイント=緊急ポイント(Point)、ルート=route、スポット=spot。ルート中間点は数えない。
+export function getFeatureCounts() {
+  const points = emergencyGeoJSON
+    ? emergencyGeoJSON.features.filter((f) => f.geometry?.type === 'Point').length
+    : null;
+  let routes = null;
+  let spots = null;
+  if (hikingGeoJSON) {
+    routes = hikingGeoJSON.features.filter((f) => f.properties?.type === 'route').length;
+    spots = hikingGeoJSON.features.filter((f) => f.properties?.type === 'spot').length;
+  }
+  return { points, routes, spots };
+}
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'

@@ -14,6 +14,7 @@ import {
   initMap, resizeMap,
   loadEmergencyPointsLayer, setEmergencyPointsVisible,
   loadHikingRoutesLayer, setHikingRoutesVisible,
+  getFeatureCounts,
   setCurrentLocationVisible,
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
   startTrackRecording, stopTrackRecording, getTrackStats, clearTrack
@@ -75,6 +76,10 @@ const el = {
   toggleClock: document.getElementById('toggleClock'),
   toggleEmergencyPoints: document.getElementById('toggleEmergencyPoints'),
   toggleHikingRoutes: document.getElementById('toggleHikingRoutes'),
+  // データ件数表示(ポイント/ルート/スポット)
+  countPoints: document.getElementById('countPoints'),
+  countRoutes: document.getElementById('countRoutes'),
+  countSpots: document.getElementById('countSpots'),
   toggleTrackRecording: document.getElementById('toggleTrackRecording'),
   // 移動経路を記録 ON のとき表示する操作ボタン群(記録開始・停止トグル/写真撮影)
   mapTrackActions: document.getElementById('mapTrackActions'),
@@ -128,9 +133,11 @@ async function init() {
   const markerSettings = readMarkerSettings();
   loadEmergencyPointsLayer(EMERGENCY_URL, markerSettings.emergency).then(() => {
     if (currentView === 'map') setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
+    updateFeatureCounts();
   });
   loadHikingRoutesLayer(HIKING_ROUTES_URL, markerSettings.hikingRoute, markerSettings.spot).then(() => {
     if (currentView === 'map') setHikingRoutesVisible(el.toggleHikingRoutes.checked);
+    updateFeatureCounts();
   });
   setTrackStyle(markerSettings.track);
   setTrackStartStyle(markerSettings.trackStart);
@@ -323,6 +330,16 @@ function setClockVisible(on) {
   } else {
     el.mapClock.hidden = true;
   }
+}
+
+// ===== データ件数表示 =====
+// 読み込んだポイント/ルート/スポットの件数をパネルに反映(未読込は "-")。
+// 表示トグルの状態に依らず、常に実データの件数を表示する。
+function updateFeatureCounts() {
+  const c = getFeatureCounts();
+  el.countPoints.textContent = c.points == null ? '-' : String(c.points);
+  el.countRoutes.textContent = c.routes == null ? '-' : String(c.routes);
+  el.countSpots.textContent = c.spots == null ? '-' : String(c.spots);
 }
 
 // ===== ビュー切替 =====

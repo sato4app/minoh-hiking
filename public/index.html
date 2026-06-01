@@ -90,6 +90,16 @@
         <span class="toggle-slider" aria-hidden="true"></span>
         <span class="toggle-text">ハイキングルートを表示</span>
       </label>
+      <!-- データ件数(表示状態に関わらず常に読み込み値を表示)。
+           ポイント=緊急ポイント、ルート・スポット=ハイキングデータ。ルート中間点は含めない。 -->
+      <div class="feature-counts" aria-label="データ件数">
+        <span class="feature-count-head">ポイント</span>
+        <span class="feature-count-head">ルート</span>
+        <span class="feature-count-head">スポット</span>
+        <span class="feature-count-value" id="countPoints">-</span>
+        <span class="feature-count-value" id="countRoutes">-</span>
+        <span class="feature-count-value" id="countSpots">-</span>
+      </div>
       <label class="toggle toggle-switch">
         <input type="checkbox" id="toggleTrackRecording" />
         <span class="toggle-slider" aria-hidden="true"></span>
