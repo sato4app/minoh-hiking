@@ -307,16 +307,26 @@ function escapeHtml(s) {
 
 // ===== 現在地表示 + 移動経路の記録 =====
 // Geolocation API による現在地マーカー + 精度円。
-// 表示中(setCurrentLocationVisible(true))は watchPosition で位置を追跡し、
-// 停止時は明示クリアする。
+// 監視(watchPosition)は、マップビュー表示中で「現在地点をマーカー表示」「現在地点は
+// 中央に表示」「移動経路の記録」のいずれかが有効なときに動く(refreshLocationWatch が制御)。
+// マーカー表示は showCurrentMarker、地図追従は followCurrentLocation で個別に切り替える。
 // 記録中(startTrackRecording 後)は、位置更新ごとに軌跡(ポリライン + 通過点マーカー)を追加する。
 let currentLocationMarker = null;
 let currentLocationCircle = null;
 let geoWatchId = null;
-// 現在地表示中(移動経路を記録 ON)の間、地図を現在地に追従させるか
-let followCurrentLocation = false;
-// 現在地表示開始後、最初の位置取得を受け取ったか(初回はアニメ無しで移動)
+// マップビュー表示中か(ビュー外では現在地を監視しない)
+let onMapView = false;
+// 現在地点をマーカー表示(メニュートグル・既定 ON)
+let showCurrentMarker = true;
+// 現在地を地図中央に表示=現在地へ追従(メニュートグル・既定 ON)
+let followCurrentLocation = true;
+// 現在地監視開始後、最初の位置取得を受け取ったか(初回はアニメ無しで移動)
 let hasHadFirstFix = false;
+// 直近に取得した現在地(トグル切替時の即時反映に使用)
+let lastKnownLatLng = null;
+// 位置情報エラーの通知コールバックと、監視中に通知済みかのフラグ(連続エラーの抑制)
+let locationErrorCb = null;
+let locationErrorReported = false;
 
 // トラック(移動経路)
 // 「移動した」の判定: 直近の記録点から 20m 以上離れたか、1 分以上経過した場合に記録
@@ -419,6 +429,8 @@ function updateTrackCurrentMarker(liveLatLng) {
 export function startTrackRecording() {
   if (!mapInstance) return;
   isRecordingTrack = true;
+  // マーカー表示・追従が両方 OFF でも、記録のため現在地監視を確実に開始する。
+  refreshLocationWatch();
   if (!trackPolyline) {
     trackPolyline = L.polyline([], {
       color: trackStyle?.color || '#000080',
@@ -450,6 +462,10 @@ export function stopTrackRecording() {
   isRecordingTrack = false;
   // 三角(現在地点)を最終記録点へスナップして固定する。
   updateTrackCurrentMarker();
+  // 記録停止後、マーカー表示 ON なら現在地(青丸)を再表示する。
+  if (showCurrentMarker && lastKnownLatLng) showOrUpdateCurrentMarker(lastKnownLatLng);
+  // 記録が監視を要求しなくなった場合に備えて監視状態を見直す。
+  refreshLocationWatch();
 }
 
 // 現在の移動経路の統計(記録地点数・合計移動距離[m])を返す。
@@ -512,96 +528,160 @@ function appendTrackPoint(latlng) {
   lastTrackTimeMs = Date.now();
 }
 
-export function setCurrentLocationVisible(visible, { onError } = {}) {
-  if (!mapInstance) return;
-  if (visible) {
-    if (!('geolocation' in navigator)) {
-      onError && onError('この端末は位置情報に対応していません');
-      return;
-    }
-    followCurrentLocation = true;
-    if (geoWatchId != null) return; // 既に追跡中
-    geoWatchId = navigator.geolocation.watchPosition(
-      (pos) => {
-        const { latitude, longitude, accuracy } = pos.coords;
-        const latlng = [latitude, longitude];
-        // 初回の位置取得かどうか(初回は遠距離になり得るためアニメ無しで移動)
-        const isFirstFix = !hasHadFirstFix;
-        hasHadFirstFix = true;
+// ===== 現在地監視の制御 =====
+// 監視(watchPosition)が必要か: マップビュー表示中で、現在地マーカー表示・
+// 現在地追従・移動記録のいずれかが要求しているとき。
+function needLocationWatch() {
+  return onMapView && (showCurrentMarker || followCurrentLocation || isRecordingTrack);
+}
 
-        // ライブ現在地の表し方:
-        // - 記録中: 三角(トラック現在地点)をライブ現在地へ追従(青丸は出さない)
-        // - それ以外(記録開始前・記録停止後): 青丸でライブ現在地を表示
-        //   ※記録停止後は三角を最終記録点に固定したまま、青丸のライブ表示を継続する
-        if (!isRecordingTrack) {
-          if (!currentLocationMarker) {
-            currentLocationMarker = L.circleMarker(latlng, {
-              radius: 7,
-              color: '#ffffff',
-              weight: 2,
-              fillColor: '#1d4ed8',
-              fillOpacity: 0.95
-            }).addTo(mapInstance);
-            currentLocationMarker.bindPopup('現在地');
-          } else {
-            currentLocationMarker.setLatLng(latlng);
-          }
-        } else if (currentLocationMarker) {
-          // 記録中は青丸を消して三角で表す
-          mapInstance.removeLayer(currentLocationMarker);
-          currentLocationMarker = null;
-        }
+// 必要に応じて監視を開始/停止する。各トグル・記録状態・ビュー切替の後に呼ぶ。
+function refreshLocationWatch() {
+  if (needLocationWatch()) startGeoWatch();
+  else stopGeoWatch();
+}
 
-        // 精度円: 常に現在地へ追従
-        if (Number.isFinite(accuracy)) {
-          if (!currentLocationCircle) {
-            currentLocationCircle = L.circle(latlng, {
-              radius: accuracy,
-              color: '#1d4ed8',
-              weight: 1,
-              fillColor: '#3b82f6',
-              fillOpacity: 0.12
-            }).addTo(mapInstance);
-          } else {
-            currentLocationCircle.setLatLng(latlng);
-            currentLocationCircle.setRadius(accuracy);
-          }
-        }
-
-        // 記録中: 条件を満たせば記録点を追加し、三角をライブ現在地へ追従(進行方向つき)
-        if (isRecordingTrack) {
-          if (shouldRecordTrackPoint(latlng, Date.now())) appendTrackPoint(latlng);
-          updateTrackCurrentMarker(latlng);
-        }
-
-        // 現在地が画面中央に来るよう地図を追従させる
-        if (followCurrentLocation) {
-          if (isFirstFix) mapInstance.setView(latlng, mapInstance.getZoom());
-          else mapInstance.panTo(latlng);
-        }
-      },
-      (err) => {
-        onError && onError(`位置情報の取得に失敗: ${err.message}`);
-      },
-      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
-    );
-  } else {
-    followCurrentLocation = false;
-    hasHadFirstFix = false;
-    if (geoWatchId != null) {
-      navigator.geolocation.clearWatch(geoWatchId);
-      geoWatchId = null;
-    }
-    if (currentLocationMarker) {
-      mapInstance.removeLayer(currentLocationMarker);
-      currentLocationMarker = null;
-    }
-    if (currentLocationCircle) {
-      mapInstance.removeLayer(currentLocationCircle);
-      currentLocationCircle = null;
-    }
-    // トグル OFF でも記録済みの移動経路(線・開始点・現在地点)は残す。
-    // 記録の追加だけ止める。クリアは「移動経路をクリア」ボタンでのみ行う。
-    isRecordingTrack = false;
+function startGeoWatch() {
+  if (!mapInstance || geoWatchId != null) return; // 既に監視中
+  if (!('geolocation' in navigator)) {
+    reportLocationError('この端末は位置情報に対応していません');
+    return;
   }
+  locationErrorReported = false;
+  geoWatchId = navigator.geolocation.watchPosition(
+    onGeoSuccess,
+    (err) => reportLocationError(`位置情報の取得に失敗: ${err.message}`),
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+  );
+}
+
+function stopGeoWatch() {
+  hasHadFirstFix = false;
+  if (geoWatchId != null) {
+    navigator.geolocation.clearWatch(geoWatchId);
+    geoWatchId = null;
+  }
+  removeCurrentMarker();
+  removeCurrentCircle();
+}
+
+// 位置情報エラーの通知(1回の監視につき最初の1回のみ。連続エラーを抑制)
+function reportLocationError(msg) {
+  if (locationErrorReported) return;
+  locationErrorReported = true;
+  locationErrorCb && locationErrorCb(msg);
+}
+
+// 位置取得成功時の更新処理(マーカー表示・精度円・記録・地図追従)
+function onGeoSuccess(pos) {
+  const { latitude, longitude, accuracy } = pos.coords;
+  const latlng = [latitude, longitude];
+  lastKnownLatLng = latlng;
+  // 初回の位置取得かどうか(初回は遠距離になり得るためアニメ無しで移動)
+  const isFirstFix = !hasHadFirstFix;
+  hasHadFirstFix = true;
+
+  // 現在地マーカー(青丸): 「現在地点をマーカー表示」ON かつ 非記録中のみ表示。
+  // 記録中はライブ現在地を三角(トラック現在地点)で表すため青丸は出さない。
+  if (showCurrentMarker && !isRecordingTrack) {
+    showOrUpdateCurrentMarker(latlng);
+  } else {
+    removeCurrentMarker();
+  }
+
+  // 精度円: 「現在地点をマーカー表示」ON のとき現在地へ追従表示。
+  if (showCurrentMarker && Number.isFinite(accuracy)) {
+    showOrUpdateCurrentCircle(latlng, accuracy);
+  } else {
+    removeCurrentCircle();
+  }
+
+  // 記録中: 条件を満たせば記録点を追加し、三角をライブ現在地へ追従(進行方向つき)
+  if (isRecordingTrack) {
+    if (shouldRecordTrackPoint(latlng, Date.now())) appendTrackPoint(latlng);
+    updateTrackCurrentMarker(latlng);
+  }
+
+  // 「現在地点は中央に表示」ON のとき、現在地が画面中央に来るよう地図を追従させる
+  if (followCurrentLocation) {
+    if (isFirstFix) mapInstance.setView(latlng, mapInstance.getZoom());
+    else mapInstance.panTo(latlng);
+  }
+}
+
+// 現在地マーカー(青丸)の生成・更新
+function showOrUpdateCurrentMarker(latlng) {
+  if (!currentLocationMarker) {
+    currentLocationMarker = L.circleMarker(latlng, {
+      radius: 7,
+      color: '#ffffff',
+      weight: 2,
+      fillColor: '#1d4ed8',
+      fillOpacity: 0.95
+    }).addTo(mapInstance);
+    currentLocationMarker.bindPopup('現在地');
+  } else {
+    currentLocationMarker.setLatLng(latlng);
+  }
+}
+
+function removeCurrentMarker() {
+  if (currentLocationMarker) {
+    mapInstance.removeLayer(currentLocationMarker);
+    currentLocationMarker = null;
+  }
+}
+
+// 精度円の生成・更新
+function showOrUpdateCurrentCircle(latlng, accuracy) {
+  if (!currentLocationCircle) {
+    currentLocationCircle = L.circle(latlng, {
+      radius: accuracy,
+      color: '#1d4ed8',
+      weight: 1,
+      fillColor: '#3b82f6',
+      fillOpacity: 0.12
+    }).addTo(mapInstance);
+  } else {
+    currentLocationCircle.setLatLng(latlng);
+    currentLocationCircle.setRadius(accuracy);
+  }
+}
+
+function removeCurrentCircle() {
+  if (currentLocationCircle) {
+    mapInstance.removeLayer(currentLocationCircle);
+    currentLocationCircle = null;
+  }
+}
+
+// マップビューの出入りで現在地監視を制御する。
+// active=true でマップ表示中とみなして必要なら監視開始、false で監視停止・マーカー除去。
+// onError は位置情報取得失敗時の通知に使う(指定時に記憶し、以降の監視でも使用)。
+export function setLocationActiveForMapView(active, { onError } = {}) {
+  onMapView = active;
+  if (onError) locationErrorCb = onError;
+  refreshLocationWatch();
+}
+
+// 「現在地点をマーカー表示」トグル。OFF で青丸・精度円を消す。
+// ON にした直後は、直近の取得位置があれば即座にマーカーを再表示する。
+export function setCurrentMarkerVisible(on) {
+  showCurrentMarker = on;
+  if (!on) {
+    removeCurrentMarker();
+    removeCurrentCircle();
+  } else if (lastKnownLatLng && !isRecordingTrack) {
+    showOrUpdateCurrentMarker(lastKnownLatLng);
+  }
+  refreshLocationWatch();
+}
+
+// 「現在地点は中央に表示」トグル。ON にした直後、直近の取得位置があれば即追従。
+export function setFollowCurrentLocation(on) {
+  followCurrentLocation = on;
+  if (on && lastKnownLatLng && mapInstance) {
+    mapInstance.panTo(lastKnownLatLng);
+  }
+  refreshLocationWatch();
 }

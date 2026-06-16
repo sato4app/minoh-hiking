@@ -15,7 +15,7 @@ import {
   loadEmergencyPointsLayer, setEmergencyPointsVisible,
   loadHikingRoutesLayer, setHikingRoutesVisible,
   getFeatureCounts,
-  setCurrentLocationVisible,
+  setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
   startTrackRecording, stopTrackRecording, getTrackStats, clearTrack
 } from './map.js';
@@ -80,6 +80,9 @@ const el = {
   countPoints: document.getElementById('countPoints'),
   countRoutes: document.getElementById('countRoutes'),
   countSpots: document.getElementById('countSpots'),
+  // 現在地点の表示・地図追従トグル(移動経路を記録の上に配置)
+  toggleCurrentMarker: document.getElementById('toggleCurrentMarker'),
+  toggleCenterCurrent: document.getElementById('toggleCenterCurrent'),
   toggleTrackRecording: document.getElementById('toggleTrackRecording'),
   // 移動経路を記録 ON のとき表示する操作ボタン群(記録開始・停止トグル/写真撮影)
   mapTrackActions: document.getElementById('mapTrackActions'),
@@ -207,27 +210,19 @@ function bindEvents() {
   el.toggleClock.addEventListener('change', (e) => setClockVisible(e.target.checked));
   el.toggleEmergencyPoints.addEventListener('change', (e) => setEmergencyPointsVisible(e.target.checked));
   el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
+  // 現在地点をマーカー表示: 現在地マーカー(青丸)・精度円の表示/非表示を切替
+  el.toggleCurrentMarker.addEventListener('change', (e) => setCurrentMarkerVisible(e.target.checked));
+  // 現在地点は中央に表示: 地図を現在地へ追従させるか切替
+  el.toggleCenterCurrent.addEventListener('change', (e) => setFollowCurrentLocation(e.target.checked));
   el.toggleTrackRecording.addEventListener('change', (e) => {
     const on = e.target.checked;
     if (!on) {
-      // OFF: 軌跡が消去される前に終了処理(統計の出力)を行ってから現在地表示を停止
+      // OFF: 軌跡が消去される前に終了処理(統計の出力)を行う
       finishTrackRecording();
     }
-    setCurrentLocationVisible(on, {
-      onError: (msg) => {
-        // 位置情報が取得できない場合(非HTTPS環境・権限拒否など)は記録を開始できない。
-        // 失敗を画面に出さないとユーザーには「ボタンが効かない」ようにしか見えないため、
-        // トースト・履歴・ステータスの全てに出力して原因を分かるようにする。
-        el.toggleTrackRecording.checked = false;
-        updateTrackButtonState(false);
-        setStatus(msg, 'error');
-        showToast(msg);
-        logHistory(msg, 'error');
-      }
-    });
-    // onError で checked が false に戻された場合に備え、古い on ではなく
-    // 現在の checked 状態でボタン表示を更新する(誤って再表示しない)
-    updateTrackButtonState(el.toggleTrackRecording.checked);
+    // 記録操作ボタン群(記録開始/停止・写真撮影)の表示を切替。
+    // 現在地の監視は「現在地点をマーカー表示」等のトグルが管理するため、ここでは触らない。
+    updateTrackButtonState(on);
   });
 
   // 記録開始・停止トグルボタン: 移動経路を記録トグル ON のときのみ表示・操作可。
@@ -364,13 +359,18 @@ function showView(name) {
     // マップビュー: 緊急ポイント・ハイキングルートを表示(トグル状態に従う)
     setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
     setHikingRoutesVisible(el.toggleHikingRoutes.checked);
-    setCurrentLocationVisible(el.toggleTrackRecording.checked, {
+    // マップビューに入ったら現在地監視を開始。表示/追従はメニュートグルの状態に従う。
+    // 先に監視を有効化してから各トグル状態を反映する(再表示の無駄打ちを避ける)。
+    setLocationActiveForMapView(true, {
       onError: (msg) => {
+        // 位置情報が取得できない場合(非HTTPS環境・権限拒否など)は現在地を表示できない。
+        // 原因が分かるよう履歴・ステータスに出力する(連続エラーは map.js 側で抑制)。
         setStatus(msg, 'error');
-        el.toggleTrackRecording.checked = false;
-        updateTrackButtonState(false);
+        logHistory(msg, 'error');
       }
     });
+    setCurrentMarkerVisible(el.toggleCurrentMarker.checked);
+    setFollowCurrentLocation(el.toggleCenterCurrent.checked);
     // 移動経路を記録トグルの状態に応じて操作ボタン群(記録開始/写真撮影/記録停止)の表示を更新
     updateTrackButtonState(el.toggleTrackRecording.checked);
     // 時刻表示トグルの状態に従って時刻を表示
@@ -380,9 +380,9 @@ function showView(name) {
     // ホーム/ナビ: 全オーバーレイを非表示にして地理院地図のみ表示
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);
-    // 軌跡が消去される前に終了処理(統計の出力)を行ってから現在地表示を停止
+    // 軌跡が消去される前に終了処理(統計の出力)を行ってから現在地監視を停止
     finishTrackRecording();
-    setCurrentLocationVisible(false);
+    setLocationActiveForMapView(false);
     updateTrackButtonState(false);
     // マップ以外では時刻表示を停止・非表示(トグル状態は保持)
     setClockVisible(false);
