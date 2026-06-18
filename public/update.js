@@ -44,26 +44,49 @@ export async function fetchServiceWorkerShellVersion() {
   }
 }
 
-// 起動時のアプリ更新確認。キャッシュ済みと最新が異なれば confirm を出して更新する。
+// 起動時のアプリ更新確認(1セッションにつき1回まで)。
+// キャッシュ済みと最新が異なれば confirm を出して更新する。
 let appShellUpdatePromptShown = false;
 export async function checkAppShellUpdate() {
   if (appShellUpdatePromptShown) return;
+  const shown = await promptAppShellUpdate();
+  if (shown) appShellUpdatePromptShown = true;
+}
+
+// アプリ更新の confirm を表示し、OK なら最新へ更新(再読み込み)する。
+// 起動時・情報モーダルの両方から呼べる共通処理。
+// confirm を表示したら true、対象なし(初回/取得失敗/最新)なら false を返す。
+export async function promptAppShellUpdate() {
   const [cached, latest] = await Promise.all([
     getCachedAppShellVersion(),
     fetchServiceWorkerShellVersion()
   ]);
   // 初回(キャッシュ無し)や取得失敗時は何もしない
-  if (!cached || !latest) return;
-  if (cached === latest) return;
-  appShellUpdatePromptShown = true;
+  if (!cached || !latest) return false;
+  if (cached === latest) return false;
   const ok = confirm(
-    `アプリの新しいバージョンが利用可能です。\n` +
+    `新しいバージョンのアプリが利用可能です。\n` +
     `現在: ${cached}\n` +
     `最新: ${latest}\n\n` +
-    `アプリを最新の状態に更新しますか?(再読み込みされます)`
+    `アプリを再読み込みして、最新の状態に更新しますか？\n` +
+    `アプリには更新された、ハイキングルートを含みます。\n` +
+    `ダウンロードした地図タイルは更新されません。`
   );
-  if (!ok) return;
-  await updateAppToLatest();
+  if (ok) await updateAppToLatest();
+  return true;
+}
+
+// 地図タイル更新の案内ダイアログ。地図タイルは自動更新しないため、
+// 「地図のダウンロード」画面からの手動ダウンロードを案内するのみ。
+// OK・キャンセルとも処理は行わない(案内表示専用)。
+export function promptMapTileUpdate(savedMap, latestMap) {
+  confirm(
+    `ダウンロード対象の地図タイルが拡張されました。\n` +
+    `現在: ${savedMap}\n` +
+    `最新: ${latestMap}\n\n` +
+    `地図のダウンロードから、ダウンロードしてください。\n` +
+    `サイズは合計20MB弱で、既存分があれば差分のみです。`
+  );
 }
 
 // アプリシェルキャッシュを破棄し、SW を更新して再読み込み(タイル gsi-* は保持)

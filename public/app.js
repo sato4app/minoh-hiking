@@ -22,14 +22,14 @@ import {
 import { TOAST_DURATION_SEC, EMERGENCY_URL, HIKING_ROUTES_URL } from './config.js';
 import { logHistory, renderMessageList, clearMessageLog } from './messages.js';
 import {
-  checkAppShellUpdate, updateAppToLatest,
+  checkAppShellUpdate, promptAppShellUpdate, promptMapTileUpdate,
   readStartupUpdateCheckEnabled, writeStartupUpdateCheckEnabled,
-  getCachedAppShellVersion, fetchServiceWorkerShellVersion
+  getCachedAppShellVersion
 } from './update.js';
 import {
   loadManifest, getManifestVersion, getSavedManifestVersion,
   evaluateManifestVersion, onSWControllerChange,
-  startManifestUpdate, openDownloadModal, refreshStorageInfo,
+  openDownloadModal, refreshStorageInfo,
   migrateLegacyPackages, initTilesEvents, setStatus
 } from './tiles.js';
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
@@ -423,41 +423,25 @@ async function openInfoSettingsModal() {
 }
 
 // 設定と情報モーダルを開いたときの更新チェック。
-// 「バージョン情報」トグルがオンのとき、地図(マニフェスト)とアプリ(アプリシェル)の
-// バージョンをサイトの最新と比較し、新しいものがあれば1つの confirm にまとめて
-// 更新を促す。OK の場合は地図 → アプリの順に更新する
-// (アプリ更新は最後に再読み込みするため)。
+// 「バージョン情報」トグルがオンのとき、地図タイルとアプリ(アプリシェル)の
+// バージョンをサイトの最新と比較し、新しいものがあればそれぞれ別の confirm で案内する。
+// メッセージ表示・更新処理は update.js に集約している。
 async function checkUpdatesFromInfoModal() {
   if (!el.toggleInfoVersion.checked) return;
 
-  // 地図: ダウンロード済みバージョン vs サイト最新マニフェスト
-  // (オフライン地図を未ダウンロードの場合は saved が無く、対象外)
+  // 地図タイル → アプリの順に確認する。アプリ更新は OK で即再読み込みするため最後に確認する
+  // (先に出すと地図タイルの案内が表示される前に画面が再読込される)。
+
+  // 地図タイル: ダウンロード済みバージョン vs サイト最新マニフェスト
+  // (オフライン地図を未ダウンロードの場合は saved が無く、対象外)。案内のみで自動更新はしない。
   const savedMap = getSavedManifestVersion();
   const latestMap = getManifestVersion();
-  const mapOutdated = !!(savedMap && latestMap && savedMap !== latestMap);
+  if (savedMap && latestMap && savedMap !== latestMap) {
+    promptMapTileUpdate(savedMap, latestMap);
+  }
 
-  // アプリ: キャッシュ済みアプリシェル vs サイトの service-worker.js
-  const [cachedShell, latestShell] = await Promise.all([
-    getCachedAppShellVersion(),
-    fetchServiceWorkerShellVersion()
-  ]);
-  const appOutdated = !!(cachedShell && latestShell && cachedShell !== latestShell);
-
-  if (!mapOutdated && !appOutdated) return;
-
-  // 更新内容を1つの confirm にまとめて表示
-  const lines = ['新しいバージョンが利用可能です。', ''];
-  if (mapOutdated) lines.push(`地図バージョン: ${savedMap} → ${latestMap}`);
-  if (appOutdated) lines.push(`アプリバージョン: ${cachedShell} → ${latestShell}`);
-  lines.push('', '最新の状態に更新しますか?');
-  if (mapOutdated) lines.push('(地図タイルを再ダウンロードします)');
-  if (appOutdated) lines.push('(アプリは再読み込みされます)');
-
-  if (!confirm(lines.join('\n'))) return;
-
-  // 地図 → アプリの順に更新。アプリ更新は location.reload() するため最後に実行。
-  if (mapOutdated) await startManifestUpdate('diff');
-  if (appOutdated) await updateAppToLatest();
+  // アプリ: キャッシュ済みアプリシェル vs サイトの service-worker.js。OK なら再読み込みして更新。
+  await promptAppShellUpdate();
 }
 
 // section を指定するとそのセクションのみ表示(未指定なら全セクション)
