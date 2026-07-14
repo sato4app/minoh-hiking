@@ -994,6 +994,11 @@ body.view-state-nav .leaflet-control-container {
   color: #fff;
 }
 
+/* display 指定が hidden 属性の既定スタイルを上書きするため明示的に非表示にする */
+.btn[hidden] {
+  display: none;
+}
+
 .btn:active {
   transform: scale(0.98);
 }

@@ -8,6 +8,11 @@ export const VERSION_STORAGE_KEY = 'minoh-hiking.tile-manifest-version';
 export const MESSAGE_LOG_KEY = 'minoh-hiking.message-log';
 export const STARTUP_UPDATE_CHECK_KEY = 'minoh-hiking.startup-update-check';
 
+// ===== sessionStorage キー =====
+// MapGPS から ?closure=true 付きで起動されたことをタブ単位で保持する。
+// タブを閉じれば消えるため、直接アクセスでは通行止め編集機能は有効にならない。
+export const CLOSURE_FLAG_KEY = 'minoh-hiking.closure-flag';
+
 // ===== データファイルURL =====
 export const MANIFEST_URL = 'data/tile_manifest.json';
 export const EMERGENCY_URL = 'data/minoh-emergency-points.geojson';

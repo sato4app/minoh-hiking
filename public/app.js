@@ -19,7 +19,7 @@ import {
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
   startTrackRecording, stopTrackRecording, getTrackStats, clearTrack
 } from './map.js';
-import { TOAST_DURATION_SEC, EMERGENCY_URL, HIKING_ROUTES_URL } from './config.js';
+import { TOAST_DURATION_SEC, EMERGENCY_URL, HIKING_ROUTES_URL, CLOSURE_FLAG_KEY } from './config.js';
 import { logHistory, renderMessageList, clearMessageLog } from './messages.js';
 import {
   checkAppShellUpdate, promptAppShellUpdate, promptMapTileUpdate,
@@ -67,6 +67,9 @@ const el = {
   currentUrl: document.getElementById('currentUrl'),
   versionManifest: document.getElementById('versionManifest'),
   versionAppShell: document.getElementById('versionAppShell'),
+  // 通行止め・通行困難地点のバージョン表示欄と編集ボタン(バージョン情報内)
+  versionClosures: document.getElementById('versionClosures'),
+  btnClosureEdit: document.getElementById('btnClosureEdit'),
   btnClearMessages: document.getElementById('btnClearMessages'),
 
   // マップ
@@ -103,6 +106,8 @@ const el = {
 
 // ===== 初期化 =====
 async function init() {
+  // MapGPS からの起動フラグはネットワークに依存しないため最初に反映する
+  applyClosureFlag();
   await loadManifest();
 
   // SW 登録 + 更新検知
@@ -151,12 +156,27 @@ async function init() {
   requestAnimationFrame(() => resizeMap());
 }
 
+// MapGPS からの起動判定
+// URL に ?closure=true が付いていれば通行止め・通行困難の編集機能を有効化する。
+// 判定結果は sessionStorage に保持し、同一タブ内のリロードでは維持される。
+function applyClosureFlag() {
+  const params = new URLSearchParams(location.search);
+  if (params.get('closure') === 'true') {
+    sessionStorage.setItem(CLOSURE_FLAG_KEY, '1');
+  }
+  el.btnClosureEdit.hidden = sessionStorage.getItem(CLOSURE_FLAG_KEY) !== '1';
+}
+
 function bindEvents() {
   // ホームメニュー: data-view 属性でビュー切替
   for (const btn of document.querySelectorAll('[data-view]')) {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
   el.btnOpenDownload.addEventListener('click', openDownloadModal);
+  // 通行止め・通行困難地点(バージョン情報内、MapGPS からの起動時のみ表示)。機能本体は未実装。
+  el.btnClosureEdit.addEventListener('click', () => {
+    showToast('通行止め・通行困難の編集機能は準備中です');
+  });
   // 起動画面の「設定と情報」ボタンは設定・情報モーダルを表示
   el.btnOpenSettings.addEventListener('click', openInfoSettingsModal);
 
