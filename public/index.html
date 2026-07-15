@@ -46,11 +46,11 @@
     <img class="home-image" src="icons/Startup-512x918.png" alt="" aria-hidden="true" />
     <nav class="home-menu" aria-label="メインメニュー">
       <button type="button" class="home-btn" data-view="map">ハイキングマップ表示</button>
-      <button type="button" class="home-btn" data-view="nav">ハイキングコースの案内・ナビ</button>
       <button type="button" class="home-btn" id="btnOpenDownload">地図のダウンロード（オフライン用）</button>
       <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
       <button type="button" class="home-btn" id="btnClosureEdit" hidden>通行止め・通行困難地点</button>
-      <button type="button" class="home-btn" id="btnOpenSettings">設定と情報</button>
+      <button type="button" class="home-btn" id="btnOpenSettings">設定</button>
+      <button type="button" class="home-btn" id="btnOpenInfo">情報</button>
     </nav>
   </section>
 
@@ -90,32 +90,6 @@
       <input type="file" id="closureFileInput" accept=".geojson,.json" hidden />
     </div>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
-      <label class="toggle toggle-switch">
-        <input type="checkbox" id="toggleClock" checked />
-        <span class="toggle-slider" aria-hidden="true"></span>
-        <span class="toggle-text">時刻を表示</span>
-      </label>
-      <label class="toggle toggle-switch">
-        <input type="checkbox" id="toggleEmergencyPoints" checked />
-        <span class="toggle-slider" aria-hidden="true"></span>
-        <span class="toggle-text">緊急ポイントを表示</span>
-      </label>
-      <label class="toggle toggle-switch">
-        <input type="checkbox" id="toggleHikingRoutes" checked />
-        <span class="toggle-slider" aria-hidden="true"></span>
-        <span class="toggle-text">ハイキングルートを表示</span>
-      </label>
-      <!-- データ件数(表示状態に関わらず常に読み込み値を表示)。
-           ポイント=緊急ポイント、ルート・スポット=ハイキングデータ。ルート中間点は含めない。 -->
-      <div class="feature-counts" aria-label="データ件数">
-        <span class="feature-count-head">ポイント</span>
-        <span class="feature-count-head">ルート</span>
-        <span class="feature-count-head">スポット</span>
-        <span class="feature-count-value" id="countPoints">-</span>
-        <span class="feature-count-value" id="countRoutes">-</span>
-        <span class="feature-count-value" id="countSpots">-</span>
-      </div>
-      <hr class="panel-divider" />
       <label class="toggle toggle-switch">
         <input type="checkbox" id="toggleCurrentMarker" checked />
         <span class="toggle-slider" aria-hidden="true"></span>
@@ -194,27 +168,66 @@
     </div>
   </div>
 
-  <!-- 設定と情報モーダル(起動画面の「設定と情報」から表示) -->
-  <div class="modal" id="infoSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="infoSettingsTitle">
+  <!-- 設定モーダル(起動画面の「設定」から表示) -->
+  <div class="modal" id="homeSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="homeSettingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="infoSettingsTitle">設定と情報</h2>
+        <h2 id="homeSettingsTitle">設定</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
       </header>
       <div class="modal-body">
-        <!-- ===== 設定 ===== -->
+        <!-- ===== マップ表示の切替(旧: マップ画面メニューから移動) ===== -->
         <section class="info-section">
-          <h3 class="info-section-title">設定</h3>
+          <label class="toggle toggle-switch">
+            <input type="checkbox" id="toggleClock" checked />
+            <span class="toggle-slider" aria-hidden="true"></span>
+            <span class="toggle-text">時刻を表示</span>
+          </label>
+          <label class="toggle toggle-switch">
+            <input type="checkbox" id="toggleEmergencyPoints" checked />
+            <span class="toggle-slider" aria-hidden="true"></span>
+            <span class="toggle-text">緊急ポイントを表示</span>
+          </label>
+          <label class="toggle toggle-switch">
+            <input type="checkbox" id="toggleHikingRoutes" checked />
+            <span class="toggle-slider" aria-hidden="true"></span>
+            <span class="toggle-text">ハイキングルートを表示</span>
+          </label>
+          <!-- データ件数(表示状態に関わらず常に読み込み値を表示)。
+               ポイント=緊急ポイント、ルート・スポット=ハイキングデータ。ルート中間点は含めない。 -->
+          <div class="feature-counts" aria-label="データ件数">
+            <span class="feature-count-head">ポイント</span>
+            <span class="feature-count-head">ルート</span>
+            <span class="feature-count-head">スポット</span>
+            <span class="feature-count-value" id="countPoints">-</span>
+            <span class="feature-count-value" id="countRoutes">-</span>
+            <span class="feature-count-value" id="countSpots">-</span>
+          </div>
+        </section>
+
+        <!-- ===== 設定項目(詳細設定モーダルを開く) ===== -->
+        <section class="info-section">
           <div class="info-section-actions">
             <button type="button" class="btn btn-secondary" id="btnInfoOpenMarkerSettings">マーカーの設定</button>
             <button type="button" class="btn btn-secondary" id="btnInfoOpenImageSettings">撮影画像の解像度の設定</button>
           </div>
         </section>
+      </div>
+    </div>
+  </div>
 
+  <!-- 情報モーダル(起動画面の「情報」から表示) -->
+  <div class="modal" id="infoSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="infoSettingsTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="infoSettingsTitle">情報</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
+      </header>
+      <div class="modal-body">
         <!-- ===== 情報 ===== -->
         <section class="info-section">
-          <h3 class="info-section-title">情報</h3>
 
           <!-- 起動時にアプリの更新版を確認(設定から移動) -->
           <label class="toggle toggle-switch">

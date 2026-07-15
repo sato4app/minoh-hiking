@@ -56,10 +56,14 @@ const el = {
   // ホーム
   btnOpenDownload: document.getElementById('btnOpenDownload'),
   btnOpenSettings: document.getElementById('btnOpenSettings'),
+  btnOpenInfo: document.getElementById('btnOpenInfo'),
   // 通行止め・通行困難地点(MapGPS からの起動時のみ表示)
   btnClosureEdit: document.getElementById('btnClosureEdit'),
 
-  // 設定と情報モーダル
+  // 設定モーダル(起動画面の「設定」から表示)
+  homeSettingsModal: document.getElementById('homeSettingsModal'),
+
+  // 情報モーダル(起動画面の「情報」から表示)
   infoSettingsModal: document.getElementById('infoSettingsModal'),
   toggleStartupUpdateCheck: document.getElementById('toggleStartupUpdateCheck'),
   btnInfoOpenMarkerSettings: document.getElementById('btnInfoOpenMarkerSettings'),
@@ -379,8 +383,9 @@ function bindEvents() {
   el.closureVersionInput.addEventListener('input', updateClosureApplyEnabled);
   el.btnClosureApply.addEventListener('click', applyClosureData);
   el.btnClosureCancel.addEventListener('click', () => cancelClosureEdit());
-  // 起動画面の「設定と情報」ボタンは設定・情報モーダルを表示
-  el.btnOpenSettings.addEventListener('click', openInfoSettingsModal);
+  // 起動画面の「設定」ボタンは設定モーダル、「情報」ボタンは情報モーダルを表示
+  el.btnOpenSettings.addEventListener('click', openHomeSettingsModal);
+  el.btnOpenInfo.addEventListener('click', openInfoSettingsModal);
 
   // 設定: 起動時の更新確認トグル(localStorage に保存)
   el.toggleStartupUpdateCheck.addEventListener('change', (e) => {
@@ -617,9 +622,17 @@ function showView(name) {
 }
 
 // ===== モーダル =====
-// 設定と情報モーダル(起動画面の「設定と情報」から表示)
+// 設定モーダル(起動画面の「設定」から表示)
+// マップ表示の切替(時刻/緊急ポイント/ハイキングルート)とデータ件数、
+// および詳細設定(マーカー/撮影画像の解像度)への入口をまとめる。
+function openHomeSettingsModal() {
+  // 件数は読み込み完了時に反映済みだが、開いた時点の最新値で表示を整える
+  updateFeatureCounts();
+  el.homeSettingsModal.hidden = false;
+}
+
+// 情報モーダル(起動画面の「情報」から表示)
 async function openInfoSettingsModal() {
-  // --- 設定 ---
   // 起動時の更新確認トグルを現在の設定値で初期化
   el.toggleStartupUpdateCheck.checked = readStartupUpdateCheckEnabled();
 
