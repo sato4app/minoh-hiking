@@ -13,6 +13,12 @@ export const STARTUP_UPDATE_CHECK_KEY = 'minoh-hiking.startup-update-check';
 // タブを閉じれば消えるため、直接アクセスでは通行止め編集機能は有効にならない。
 export const CLOSURE_FLAG_KEY = 'minoh-hiking.closure-flag';
 
+// アプリ更新(updateAppToLatest)による再読み込み直後であることを示すフラグ。
+// 再読み込み前にセットし、再読み込み後の起動時チェックで同じ更新確認を
+// 再表示しないために使う。SW の切替が未完了でも二重に confirm を出さない。
+// sessionStorage なのでタブを閉じるまで有効(次回の本当の起動では再度確認する)。
+export const APP_UPDATED_FLAG_KEY = 'minoh-hiking.app-updated';
+
 // 「マップに反映」で適用した通行止め・通行困難地点データ(geojson の JSON 文字列)。
 // 保存があれば同梱の CLOSURE_URL より優先して読み込む(この端末のみに反映される)。
 export const CLOSURE_DATA_KEY = 'minoh-hiking.closure-data';

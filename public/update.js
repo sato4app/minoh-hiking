@@ -3,7 +3,7 @@
 // アプリシェルのキャッシュ名は `app-shell-<version>`(service-worker.js の SHELL_CACHE)。
 // キャッシュ済み version と、サイトの service-worker.js 内の version を比較して更新を促す。
 
-import { STARTUP_UPDATE_CHECK_KEY } from './config.js';
+import { STARTUP_UPDATE_CHECK_KEY, APP_UPDATED_FLAG_KEY } from './config.js';
 
 // ===== 起動時の更新確認の設定(localStorage) =====
 export function readStartupUpdateCheckEnabled() {
@@ -49,6 +49,17 @@ export async function fetchServiceWorkerShellVersion() {
 let appShellUpdatePromptShown = false;
 export async function checkAppShellUpdate() {
   if (appShellUpdatePromptShown) return;
+  // アプリ更新による再読み込みの直後は、同じ更新確認を再表示しない(1回で十分)。
+  // updateAppToLatest() は SW の切替完了を待たずに再読み込みするため、切替が
+  // 間に合わないと再読み込み後もバージョンが不一致に見え、confirm が二重に出る。
+  // フラグが立っていれば今回の起動確認はスキップし、フラグは消費する。
+  try {
+    if (sessionStorage.getItem(APP_UPDATED_FLAG_KEY) === '1') {
+      sessionStorage.removeItem(APP_UPDATED_FLAG_KEY);
+      appShellUpdatePromptShown = true;
+      return;
+    }
+  } catch { /* noop */ }
   const shown = await promptAppShellUpdate();
   if (shown) appShellUpdatePromptShown = true;
 }
@@ -110,5 +121,7 @@ export async function updateAppToLatest() {
   } catch (err) {
     console.warn('アプリ更新失敗:', err);
   }
+  // 再読み込み直後の起動時チェックで、同じ更新確認を再表示しないよう印を付ける。
+  try { sessionStorage.setItem(APP_UPDATED_FLAG_KEY, '1'); } catch { /* noop */ }
   location.reload();
 }
