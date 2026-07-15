@@ -263,6 +263,7 @@ body {
 .view-map > .btn-float,
 .view-map > .map-layer-panel,
 .view-map > .map-track-actions,
+.view-map > .closure-edit-panel,
 .view-nav > .btn-float,
 .view-nav > .nav-pending {
   pointer-events: auto;
@@ -376,6 +377,80 @@ body {
 body.view-state-map .leaflet-control-container,
 body.view-state-nav .leaflet-control-container {
   display: block;
+}
+
+/* 通行止め・通行困難地点の編集パネル(マップ右上・メニューボタンの下)。
+   メニューパネルと同じ位置だが、開いたメニューが上に重なるよう z-index を低くする。 */
+.closure-edit-panel {
+  position: absolute;
+  top: 64px;
+  right: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 200px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  padding: 0.6rem;
+  z-index: 490;
+}
+
+.closure-edit-panel[hidden] {
+  display: none;
+}
+
+.closure-edit-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #b91c1c;
+}
+
+.closure-version-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.closure-version-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0.4rem;
+  font: inherit;
+  border: 1px solid #9ca3af;
+  border-radius: 6px;
+}
+
+.closure-edit-btn {
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  border: 1px solid #1d4ed8;
+  background: #1d4ed8;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.closure-edit-btn:hover:not(:disabled) {
+  background: #1742c4;
+  border-color: #1742c4;
+}
+
+.closure-edit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* キャンセル(白基調・起動時の画面に戻るボタンと同系色) */
+.closure-edit-btn-cancel {
+  background: #fff;
+  color: #1d4ed8;
+}
+
+.closure-edit-btn-cancel:hover:not(:disabled) {
+  background: #eef2ff;
+  color: #1742c4;
 }
 
 .map-layer-panel {

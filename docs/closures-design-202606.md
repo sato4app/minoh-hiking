@@ -4,6 +4,11 @@
 **最終更新日:** 2026年6月20日
 **ステータス:** 設計検討中（**実装は未着手**）
 
+> **実装メモ(2026年7月15日):** 配信方式は本書の P2(API+Blob)ではなく **1コマンド公開スクリプト方式(P1 相当)** で実装した。
+> アプリの「マップに反映」が端末内反映と同時に公開用 geojson をダウンロードし、リポジトリ直下の
+> `publish-closures.bat` が main / release へコミット+プッシュ → GitHub Pages / Vercel が自動デプロイする。
+> 配信ファイルは `public/data/minoh-hiking-closure.geojson`(git 管理)、取得は network-first + 専用キャッシュ(§6 の方針どおり)。
+
 ---
 
 ## 1. 概要

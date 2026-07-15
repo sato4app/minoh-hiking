@@ -13,10 +13,15 @@ export const STARTUP_UPDATE_CHECK_KEY = 'minoh-hiking.startup-update-check';
 // タブを閉じれば消えるため、直接アクセスでは通行止め編集機能は有効にならない。
 export const CLOSURE_FLAG_KEY = 'minoh-hiking.closure-flag';
 
+// 「マップに反映」で適用した通行止め・通行困難地点データ(geojson の JSON 文字列)。
+// 保存があれば同梱の CLOSURE_URL より優先して読み込む(この端末のみに反映される)。
+export const CLOSURE_DATA_KEY = 'minoh-hiking.closure-data';
+
 // ===== データファイルURL =====
 export const MANIFEST_URL = 'data/tile_manifest.json';
 export const EMERGENCY_URL = 'data/minoh-emergency-points.geojson';
 export const HIKING_ROUTES_URL = 'data/minoh-hiking-routes-spots.geojson';
+export const CLOSURE_URL = 'data/minoh-hiking-closure.geojson';
 
 // ===== 地理院タイル =====
 // タイルキャッシュ名は `gsi-{version}` 形式(version は tile_manifest.json から)。

@@ -48,6 +48,8 @@
       <button type="button" class="home-btn" data-view="map">ハイキングマップ表示</button>
       <button type="button" class="home-btn" data-view="nav">ハイキングコースの案内・ナビ</button>
       <button type="button" class="home-btn" id="btnOpenDownload">地図のダウンロード（オフライン用）</button>
+      <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
+      <button type="button" class="home-btn" id="btnClosureEdit" hidden>通行止め・通行困難地点</button>
       <button type="button" class="home-btn" id="btnOpenSettings">設定と情報</button>
     </nav>
   </section>
@@ -73,6 +75,19 @@
           <path d="M9 3l-1.8 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" fill="currentColor"/>
         </svg>
       </button>
+    </div>
+    <!-- 通行止め・通行困難地点の編集パネル(ホームの「通行止め・通行困難地点」ボタンから表示)。
+         メニューボタン(≡)や時刻表示を隠さないよう、その下の右上に配置する。 -->
+    <div class="closure-edit-panel" id="closureEditPanel" hidden>
+      <div class="closure-edit-title">通行止め・通行困難地点</div>
+      <label class="closure-version-row">
+        <span class="closure-version-label">バージョン:</span>
+        <input type="text" id="closureVersionInput" class="closure-version-input" autocomplete="off" />
+      </label>
+      <button type="button" class="closure-edit-btn" id="btnClosureLoadFile">ファイル読み込み</button>
+      <button type="button" class="closure-edit-btn" id="btnClosureApply" disabled>マップに反映</button>
+      <button type="button" class="closure-edit-btn closure-edit-btn-cancel" id="btnClosureCancel">キャンセル</button>
+      <input type="file" id="closureFileInput" accept=".geojson,.json" hidden />
     </div>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
       <label class="toggle toggle-switch">
@@ -233,14 +248,10 @@
               </span>
               <span class="info-value" id="versionAppShell">-</span>
             </div>
-            <!-- 通行止め・通行困難地点のバージョン(値はボタンの機能として入力予定・仕様は後日確定) -->
+            <!-- 通行止め・通行困難地点のバージョン(「マップに反映」で入力された値) -->
             <div class="info-row">
               <span class="info-label">通行止め・通行困難地点:</span>
               <span class="info-value" id="versionClosures">-</span>
-            </div>
-            <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
-            <div class="info-section-actions">
-              <button type="button" class="btn btn-secondary" id="btnClosureEdit" hidden>通行止め・通行困難地点</button>
             </div>
           </div>
 

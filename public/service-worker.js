@@ -14,8 +14,13 @@
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-07-14.1';
+const SHELL_CACHE = 'app-shell-2026-07-15.1';
 const TILE_CACHE_PREFIX = 'gsi-';
+
+// 通行止め・通行困難地点: 公開のたびに変わるためシェルに含めず、
+// network-first + 専用キャッシュで配信する(オフライン時は最終取得を返す)
+const CLOSURE_CACHE = 'closures-cache';
+const CLOSURE_PATH = './data/minoh-hiking-closure.geojson';
 
 // 同一オリジンの相対パス
 const SHELL_LOCAL_PATHS = [
@@ -63,6 +68,10 @@ self.addEventListener('install', (event) => {
           })
         )
       );
+      // closures はシェルに含めない(network-first)が、初回オフラインに備えて
+      // インストール時に一度取得して専用キャッシュへ入れておく
+      const closureCache = await caches.open(CLOSURE_CACHE);
+      await closureCache.add(CLOSURE_PATH).catch(() => { });
       await self.skipWaiting();
     })()
   );
@@ -75,14 +84,14 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// アクティベート: 旧シェルキャッシュのみ掃除。タイル(gsi-*)は保持。
+// アクティベート: 旧シェルキャッシュのみ掃除。タイル(gsi-*)と closures は保持。
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((k) => k !== SHELL_CACHE && !k.startsWith(TILE_CACHE_PREFIX))
+          .filter((k) => k !== SHELL_CACHE && k !== CLOSURE_CACHE && !k.startsWith(TILE_CACHE_PREFIX))
           .map((k) => caches.delete(k))
       );
       await self.clients.claim();
@@ -116,6 +125,13 @@ self.addEventListener('fetch', (event) => {
   if (url.origin === self.location.origin) {
     const reqPath = url.pathname; // 例: "/index.html" "/data/tile_manifest.json" "/"
     const swDir = self.location.pathname.replace(/[^/]*$/, ''); // 例: "/" or "/foo/"
+
+    // 通行止め・通行困難地点: 公開後すぐ反映されるよう network-first
+    if (reqPath === swDir + CLOSURE_PATH.replace(/^\.\//, '')) {
+      event.respondWith(handleClosureRequest(req));
+      return;
+    }
+
     const isShell = SHELL_LOCAL_PATHS.some((p) => {
       const expected = swDir + p.replace(/^\.\//, '');
       // "./" は SW スコープ直下を表す(末尾スラッシュで一致)
@@ -129,6 +145,27 @@ self.addEventListener('fetch', (event) => {
     }
   }
 });
+
+// 通行止め・通行困難地点の取得: network-first + 専用キャッシュ。
+// オンライン時は常に最新を取得して closures-cache を更新し、
+// 取得できないとき(オフライン等)は最後に取得した内容を返す。
+// cache: 'no-cache' でブラウザHTTPキャッシュを再検証させる。これが無いと
+// Cache-Control(vercel.json の /data/* は max-age=3600)やヒューリスティック
+// キャッシュにより、公開後も古い内容が返り続ける。
+async function handleClosureRequest(req) {
+  const cache = await caches.open(CLOSURE_CACHE);
+  try {
+    const res = await fetch(req.url, { cache: 'no-cache' });
+    if (res.ok) {
+      cache.put(req, res.clone()).catch(() => { });
+      return res;
+    }
+    return (await cache.match(req)) || res;
+  } catch {
+    const cached = await cache.match(req);
+    return cached || new Response('', { status: 504 });
+  }
+}
 
 async function handleTileRequest(req) {
   // 全 gsi-* キャッシュを横断検索(version 変更前にDLしたタイルも活用)
@@ -157,7 +194,9 @@ async function handleTileRequest(req) {
 async function handleShellRequest(event, { swr = false } = {}) {
   const req = event.request;
   const cache = await caches.open(SHELL_CACHE);
-  const cached = await cache.match(req);
+  // ignoreSearch: ?closure=true 等のクエリ付きで起動されても
+  // キャッシュ済みシェル(クエリなしで保存)に一致させる
+  const cached = await cache.match(req, { ignoreSearch: true });
 
   if (swr) {
     // 裏でネット取得→キャッシュ更新(失敗時は null)。SW が早期終了しないよう待機登録。

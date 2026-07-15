@@ -114,11 +114,11 @@ function starPoints(s) {
   return pts.join(' ');
 }
 
-function createPointMarker(latlng, style) {
+function createPointMarker(latlng, style, className = 'custom-marker') {
   const size = Math.max(4, Math.min(80, style?.size || 10));
   const icon = L.divIcon({
     html: shapeToSVG(style?.shape || 'circle', style?.color || '#dc2626', size),
-    className: 'custom-marker',
+    className,
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2]
   });
@@ -170,6 +170,57 @@ export function setEmergencyPointsVisible(visible) {
   if (!mapInstance || !emergencyLayer) return;
   if (visible) emergencyLayer.addTo(mapInstance);
   else mapInstance.removeLayer(emergencyLayer);
+}
+
+// ===== 通行止め・通行困難地点(closures) =====
+// データの取得(同梱ファイル / localStorage / 読み込みファイル)は app.js 側が行い、
+// ここでは渡された GeoJSON の描画のみを担う。
+// kind で固定スタイルを分ける: closed(通行止め)=赤ひし形 / difficult(通行困難)=橙三角。
+const CLOSURE_STYLES = {
+  closed: { color: '#DC2626', shape: 'diamond', size: 14 },
+  difficult: { color: '#F59E0B', shape: 'triangle', size: 14 }
+};
+const CLOSURE_KIND_LABELS = { closed: '通行止め', difficult: '通行困難' };
+
+let closureGeoJSON = null;
+let closureLayer = null;
+
+// 表示データを差し替える(初回読込・プレビュー・反映・キャンセル時の復元で共通)。
+// 表示中だった場合は差し替え後も表示を維持する。null で非表示・破棄。
+export function setClosureGeoJSON(geojson) {
+  const wasVisible = !!(closureLayer && mapInstance && mapInstance.hasLayer(closureLayer));
+  if (closureLayer && mapInstance) mapInstance.removeLayer(closureLayer);
+  closureLayer = null;
+  closureGeoJSON = geojson;
+  if (!closureGeoJSON || !mapInstance) return;
+  closureLayer = buildClosureLayer();
+  if (wasVisible) closureLayer.addTo(mapInstance);
+}
+
+function buildClosureLayer() {
+  return L.geoJSON(closureGeoJSON, {
+    filter: (feature) => feature.geometry?.type === 'Point',
+    pointToLayer: (feature, latlng) => {
+      const style = CLOSURE_STYLES[feature.properties?.kind] || CLOSURE_STYLES.closed;
+      return createPointMarker(latlng, style, 'custom-marker closure-marker');
+    },
+    onEachFeature: (feature, layer) => {
+      const p = feature.properties || {};
+      const kind = CLOSURE_KIND_LABELS[p.kind] || p.kind || '';
+      const lines = [`<strong>${escapeHtml(p.name ?? p.id ?? '')}</strong>`];
+      if (kind) lines.push(escapeHtml(kind));
+      if (p.reason) lines.push(`理由: ${escapeHtml(p.reason)}`);
+      if (p.note) lines.push(escapeHtml(p.note));
+      if (p.updatedAt) lines.push(`更新日: ${escapeHtml(p.updatedAt)}`);
+      layer.bindPopup(lines.join('<br>'));
+    }
+  });
+}
+
+export function setClosuresVisible(visible) {
+  if (!mapInstance || !closureLayer) return;
+  if (visible) closureLayer.addTo(mapInstance);
+  else mapInstance.removeLayer(closureLayer);
 }
 
 // ===== ハイキング(ルート+スポット) =====

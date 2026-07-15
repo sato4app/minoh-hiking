@@ -14,12 +14,16 @@ import {
   initMap, resizeMap,
   loadEmergencyPointsLayer, setEmergencyPointsVisible,
   loadHikingRoutesLayer, setHikingRoutesVisible,
+  setClosureGeoJSON, setClosuresVisible,
   getFeatureCounts,
   setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
   startTrackRecording, stopTrackRecording, getTrackStats, clearTrack
 } from './map.js';
-import { TOAST_DURATION_SEC, EMERGENCY_URL, HIKING_ROUTES_URL, CLOSURE_FLAG_KEY } from './config.js';
+import {
+  TOAST_DURATION_SEC, EMERGENCY_URL, HIKING_ROUTES_URL,
+  CLOSURE_FLAG_KEY, CLOSURE_URL, CLOSURE_DATA_KEY
+} from './config.js';
 import { logHistory, renderMessageList, clearMessageLog } from './messages.js';
 import {
   checkAppShellUpdate, promptAppShellUpdate, promptMapTileUpdate,
@@ -52,6 +56,8 @@ const el = {
   // ホーム
   btnOpenDownload: document.getElementById('btnOpenDownload'),
   btnOpenSettings: document.getElementById('btnOpenSettings'),
+  // 通行止め・通行困難地点(MapGPS からの起動時のみ表示)
+  btnClosureEdit: document.getElementById('btnClosureEdit'),
 
   // 設定と情報モーダル
   infoSettingsModal: document.getElementById('infoSettingsModal'),
@@ -67,9 +73,8 @@ const el = {
   currentUrl: document.getElementById('currentUrl'),
   versionManifest: document.getElementById('versionManifest'),
   versionAppShell: document.getElementById('versionAppShell'),
-  // 通行止め・通行困難地点のバージョン表示欄と編集ボタン(バージョン情報内)
+  // 通行止め・通行困難地点のバージョン表示欄(バージョン情報内)
   versionClosures: document.getElementById('versionClosures'),
-  btnClosureEdit: document.getElementById('btnClosureEdit'),
   btnClearMessages: document.getElementById('btnClearMessages'),
 
   // マップ
@@ -94,6 +99,13 @@ const el = {
   // レイヤーパネル内: 移動経路の統計表示(サイズ)・クリア
   btnTrackStats: document.getElementById('btnTrackStats'),
   btnTrackClear: document.getElementById('btnTrackClear'),
+  // 通行止め・通行困難地点の編集パネル(マップ右上)
+  closureEditPanel: document.getElementById('closureEditPanel'),
+  closureVersionInput: document.getElementById('closureVersionInput'),
+  btnClosureLoadFile: document.getElementById('btnClosureLoadFile'),
+  btnClosureApply: document.getElementById('btnClosureApply'),
+  btnClosureCancel: document.getElementById('btnClosureCancel'),
+  closureFileInput: document.getElementById('closureFileInput'),
 
   // 設定モーダル
   settingsModal: document.getElementById('settingsModal'),
@@ -147,6 +159,9 @@ async function init() {
     if (currentView === 'map') setHikingRoutesVisible(el.toggleHikingRoutes.checked);
     updateFeatureCounts();
   });
+  loadClosures().then(() => {
+    if (currentView === 'map') setClosuresVisible(true);
+  });
   setTrackStyle(markerSettings.track);
   setTrackStartStyle(markerSettings.trackStart);
   setTrackCurrentStyle(markerSettings.trackCurrent);
@@ -167,16 +182,203 @@ function applyClosureFlag() {
   el.btnClosureEdit.hidden = sessionStorage.getItem(CLOSURE_FLAG_KEY) !== '1';
 }
 
+// ===== 通行止め・通行困難地点(closures) =====
+// 現在マップに反映されている(有効な)closures データ。
+// 「マップに反映」済みデータ(localStorage)があれば同梱ファイルより優先する。
+let activeClosureData = null;
+// 編集パネルを表示中か(マップ画面を離れたら自動キャンセルする)
+let closureEditActive = false;
+// ファイル読み込みで取り込んだ未反映の geojson(プレビュー表示のみ)
+let loadedClosureData = null;
+
+function readAppliedClosureData() {
+  try {
+    const raw = localStorage.getItem(CLOSURE_DATA_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    console.warn('反映済み closures データの読込失敗:', err);
+    return null;
+  }
+}
+
+// 起動時の読み込み: 配信ファイルを取得し、「マップに反映」済みデータ(localStorage)が
+// あればバージョンを比較する。
+// - 一致: publish-closures.bat による公開が完了しているのでサーバー側を正とし、
+//   localStorage を削除する(以降の公開が素直に反映されるようにする自己修復)
+// - 不一致: 未公開の反映データとして localStorage を優先する
+async function loadClosures() {
+  let bundled = null;
+  try {
+    // no-cache: HTTPキャッシュを再検証し、公開直後でも最新版を取得する
+    // (SW 未制御の初回ロードでも有効。SW 経由時は SW 側でも同様に扱う)
+    const res = await fetch(CLOSURE_URL, { cache: 'no-cache' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    bundled = await res.json();
+  } catch (err) {
+    console.warn('通行止め・通行困難地点GeoJSON読込失敗:', err);
+  }
+  const applied = readAppliedClosureData();
+  let data = bundled;
+  if (applied) {
+    if (bundled && applied.version === bundled.version) {
+      localStorage.removeItem(CLOSURE_DATA_KEY);
+    } else {
+      data = applied;
+    }
+  }
+  if (!data) return;
+  activeClosureData = data;
+  setClosureGeoJSON(data);
+}
+
+function getClosureVersion() {
+  return activeClosureData?.version || '';
+}
+
+// ホームのボタンから編集モードへ: マップ画面を表示し、右上に編集パネルを出す
+function enterClosureEditMode() {
+  closureEditActive = true;
+  loadedClosureData = null;
+  el.closureVersionInput.value = getClosureVersion();
+  updateClosureApplyEnabled();
+  showView('map');
+  // メニューパネルが開いたまま残っていると編集パネル(z-index が下)を覆うため閉じる
+  el.mapLayerPanel.hidden = true;
+  el.closureEditPanel.hidden = false;
+}
+
+function exitClosureEditPanel() {
+  closureEditActive = false;
+  el.closureEditPanel.hidden = true;
+}
+
+// 読み込んだ geojson の妥当性確認。問題なければ null、あればエラーメッセージを返す
+function validateClosureGeoJSON(data) {
+  if (!data || data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
+    return 'FeatureCollection 形式の geojson ではありません';
+  }
+  if (data.features.length > 0 &&
+      !data.features.some((f) => f?.geometry?.type === 'Point')) {
+    return 'Point 地物が含まれていません';
+  }
+  return null;
+}
+
+// ファイル読み込み: 選択された geojson を解析し、マップにプレビュー表示する(未反映)
+async function handleClosureFileSelected() {
+  const file = el.closureFileInput.files && el.closureFileInput.files[0];
+  // 同じファイルを選び直しても change が発火するよう毎回リセットする
+  el.closureFileInput.value = '';
+  if (!file) return;
+
+  let data = null;
+  try {
+    data = JSON.parse(await file.text());
+  } catch {
+    showToast(`${file.name} を JSON として読み込めませんでした`);
+    return;
+  }
+  const error = validateClosureGeoJSON(data);
+  if (error) {
+    showToast(`読み込み失敗: ${error}`);
+    return;
+  }
+
+  loadedClosureData = data;
+  setClosureGeoJSON(data);
+  setClosuresVisible(true);
+  updateClosureApplyEnabled();
+  showToast(`${file.name} を読み込みました(${data.features.length} 件)。反映にはバージョンの変更が必要です`);
+}
+
+// 「マップに反映」の活性制御: ファイル読み込み済みで、かつバージョンが
+// 現在の値から変更されている(空でない)ときのみ押せる
+function updateClosureApplyEnabled() {
+  const v = el.closureVersionInput.value.trim();
+  el.btnClosureApply.disabled = !(loadedClosureData && v && v !== getClosureVersion());
+}
+
+// マップに反映: 読み込んだ geojson を新しいバージョンとしてこの端末に保存し、
+// あわせて公開用ファイルをダウンロードする。
+// 全ユーザーへの公開(コミット+プッシュ+自動デプロイ)は、リポジトリ直下の
+// publish-closures.bat が Downloads のこのファイルを取り込んで1コマンドで行う。
+function applyClosureData() {
+  if (!loadedClosureData) return;
+  const version = el.closureVersionInput.value.trim();
+  if (!version || version === getClosureVersion()) {
+    showToast('新しいバージョンを入力してください');
+    return;
+  }
+  const data = { ...loadedClosureData, version };
+  const count = data.features.length;
+  if (!confirm(`バージョン ${version}(${count} 件)をマップに反映し、公開用ファイルをダウンロードします。よろしいですか?`)) {
+    return;
+  }
+  try {
+    localStorage.setItem(CLOSURE_DATA_KEY, JSON.stringify(data));
+  } catch (err) {
+    showToast(`保存に失敗しました: ${err.message}`);
+    return;
+  }
+  activeClosureData = data;
+  loadedClosureData = null;
+  setClosureGeoJSON(data);
+  setClosuresVisible(true);
+  exitClosureEditPanel();
+  downloadClosureFile(data);
+  logHistory(`通行止め・通行困難地点を反映しました(バージョン ${version} / ${count} 件)`, 'success');
+  alert(
+    `バージョン ${version}(${count} 件)をこの端末のマップに反映し、` +
+    `公開用ファイル ${closureFileName()} をダウンロードしました。\n` +
+    '全ユーザーへ公開するには、リポジトリ直下の publish-closures.bat を実行してください。'
+  );
+}
+
+// 公開用ファイル名(配信ファイルと同名にして publish-closures.bat が取り込めるようにする)
+function closureFileName() {
+  return CLOSURE_URL.split('/').pop();
+}
+
+// 反映した geojson を公開用にダウンロードする
+function downloadClosureFile(data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/geo+json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = closureFileName();
+  a.click();
+  // click 直後の revoke はダウンロード開始前に無効化される場合があるため遅延させる
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+// キャンセル: 未反映の読み込みデータを破棄して反映済みデータの表示へ戻し、
+// 通常のハイキングマップ表示に戻る。silent=true はビュー遷移時の自動キャンセル
+function cancelClosureEdit(silent = false) {
+  const hadPreview = !!loadedClosureData;
+  loadedClosureData = null;
+  if (hadPreview) {
+    setClosureGeoJSON(activeClosureData);
+    if (currentView === 'map') setClosuresVisible(true);
+  }
+  exitClosureEditPanel();
+  if (!silent && hadPreview) showToast('読み込んだ内容を反映せずにキャンセルしました');
+}
+
 function bindEvents() {
   // ホームメニュー: data-view 属性でビュー切替
   for (const btn of document.querySelectorAll('[data-view]')) {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
   el.btnOpenDownload.addEventListener('click', openDownloadModal);
-  // 通行止め・通行困難地点(バージョン情報内、MapGPS からの起動時のみ表示)。機能本体は未実装。
-  el.btnClosureEdit.addEventListener('click', () => {
-    showToast('通行止め・通行困難の編集機能は準備中です');
-  });
+  // 通行止め・通行困難地点(ホーム・MapGPS からの起動時のみ表示):
+  // マップ画面へ移動して編集パネルを開く
+  el.btnClosureEdit.addEventListener('click', enterClosureEditMode);
+  // 編集パネル: ファイル読み込み / マップに反映 / キャンセル
+  el.btnClosureLoadFile.addEventListener('click', () => el.closureFileInput.click());
+  el.closureFileInput.addEventListener('change', handleClosureFileSelected);
+  el.closureVersionInput.addEventListener('input', updateClosureApplyEnabled);
+  el.btnClosureApply.addEventListener('click', applyClosureData);
+  el.btnClosureCancel.addEventListener('click', () => cancelClosureEdit());
   // 起動画面の「設定と情報」ボタンは設定・情報モーダルを表示
   el.btnOpenSettings.addEventListener('click', openInfoSettingsModal);
 
@@ -376,9 +578,10 @@ function showView(name) {
     el.btnMapLayers.hidden = false;
     el.btnMapLayers.style.display = '';
 
-    // マップビュー: 緊急ポイント・ハイキングルートを表示(トグル状態に従う)
+    // マップビュー: 緊急ポイント・ハイキングルート・通行止め等を表示(トグル状態に従う)
     setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
     setHikingRoutesVisible(el.toggleHikingRoutes.checked);
+    setClosuresVisible(true);
     // マップビューに入ったら現在地監視を開始。表示/追従はメニュートグルの状態に従う。
     // 先に監視を有効化してから各トグル状態を反映する(再表示の無駄打ちを避ける)。
     setLocationActiveForMapView(true, {
@@ -397,9 +600,12 @@ function showView(name) {
     setClockVisible(el.toggleClock.checked);
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'home' || name === 'nav') {
+    // 通行止め・通行困難地点の編集中にマップ画面を離れたら自動キャンセルする
+    if (closureEditActive) cancelClosureEdit(true);
     // ホーム/ナビ: 全オーバーレイを非表示にして地理院地図のみ表示
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);
+    setClosuresVisible(false);
     // 軌跡が消去される前に終了処理(統計の出力)を行ってから現在地監視を停止
     finishTrackRecording();
     setLocationActiveForMapView(false);
@@ -431,6 +637,8 @@ async function openInfoSettingsModal() {
   el.versionManifest.textContent = getManifestVersion() || '不明';
   const shell = (await getCachedAppShellVersion()) || '不明';
   el.versionAppShell.textContent = shell;
+  // 通行止め・通行困難地点: 現在反映されているデータのバージョン
+  el.versionClosures.textContent = getClosureVersion() || '-';
 
   // 履歴は開いたときにすぐ見えるよう事前に描画しておく
   renderMessageList();
