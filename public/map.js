@@ -357,13 +357,20 @@ function escapeHtml(s) {
 }
 
 // ===== 現在地表示 + 移動経路の記録 =====
-// Geolocation API による現在地マーカー + 精度円。
+// Geolocation API による現在地マーカー + 精度円(現在地点を中心とする円)。
+// 精度円は常時表示せず、マップ表示への切替時・「現在地点をマーカー表示」ON 時に
+// 3秒間だけ表示する(requestCurrentCircleFlash / showTemporaryCircle)。
 // 監視(watchPosition)は、マップビュー表示中で「現在地点をマーカー表示」「現在地点は
 // 中央に表示」「移動経路の記録」のいずれかが有効なときに動く(refreshLocationWatch が制御)。
 // マーカー表示は showCurrentMarker、地図追従は followCurrentLocation で個別に切り替える。
 // 記録中(startTrackRecording 後)は、位置更新ごとに軌跡(ポリライン + 通過点マーカー)を追加する。
 let currentLocationMarker = null;
 let currentLocationCircle = null;
+// 現在地点を中心とする円は常時表示せず、マップ表示への切替時・
+// 「現在地点をマーカー表示」ON 時に3秒間だけ表示する。
+const CURRENT_CIRCLE_DURATION_MS = 3000;
+let circleHideTimerId = null;   // 円を自動で消すタイマー(3秒)
+let pendingCircleShow = false;  // 位置未取得時: 次の取得で円を表示する要求
 let geoWatchId = null;
 // マップビュー表示中か(ビュー外では現在地を監視しない)
 let onMapView = false;
@@ -375,6 +382,8 @@ let followCurrentLocation = true;
 let hasHadFirstFix = false;
 // 直近に取得した現在地(トグル切替時の即時反映に使用)
 let lastKnownLatLng = null;
+// 直近に取得した位置精度[m](円の即時表示に使用)
+let lastKnownAccuracy = null;
 // 位置情報エラーの通知コールバックと、監視中に通知済みかのフラグ(連続エラーの抑制)
 let locationErrorCb = null;
 let locationErrorReported = false;
@@ -640,11 +649,21 @@ function onGeoSuccess(pos) {
     removeCurrentMarker();
   }
 
-  // 精度円: 「現在地点をマーカー表示」ON のとき現在地へ追従表示。
+  lastKnownAccuracy = Number.isFinite(accuracy) ? accuracy : null;
+
+  // 精度円(現在地点を中心とする円): 常時表示はしない。
+  // マップ表示への切替時・「現在地点をマーカー表示」ON 時に3秒間だけ表示する。
+  // - pendingCircleShow: 表示要求済みで位置が未取得だった → 取得できたので3秒間の表示を開始
+  // - 表示中(タイマー作動中): 現在地へ追従する(タイマーは延長しない)
   if (showCurrentMarker && Number.isFinite(accuracy)) {
-    showOrUpdateCurrentCircle(latlng, accuracy);
+    if (pendingCircleShow) {
+      showTemporaryCircle(latlng, accuracy);
+    } else if (currentLocationCircle) {
+      showOrUpdateCurrentCircle(latlng, accuracy);
+    }
   } else {
     removeCurrentCircle();
+    pendingCircleShow = false;
   }
 
   // 記録中: 条件を満たせば記録点を追加し、三角をライブ現在地へ追従(進行方向つき)
@@ -700,10 +719,35 @@ function showOrUpdateCurrentCircle(latlng, accuracy) {
 }
 
 function removeCurrentCircle() {
+  if (circleHideTimerId != null) {
+    clearTimeout(circleHideTimerId);
+    circleHideTimerId = null;
+  }
   if (currentLocationCircle) {
     mapInstance.removeLayer(currentLocationCircle);
     currentLocationCircle = null;
   }
+}
+
+// ===== 現在地点を中心とする円の一時表示(3秒) =====
+// 円の一時表示を要求する。位置が分かっていれば即表示し、
+// 未取得なら次に位置を取得したとき(onGeoSuccess)に表示する。
+// マップ表示中でマーカー表示 ON のときのみ有効。
+function requestCurrentCircleFlash() {
+  if (!mapInstance || !onMapView || !showCurrentMarker) return;
+  if (lastKnownLatLng && Number.isFinite(lastKnownAccuracy)) {
+    showTemporaryCircle(lastKnownLatLng, lastKnownAccuracy);
+  } else {
+    pendingCircleShow = true;
+  }
+}
+
+// 円を表示し、3秒後に自動で消すタイマーを(再)設定する
+function showTemporaryCircle(latlng, accuracy) {
+  pendingCircleShow = false;
+  if (circleHideTimerId != null) clearTimeout(circleHideTimerId);
+  showOrUpdateCurrentCircle(latlng, accuracy);
+  circleHideTimerId = setTimeout(removeCurrentCircle, CURRENT_CIRCLE_DURATION_MS);
 }
 
 // マップビューの出入りで現在地監視を制御する。
@@ -713,17 +757,26 @@ export function setLocationActiveForMapView(active, { onError } = {}) {
   onMapView = active;
   if (onError) locationErrorCb = onError;
   refreshLocationWatch();
+  // マップ表示に切り替えたら、現在地点を中心とする円を3秒間だけ表示する
+  // (マーカー表示 ON のときのみ。位置未取得なら初回取得時に表示)
+  if (active) requestCurrentCircleFlash();
 }
 
 // 「現在地点をマーカー表示」トグル。OFF で青丸・精度円を消す。
-// ON にした直後は、直近の取得位置があれば即座にマーカーを再表示する。
+// ON にした直後は、直近の取得位置があれば即座にマーカーを再表示し、
+// あわせて現在地点を中心とする円を3秒間だけ表示する。
 export function setCurrentMarkerVisible(on) {
   showCurrentMarker = on;
   if (!on) {
     removeCurrentMarker();
     removeCurrentCircle();
-  } else if (lastKnownLatLng && !isRecordingTrack) {
-    showOrUpdateCurrentMarker(lastKnownLatLng);
+  } else {
+    if (lastKnownLatLng && !isRecordingTrack) {
+      showOrUpdateCurrentMarker(lastKnownLatLng);
+    }
+    // ON にしたら現在地点を中心とする円を3秒間だけ表示する
+    // (マップ表示中のみ。位置未取得なら初回取得時に表示)
+    requestCurrentCircleFlash();
   }
   refreshLocationWatch();
 }
