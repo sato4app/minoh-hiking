@@ -9,6 +9,14 @@
 > `publish-closures.bat` が main / release へコミット+プッシュ → GitHub Pages / Vercel が自動デプロイする。
 > 配信ファイルは `public/data/minoh-hiking-closure.geojson`(git 管理)、取得は network-first + 専用キャッシュ(§6 の方針どおり)。
 
+> **実装メモ(2026年7月16日):** 運用要件の変更(**git・PC を不要にし、スマホのブラウザだけで公開を完結**)により、
+> 本書の **P2(API+Blob)へ移行**した。`api/closures.js`(GET/POST、`CLOSURES_PUBLISH_TOKEN` 認証、
+> Vercel Blob へ全置換保存+履歴スナップショット)を追加し、アプリの編集パネルに「公開」ボタンを新設
+> (「マップに反映」=端末反映、「公開」=API へ POST)。静的ファイル(git 管理)は初回公開前・API 障害時の
+> フォールバックとして残し、`publish-closures.bat`(P1)も非常用に残置。GitHub Pages 版アプリは
+> Vercel 本番の絶対 URL(CORS 許可済み)で同じ公開ストアを参照する。preview モード(§7)は実装せず、
+> 既存の `?closure=true` 起動フローを継続使用する。
+
 ---
 
 ## 1. 概要

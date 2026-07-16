@@ -23,11 +23,25 @@ export const APP_UPDATED_FLAG_KEY = 'minoh-hiking.app-updated';
 // 保存があれば同梱の CLOSURE_URL より優先して読み込む(この端末のみに反映される)。
 export const CLOSURE_DATA_KEY = 'minoh-hiking.closure-data';
 
+// 「公開」ボタンで使う公開トークン(運用担当者が初回に入力し、その端末にのみ保存)。
+// コードには埋め込まない。認証失敗(401)時は削除して再入力を促す。
+export const CLOSURE_TOKEN_KEY = 'minoh-hiking.closure-publish-token';
+
 // ===== データファイルURL =====
 export const MANIFEST_URL = 'data/tile_manifest.json';
 export const EMERGENCY_URL = 'data/minoh-emergency-points.geojson';
 export const HIKING_ROUTES_URL = 'data/minoh-hiking-routes-spots.geojson';
+// 通行止め・通行困難地点の静的ファイル(初回公開前・API 障害時のフォールバック)
 export const CLOSURE_URL = 'data/minoh-hiking-closure.geojson';
+
+// 通行止め・通行困難地点の公開API(Vercel Function + Blob)。
+// 公開ストアは Vercel 側にあるため、GitHub Pages 版アプリからは Vercel 本番の
+// 絶対 URL を参照して同じデータソースに一本化する(API 側で CORS 許可済み)。
+// Vercel・ローカル(vercel dev)では同一オリジンの相対パスで良い。
+const CLOSURE_API_ORIGIN = 'https://minoh-hiking.vercel.app';
+export const CLOSURE_API_URL = location.hostname.endsWith('github.io')
+  ? `${CLOSURE_API_ORIGIN}/api/closures`
+  : '/api/closures';
 
 // ===== 地理院タイル =====
 // タイルキャッシュ名は `gsi-{version}` 形式(version は tile_manifest.json から)。

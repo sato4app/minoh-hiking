@@ -1,0 +1,11 @@
+{
+  "name": "minoh-hiking",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.6.1"
+  }
+}

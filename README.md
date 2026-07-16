@@ -22,17 +22,23 @@
   - 地理院地図を初期表示
   - 箕面緊急ポイント(約170点)と公式ハイキングコースを表示
   - オフライン対応用に地理院地図データを事前にダウンロード可能
-  - 通行止め・通行困難地点(`public/data/minoh-hiking-closure.geojson`)を表示
+  - 通行止め・通行困難地点を表示(公開API `/api/closures` から取得。
+    初回公開前・API障害時は同梱の `public/data/minoh-hiking-closure.geojson` にフォールバック)
 
 #### 通行止め・通行困難地点の公開手順(運用担当者向け)
 
   1. MapGPS から `?closure=true` 付きで本アプリを起動し、ホームの「通行止め・通行困難地点」を押す
   2. マップ右上のパネルで「ファイル読み込み」→ 地図で内容を確認 → バージョンを変更 →「マップに反映」
-     (この端末に反映され、公開用の `minoh-hiking-closure.geojson` が Downloads にダウンロードされる)
-  3. リポジトリ直下の `publish-closures.bat` をダブルクリック
-     (Downloads のファイルを取り込み、main と release へコミット+プッシュ → GitHub Pages / Vercel が自動デプロイ)
+     (この端末のマップに反映される)
+  3. 続けて「公開」を押す(初回のみ公開トークンを入力。トークンはその端末に保存される)
+     → 公開API(Vercel Function + Vercel Blob)に保存され、即時に全ユーザーへ公開される
 
-  前提: 運用担当者の PC に git・本リポジトリのクローン・push 権限があること。
+  前提: 公開トークン(Vercel の環境変数 `CLOSURES_PUBLISH_TOKEN` と同じ値)を運用担当者が知っていること。
+  git・PC・デプロイ待ちは不要で、スマホ/タブレットのブラウザだけで完結する。
+
+  非常用(APIで公開できないとき): 「公開」失敗時のダイアログから公開用
+  `minoh-hiking-closure.geojson` をダウンロードし、PC のリポジトリ直下の
+  `publish-closures.bat` で従来どおり git 経由で公開できる(要 git・push 権限)。
 
 ### 当面実装の対象外
 

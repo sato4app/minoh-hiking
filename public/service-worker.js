@@ -14,13 +14,16 @@
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-07-15.5';
+const SHELL_CACHE = 'app-shell-2026-07-16.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 通行止め・通行困難地点: 公開のたびに変わるためシェルに含めず、
-// network-first + 専用キャッシュで配信する(オフライン時は最終取得を返す)
+// network-first + 専用キャッシュで配信する(オフライン時は最終取得を返す)。
+// 本命は公開API(/api/closures、Vercel Function + Blob)で、静的ファイルは
+// 初回公開前・API障害時のフォールバック(アプリ側が順に取得する)。
 const CLOSURE_CACHE = 'closures-cache';
 const CLOSURE_PATH = './data/minoh-hiking-closure.geojson';
+const CLOSURE_API_PATH = '/api/closures';
 
 // 同一オリジンの相対パス
 const SHELL_LOCAL_PATHS = [
@@ -118,6 +121,14 @@ self.addEventListener('fetch', (event) => {
   // CDN(leaflet): cache-first(安定資産)
   if (SHELL_CDN_URLS.includes(req.url)) {
     event.respondWith(handleShellRequest(event));
+    return;
+  }
+
+  // 通行止め・通行困難地点の公開API: 公開後すぐ反映されるよう network-first。
+  // GitHub Pages 版からは Vercel へのクロスオリジン URL になるため、
+  // origin を問わずパスで判定する(API 側で CORS 許可済み)
+  if (url.pathname === CLOSURE_API_PATH) {
+    event.respondWith(handleClosureRequest(req));
     return;
   }
 
