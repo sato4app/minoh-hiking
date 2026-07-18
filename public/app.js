@@ -28,7 +28,7 @@ import {
   initClosures, applyClosureFlag, loadClosures,
   getClosureVersion, getClosureCount, autoCancelOnLeaveMap
 } from './closures.js';
-import { EMERGENCY_URL, HIKING_ROUTES_URL } from './config.js';
+import { EMERGENCY_URL, HIKING_ROUTES_URL, LANGUAGE_KEY } from './config.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
 import {
   checkAppShellUpdate, promptAppShellUpdate, promptMapTileUpdate,
@@ -59,11 +59,10 @@ const el = {
   btnOpenDownload: document.getElementById('btnOpenDownload'),
   btnOpenSettingsInfo: document.getElementById('btnOpenSettingsInfo'),
 
-  // 設定と情報モーダル(起動画面の「設定と情報」から表示)
+  // バージョン情報等モーダル(起動画面の「バージョン情報等」から表示)
   infoSettingsModal: document.getElementById('infoSettingsModal'),
+  languageSelect: document.getElementById('languageSelect'),
   toggleStartupUpdateCheck: document.getElementById('toggleStartupUpdateCheck'),
-  btnInfoOpenMarkerSettings: document.getElementById('btnInfoOpenMarkerSettings'),
-  btnInfoOpenImageSettings: document.getElementById('btnInfoOpenImageSettings'),
   toggleInfoVersion: document.getElementById('toggleInfoVersion'),
   infoVersionBody: document.getElementById('infoVersionBody'),
   toggleInfoMessages: document.getElementById('toggleInfoMessages'),
@@ -98,13 +97,11 @@ const el = {
   btnTrackStats: document.getElementById('btnTrackStats'),
   btnTrackClear: document.getElementById('btnTrackClear'),
 
-  // 設定モーダル
+  // マーカーの設定モーダル
   settingsModal: document.getElementById('settingsModal'),
-  settingsTitle: document.getElementById('settingsTitle'),
 
   // マップ画面メニュー内の設定ショートカット
-  btnMapOpenMarkerSettings: document.getElementById('btnMapOpenMarkerSettings'),
-  btnMapOpenImageSettings: document.getElementById('btnMapOpenImageSettings')
+  btnMapOpenMarkerSettings: document.getElementById('btnMapOpenMarkerSettings')
 };
 
 // ===== 初期化 =====
@@ -174,16 +171,15 @@ function bindEvents() {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
   el.btnOpenDownload.addEventListener('click', openDownloadModal);
-  // 起動画面の「設定と情報」ボタンは設定と情報モーダルを表示
+  // 起動画面の「バージョン情報等」ボタンはバージョン情報等モーダルを表示
   el.btnOpenSettingsInfo.addEventListener('click', openSettingsInfoModal);
 
+  // 言語/Language: 選択値を保存する(表示言語の切替は今後実装)
+  el.languageSelect.addEventListener('change', (e) => writeLanguage(e.target.value));
   // 設定: 起動時の更新確認トグル(localStorage に保存)
   el.toggleStartupUpdateCheck.addEventListener('change', (e) => {
     writeStartupUpdateCheckEnabled(e.target.checked);
   });
-  // 設定: マップ画面メニューと同じ設定項目を既存モーダルで開く
-  el.btnInfoOpenMarkerSettings.addEventListener('click', () => openSettingsModal('marker'));
-  el.btnInfoOpenImageSettings.addEventListener('click', () => openSettingsModal('image'));
 
   // 情報: 各トグルで内容領域の表示/非表示を切替
   el.toggleInfoVersion.addEventListener('change', (e) => {
@@ -223,7 +219,7 @@ function bindEvents() {
       }
     });
   }
-  // 時刻表示トグル(「設定と情報」内): ON でメニューボタンの左に現在時刻を表示
+  // 時刻表示トグル(「バージョン情報等」内): ON でメニューボタンの左に現在時刻を表示
   el.toggleClock.addEventListener('change', (e) => setClockVisible(e.target.checked));
   // 現在地点をマーカー表示: 現在地マーカー(青丸)・精度円の表示/非表示を切替
   el.toggleCurrentMarker.addEventListener('change', (e) => setCurrentMarkerVisible(e.target.checked));
@@ -277,14 +273,10 @@ function bindEvents() {
     showToast('移動経路をクリアしました');
   });
 
-  // マップ画面メニューから設定モーダルを直接開く(起動画面に戻る必要なし)
+  // マップ画面メニューから「マーカーの設定」モーダルを開く
   el.btnMapOpenMarkerSettings.addEventListener('click', () => {
     el.mapLayerPanel.hidden = true;
-    openSettingsModal('marker');
-  });
-  el.btnMapOpenImageSettings.addEventListener('click', () => {
-    el.mapLayerPanel.hidden = true;
-    openSettingsModal('image');
+    openMarkerSettingsModal();
   });
 
   // メッセージ履歴
@@ -319,7 +311,7 @@ function setClockVisible(on) {
 
 // ===== データ件数表示 =====
 // 読み込んだポイント/ルート/スポット/通行止めの件数を
-// 「設定と情報」のバージョン情報内に横一列で反映(未読込は "-")。
+// 「バージョン情報等」のバージョン情報内に横一列で反映(未読込は "-")。
 function updateFeatureCounts() {
   const c = getFeatureCounts();
   el.countPoints.textContent = c.points == null ? '-' : String(c.points);
@@ -387,12 +379,24 @@ function showView(name) {
   }
 }
 
+// ===== 言語設定 =====
+// 「言語/Language」の選択値(ja=日本語・既定 / en=English)。
+// 現状は選択値の保存のみで、表示言語の切替は今後実装する。
+function readLanguage() {
+  try { return localStorage.getItem(LANGUAGE_KEY) || 'ja'; } catch { return 'ja'; }
+}
+
+function writeLanguage(lang) {
+  try { localStorage.setItem(LANGUAGE_KEY, lang); } catch { /* noop */ }
+}
+
 // ===== モーダル =====
-// 設定と情報モーダル(起動画面の「設定と情報」から表示)。
-// 設定(マーカー/撮影画像の解像度への入口)を上、情報(時刻表示・更新確認・
-// バージョン情報・メッセージ履歴・このアプリについて)を下に配置する。
+// バージョン情報等モーダル(起動画面の「バージョン情報等」から表示)。
+// 言語選択・時刻表示・更新確認の設定を上、情報(バージョン情報・
+// メッセージ履歴・このアプリについて)を下に配置する。
 async function openSettingsInfoModal() {
-  // 起動時の更新確認トグルを現在の設定値で初期化
+  // 言語・起動時の更新確認トグルを現在の設定値で初期化
+  el.languageSelect.value = readLanguage();
   el.toggleStartupUpdateCheck.checked = readStartupUpdateCheckEnabled();
 
   // --- 情報: トグルを既定状態(バージョン情報のみオン)にリセット ---
@@ -422,7 +426,7 @@ async function openSettingsInfoModal() {
   checkUpdatesFromInfoModal();
 }
 
-// 「設定と情報」モーダルを開いたときの更新チェック。
+// 「バージョン情報等」モーダルを開いたときの更新チェック。
 // 「バージョン情報」トグルがオンのとき、地図タイルとアプリ(アプリシェル)の
 // バージョンをサイトの最新と比較し、新しいものがあればそれぞれ別の confirm で案内する。
 // メッセージ表示・更新処理は update.js に集約している。
@@ -444,17 +448,8 @@ async function checkUpdatesFromInfoModal() {
   await promptAppShellUpdate();
 }
 
-// section を指定するとそのセクションのみ表示(未指定なら全セクション)
-function openSettingsModal(section) {
-  const sections = el.settingsModal.querySelectorAll('.settings-section');
-  for (const s of sections) {
-    s.hidden = section ? (s.dataset.section !== section) : false;
-  }
-  if (el.settingsTitle) {
-    if (section === 'marker') el.settingsTitle.textContent = 'マーカーの設定';
-    else if (section === 'image') el.settingsTitle.textContent = '撮影画像の解像度の設定';
-    else el.settingsTitle.textContent = '設定';
-  }
+// マーカーの設定モーダルを開く(マップ画面メニューから)
+function openMarkerSettingsModal() {
   el.settingsModal.hidden = false;
 }
 

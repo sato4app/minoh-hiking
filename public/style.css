@@ -482,11 +482,11 @@ body.view-state-nav .leaflet-control-container {
 }
 
 /* データ件数(ポイント/ルート/スポット/通行止め):
-   「設定と情報」のバージョン情報内に、各項目を横一列・右詰めで表示する。 */
+   「バージョン情報等」のバージョン情報内に、各項目を横一列・中央寄せで表示する。 */
 .feature-counts-line {
   display: flex;
   flex-wrap: nowrap;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 0.75rem;
   margin: 0.2rem 0.75rem 0.4rem;
   white-space: nowrap;
@@ -541,11 +541,6 @@ body.view-state-nav .leaflet-control-container {
 .map-layer-panel .panel-btn:hover {
   background: #1742c4;
   border-color: #1742c4;
-}
-
-/* 連続するボタン(マーカー設定・撮影画像の解像度の設定)の間に余白を設ける */
-.map-layer-panel .panel-btn + .panel-btn {
-  margin-top: 0.5rem;
 }
 
 /* 起動時の画面に戻るボタン(白基調) */
@@ -741,13 +736,6 @@ body.view-state-nav .leaflet-control-container {
 
 .settings-section:last-child {
   border-bottom: none;
-}
-
-.settings-section-title {
-  margin: 0 0 0.6rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #1f2937;
 }
 
 /* マーカー設定行: ラベル + (色 / 形状 / サイズ) */
@@ -966,7 +954,7 @@ body.view-state-nav .leaflet-control-container {
   word-break: break-all;
 }
 
-/* ===== 「設定と情報」モーダル: セクション ===== */
+/* ===== 「バージョン情報等」モーダル: セクション ===== */
 .info-section {
   padding: 0.5rem 1rem 1rem;
   border-bottom: 1px solid #eee;
@@ -983,22 +971,28 @@ body.view-state-nav .leaflet-control-container {
   color: #2c7a3d;
 }
 
-/* 設定セクション内のボタン(マーカー設定/画像解像度設定): 縦並び。
-   2つのボタンを同じ幅にし(stretch)、左に約10文字分の余白を設ける */
-.info-section-actions {
+/* 言語/Language の選択行: トグル行と高さをそろえ、ラベル左・選択右に配置 */
+.language-row {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.5rem;
-  margin-top: 0.6rem;
-  margin-left: 6em;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  min-height: 44px;
 }
 
-/* .btn の最小幅・余白を抑えてコンパクトに */
-.info-section-actions .btn {
-  min-height: 40px;
-  padding: 0.5rem 0.9rem;
-  font-size: 0.9rem;
+.language-label {
+  font-size: 0.95rem;
+  color: #222;
+}
+
+.language-select {
+  min-height: 36px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.95rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
 }
 
 /* トグルで開閉する内容領域 */
@@ -1014,7 +1008,7 @@ body.view-state-nav .leaflet-control-container {
   padding: 0.5rem 1.5rem;
 }
 
-/* 「設定と情報」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
+/* 「バージョン情報等」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
 .info-collapse .message-list {
   flex: none;
   max-height: 240px;

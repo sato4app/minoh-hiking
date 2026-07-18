@@ -49,7 +49,7 @@
       <button type="button" class="home-btn" id="btnOpenDownload">地図のダウンロード（オフライン用）</button>
       <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
       <button type="button" class="home-btn" id="btnClosureEdit" hidden>通行止め・通行困難地点</button>
-      <button type="button" class="home-btn" id="btnOpenSettingsInfo">設定と情報</button>
+      <button type="button" class="home-btn" id="btnOpenSettingsInfo">バージョン情報等</button>
     </nav>
   </section>
 
@@ -112,7 +112,6 @@
       </div>
       <hr class="panel-divider" />
       <button type="button" class="panel-btn" id="btnMapOpenMarkerSettings">マーカーの設定</button>
-      <button type="button" class="panel-btn" id="btnMapOpenImageSettings">撮影画像の解像度の設定</button>
       <hr class="panel-divider" />
       <button type="button" class="panel-btn panel-btn-back" data-view="home">起動時の画面に戻る</button>
     </div>
@@ -168,25 +167,25 @@
     </div>
   </div>
 
-  <!-- 設定と情報モーダル(起動画面の「設定と情報」から表示)。設定を上、情報を下に配置 -->
+  <!-- バージョン情報等モーダル(起動画面の「バージョン情報等」から表示) -->
   <div class="modal" id="infoSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="infoSettingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="infoSettingsTitle">設定と情報</h2>
+        <h2 id="infoSettingsTitle">バージョン情報等</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
       </header>
       <div class="modal-body">
-        <!-- ===== 設定項目(詳細設定モーダルを開く) ===== -->
         <section class="info-section">
-          <div class="info-section-actions">
-            <button type="button" class="btn btn-secondary" id="btnInfoOpenMarkerSettings">マーカーの設定</button>
-            <button type="button" class="btn btn-secondary" id="btnInfoOpenImageSettings">撮影画像の解像度の設定</button>
-          </div>
-        </section>
 
-        <!-- ===== 情報 ===== -->
-        <section class="info-section">
+          <!-- 言語/Language(表示言語の選択。既定: 日本語。選択値の保存のみで切替の反映は今後実装) -->
+          <div class="language-row">
+            <label class="language-label" for="languageSelect">言語/Language</label>
+            <select id="languageSelect" class="language-select">
+              <option value="ja" selected>日本語</option>
+              <option value="en">English</option>
+            </select>
+          </div>
 
           <!-- 時刻を表示(マップ画面のメニューボタン左に現在時刻を表示) -->
           <label class="toggle toggle-switch">
@@ -277,26 +276,20 @@
     </div>
   </div>
 
-  <!-- 設定モーダル(マーカー / 画像解像度) -->
+  <!-- マーカーの設定モーダル(マップ画面メニューから表示) -->
   <div class="modal" id="settingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="settingsTitle">設定</h2>
+        <h2 id="settingsTitle">マーカーの設定</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
       </header>
       <div class="modal-body">
-        <section class="settings-section" data-section="marker">
-          <h3 class="settings-section-title">マーカーの設定</h3>
+        <section class="settings-section">
           <div class="marker-settings-list" id="markerSettingsList"></div>
           <div class="marker-settings-actions">
             <button type="button" class="btn btn-secondary" id="btnResetMarkerSettings">規定値に戻す</button>
           </div>
-        </section>
-
-        <section class="settings-section" data-section="image">
-          <h3 class="settings-section-title">撮影画像の解像度の設定</h3>
-          <p class="placeholder-message">この機能は準備中です。</p>
         </section>
       </div>
     </div>

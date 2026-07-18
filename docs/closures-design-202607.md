@@ -292,7 +292,7 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 
 - **ポップアップ**: 名称（`name`／無ければ `id`）・種別・理由・補足・更新日を表示
   （すべて `escapeHtml` で XSS 対策）。
-- **バージョン表示**: 「設定と情報」モーダルの「バージョン情報」に、現在反映されている通行止めデータの
+- **バージョン表示**: 「バージョン情報等」モーダルの「バージョン情報」に、現在反映されている通行止めデータの
   `version` を表示する。
 - スタイルは `MARKER_TYPES`（`closureClosed` / `closureDifficult`）の既定値を「マーカーの設定」で
   変更できる。`map.js` は設定未適用時のフォールバック `CLOSURE_FALLBACK_STYLES` を持つ。
@@ -319,7 +319,7 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 | `public/map.js` | `setClosureGeoJSON`/`setClosuresVisible`/`buildClosureLayer`、`setClosureClosedStyle`/`setClosureDifficultStyle`（マーカー設定連動、既定は `CLOSURE_FALLBACK_STYLES`）、ポップアップ（escapeHtml） |
 | `public/closures.js`（app.js から分離） | `?closure=true` 検出、編集パネル（読み込み/反映/公開/キャンセル）、`loadClosures`（API→静的→localStorage フォールバック＋自己修復）、公開 POST（失敗時 E01〜E05 案内・バックアップ保存） |
 | `public/service-worker.js` | `/api/closures` を network-first + `closures-cache`（パス判定・`no-cache`） |
-| `public/index.html` | ホームの「通行止め・通行困難地点」ボタン（既定 hidden）、編集パネル、「設定と情報」モーダルのバージョン・件数表示欄 |
+| `public/index.html` | ホームの「通行止め・通行困難地点」ボタン（既定 hidden）、編集パネル、「バージョン情報等」モーダルのバージョン・件数表示欄 |
 | Vercel 設定 | Blob ストア接続（`BLOB_READ_WRITE_TOKEN` 自動）、環境変数 `CLOSURES_PUBLISH_TOKEN` |
 
 ---

@@ -7,6 +7,9 @@ export const MARKER_SETTINGS_KEY = 'minoh-hiking.marker-settings';
 export const VERSION_STORAGE_KEY = 'minoh-hiking.tile-manifest-version';
 export const MESSAGE_LOG_KEY = 'minoh-hiking.message-log';
 export const STARTUP_UPDATE_CHECK_KEY = 'minoh-hiking.startup-update-check';
+// 表示言語(「言語/Language」ドロップダウン)。'ja'(日本語・既定) / 'en'(English)。
+// 現状は選択値の保存のみで、表示言語の切替は今後実装する。
+export const LANGUAGE_KEY = 'minoh-hiking.language';
 
 // ===== sessionStorage キー =====
 // MapGPS から ?closure=true 付きで起動されたことをタブ単位で保持する。
