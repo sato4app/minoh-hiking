@@ -49,8 +49,8 @@
       <button type="button" class="home-btn" id="btnOpenDownload">地図のダウンロード（オフライン用）</button>
       <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
       <button type="button" class="home-btn" id="btnClosureEdit" hidden>通行止め・通行困難地点</button>
+      <button type="button" class="home-btn" id="btnOpenInfo">バージョン等の情報</button>
       <button type="button" class="home-btn" id="btnOpenSettings">設定</button>
-      <button type="button" class="home-btn" id="btnOpenInfo">情報</button>
     </nav>
   </section>
 
@@ -178,35 +178,6 @@
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
       </header>
       <div class="modal-body">
-        <!-- ===== マップ表示の切替(旧: マップ画面メニューから移動) ===== -->
-        <section class="info-section">
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleClock" checked />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text">時刻を表示</span>
-          </label>
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleEmergencyPoints" checked />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text">緊急ポイントを表示</span>
-          </label>
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleHikingRoutes" checked />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text">ハイキングルートを表示</span>
-          </label>
-          <!-- データ件数(表示状態に関わらず常に読み込み値を表示)。
-               ポイント=緊急ポイント、ルート・スポット=ハイキングデータ。ルート中間点は含めない。 -->
-          <div class="feature-counts" aria-label="データ件数">
-            <span class="feature-count-head">ポイント</span>
-            <span class="feature-count-head">ルート</span>
-            <span class="feature-count-head">スポット</span>
-            <span class="feature-count-value" id="countPoints">-</span>
-            <span class="feature-count-value" id="countRoutes">-</span>
-            <span class="feature-count-value" id="countSpots">-</span>
-          </div>
-        </section>
-
         <!-- ===== 設定項目(詳細設定モーダルを開く) ===== -->
         <section class="info-section">
           <div class="info-section-actions">
@@ -218,19 +189,26 @@
     </div>
   </div>
 
-  <!-- 情報モーダル(起動画面の「情報」から表示) -->
+  <!-- バージョン等の情報モーダル(起動画面の「バージョン等の情報」から表示) -->
   <div class="modal" id="infoSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="infoSettingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="infoSettingsTitle">情報</h2>
+        <h2 id="infoSettingsTitle">バージョン等の情報</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
       </header>
       <div class="modal-body">
-        <!-- ===== 情報 ===== -->
+        <!-- ===== バージョン等の情報 ===== -->
         <section class="info-section">
 
-          <!-- 起動時にアプリの更新版を確認(設定から移動) -->
+          <!-- 時刻を表示(マップ画面のメニューボタン左に現在時刻を表示) -->
+          <label class="toggle toggle-switch">
+            <input type="checkbox" id="toggleClock" checked />
+            <span class="toggle-slider" aria-hidden="true"></span>
+            <span class="toggle-text">時刻を表示</span>
+          </label>
+
+          <!-- 起動時にアプリの更新版を確認 -->
           <label class="toggle toggle-switch">
             <input type="checkbox" id="toggleStartupUpdateCheck" />
             <span class="toggle-slider" aria-hidden="true"></span>
@@ -245,20 +223,16 @@
           </label>
           <div class="info-collapse" id="infoVersionBody">
             <div class="info-row">
-              <span class="info-label">アプリ名：</span>
-              <span class="info-value">箕面ハイキングマップ</span>
-            </div>
-            <div class="info-row">
               <span class="info-label">
                 地図バージョン：
-                <span class="info-sublabel">（ダウンロード対象地図：タイルマニフェスト）</span>
+                <span class="info-sublabel">（ダウンロード対象とする地図タイルの指定）</span>
               </span>
               <span class="info-value" id="versionManifest">-</span>
             </div>
             <div class="info-row">
               <span class="info-label">
                 アプリバージョン：
-                <span class="info-sublabel">（アプリシェル）</span>
+                <span class="info-sublabel">（緊急ポイント・ハイキングルート等を含む）</span>
               </span>
               <span class="info-value" id="versionAppShell">-</span>
             </div>
@@ -266,6 +240,14 @@
             <div class="info-row">
               <span class="info-label">通行止め・通行困難地点：</span>
               <span class="info-value" id="versionClosures">-</span>
+            </div>
+            <!-- データ件数: 各項目の件数を横一列で表示(未読込は "-")。
+                 ポイント=緊急ポイント、ルート・スポット=ハイキングデータ、通行止め=反映中データ。 -->
+            <div class="feature-counts-line" aria-label="データ件数">
+              <span class="feature-count-item">ポイント <span class="feature-count-value" id="countPoints">-</span></span>
+              <span class="feature-count-item">ルート <span class="feature-count-value" id="countRoutes">-</span></span>
+              <span class="feature-count-item">スポット <span class="feature-count-value" id="countSpots">-</span></span>
+              <span class="feature-count-item">通行止め <span class="feature-count-value" id="countClosures">-</span></span>
             </div>
           </div>
 
@@ -295,11 +277,11 @@
               <span class="info-value">箕面ハイキングマップ</span>
             </div>
             <div class="info-row">
-              <span class="info-label">参照先URL:</span>
-              <span class="info-value info-value-url" id="currentUrl">-</span>
+              <span class="info-label">URL:</span>
+              <span class="info-value info-value-url">https://minoh-hiking.vercel.app/</span>
             </div>
             <div class="info-row">
-              <span class="info-label">開発者・クレジット等:</span>
+              <span class="info-label">contributors:</span>
               <span class="info-value">仕様検討中</span>
             </div>
           </div>

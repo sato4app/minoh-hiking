@@ -481,25 +481,24 @@ body.view-state-nav .leaflet-control-container {
   margin: 0.4rem 0;
 }
 
-/* データ件数(ポイント/ルート/スポット): 列タイトル + 値を3列右寄せで表示。
-   1行目が列タイトル、2行目が件数。表示トグルの状態に依らず常に表示する。 */
-.feature-counts {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  column-gap: 0.6rem;
-  row-gap: 0.1rem;
+/* データ件数(ポイント/ルート/スポット/通行止め):
+   「バージョン等の情報」のバージョン情報内に、各項目を横一列で表示する。 */
+.feature-counts-line {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
   margin: 0.2rem 0.75rem 0.4rem;
+  white-space: nowrap;
 }
 
-.feature-count-head {
-  text-align: right;
-  font-size: 0.8rem;
+.feature-count-item {
+  font-size: 0.85rem;
   color: #555;
 }
 
 .feature-count-value {
-  text-align: right;
   font-size: 0.9rem;
+  color: #222;
   font-variant-numeric: tabular-nums;
 }
 
@@ -966,7 +965,7 @@ body.view-state-nav .leaflet-control-container {
   word-break: break-all;
 }
 
-/* ===== 設定と情報モーダル: セクション ===== */
+/* ===== 「バージョン等の情報」・設定モーダル: セクション ===== */
 .info-section {
   padding: 0.5rem 1rem 1rem;
   border-bottom: 1px solid #eee;
@@ -1014,7 +1013,7 @@ body.view-state-nav .leaflet-control-container {
   padding: 0.5rem 1.5rem;
 }
 
-/* 情報モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
+/* 「バージョン等の情報」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
 .info-collapse .message-list {
   flex: none;
   max-height: 240px;

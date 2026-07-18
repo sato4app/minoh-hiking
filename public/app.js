@@ -64,7 +64,7 @@ const el = {
   // 設定モーダル(起動画面の「設定」から表示)
   homeSettingsModal: document.getElementById('homeSettingsModal'),
 
-  // 情報モーダル(起動画面の「情報」から表示)
+  // バージョン等の情報モーダル(起動画面の「バージョン等の情報」から表示)
   infoSettingsModal: document.getElementById('infoSettingsModal'),
   toggleStartupUpdateCheck: document.getElementById('toggleStartupUpdateCheck'),
   btnInfoOpenMarkerSettings: document.getElementById('btnInfoOpenMarkerSettings'),
@@ -75,7 +75,6 @@ const el = {
   infoMessagesBody: document.getElementById('infoMessagesBody'),
   toggleInfoAbout: document.getElementById('toggleInfoAbout'),
   infoAboutBody: document.getElementById('infoAboutBody'),
-  currentUrl: document.getElementById('currentUrl'),
   versionManifest: document.getElementById('versionManifest'),
   versionAppShell: document.getElementById('versionAppShell'),
   // 通行止め・通行困難地点のバージョン表示欄(バージョン情報内)
@@ -87,12 +86,11 @@ const el = {
   mapLayerPanel: document.getElementById('mapLayerPanel'),
   mapClock: document.getElementById('mapClock'),
   toggleClock: document.getElementById('toggleClock'),
-  toggleEmergencyPoints: document.getElementById('toggleEmergencyPoints'),
-  toggleHikingRoutes: document.getElementById('toggleHikingRoutes'),
-  // データ件数表示(ポイント/ルート/スポット)
+  // データ件数表示(ポイント/ルート/スポット/通行止め)
   countPoints: document.getElementById('countPoints'),
   countRoutes: document.getElementById('countRoutes'),
   countSpots: document.getElementById('countSpots'),
+  countClosures: document.getElementById('countClosures'),
   // 現在地点の表示・地図追従トグル(移動経路を記録の上に配置)
   toggleCurrentMarker: document.getElementById('toggleCurrentMarker'),
   toggleCenterCurrent: document.getElementById('toggleCenterCurrent'),
@@ -158,15 +156,16 @@ async function init() {
   // マーカースタイルは保存済み設定(無ければ config.js の既定値)を初期描画に反映。
   const markerSettings = readMarkerSettings();
   loadEmergencyPointsLayer(EMERGENCY_URL, markerSettings.emergency).then(() => {
-    if (currentView === 'map') setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
+    if (currentView === 'map') setEmergencyPointsVisible(true);
     updateFeatureCounts();
   });
   loadHikingRoutesLayer(HIKING_ROUTES_URL, markerSettings.hikingRoute, markerSettings.spot).then(() => {
-    if (currentView === 'map') setHikingRoutesVisible(el.toggleHikingRoutes.checked);
+    if (currentView === 'map') setHikingRoutesVisible(true);
     updateFeatureCounts();
   });
   loadClosures().then(() => {
     if (currentView === 'map') setClosuresVisible(true);
+    updateFeatureCounts();
   });
   setTrackStyle(markerSettings.track);
   setTrackStartStyle(markerSettings.trackStart);
@@ -492,7 +491,7 @@ function bindEvents() {
   el.btnClosureApply.addEventListener('click', applyClosureData);
   el.btnClosurePublish.addEventListener('click', publishClosureData);
   el.btnClosureCancel.addEventListener('click', () => cancelClosureEdit());
-  // 起動画面の「設定」ボタンは設定モーダル、「情報」ボタンは情報モーダルを表示
+  // 起動画面の「設定」ボタンは設定モーダル、「バージョン等の情報」ボタンは同名モーダルを表示
   el.btnOpenSettings.addEventListener('click', openHomeSettingsModal);
   el.btnOpenInfo.addEventListener('click', openInfoSettingsModal);
 
@@ -542,10 +541,8 @@ function bindEvents() {
       }
     });
   }
-  // 時刻表示トグル: ON でメニューボタンの左に現在時刻を表示
+  // 時刻表示トグル(「バージョン等の情報」内): ON でメニューボタンの左に現在時刻を表示
   el.toggleClock.addEventListener('change', (e) => setClockVisible(e.target.checked));
-  el.toggleEmergencyPoints.addEventListener('change', (e) => setEmergencyPointsVisible(e.target.checked));
-  el.toggleHikingRoutes.addEventListener('change', (e) => setHikingRoutesVisible(e.target.checked));
   // 現在地点をマーカー表示: 現在地マーカー(青丸)・精度円の表示/非表示を切替
   el.toggleCurrentMarker.addEventListener('change', (e) => setCurrentMarkerVisible(e.target.checked));
   // 現在地点は中央に表示: 地図を現在地へ追従させるか切替
@@ -664,13 +661,15 @@ function setClockVisible(on) {
 }
 
 // ===== データ件数表示 =====
-// 読み込んだポイント/ルート/スポットの件数をパネルに反映(未読込は "-")。
-// 表示トグルの状態に依らず、常に実データの件数を表示する。
+// 読み込んだポイント/ルート/スポット/通行止めの件数を
+// 「バージョン等の情報」のバージョン情報内に横一列で反映(未読込は "-")。
 function updateFeatureCounts() {
   const c = getFeatureCounts();
   el.countPoints.textContent = c.points == null ? '-' : String(c.points);
   el.countRoutes.textContent = c.routes == null ? '-' : String(c.routes);
   el.countSpots.textContent = c.spots == null ? '-' : String(c.spots);
+  // 通行止め・通行困難地点: 現在反映されているデータの件数
+  el.countClosures.textContent = activeClosureData ? String(activeClosureData.features.length) : '-';
 }
 
 // ===== ビュー切替 =====
@@ -692,9 +691,9 @@ function showView(name) {
     el.btnMapLayers.hidden = false;
     el.btnMapLayers.style.display = '';
 
-    // マップビュー: 緊急ポイント・ハイキングルート・通行止め等を表示(トグル状態に従う)
-    setEmergencyPointsVisible(el.toggleEmergencyPoints.checked);
-    setHikingRoutesVisible(el.toggleHikingRoutes.checked);
+    // マップビュー: 緊急ポイント・ハイキングルート・通行止め等を常に表示
+    setEmergencyPointsVisible(true);
+    setHikingRoutesVisible(true);
     setClosuresVisible(true);
     // マップビューに入ったら現在地監視を開始。表示/追従はメニュートグルの状態に従う。
     // 先に監視を有効化してから各トグル状態を反映する(再表示の無駄打ちを避ける)。
@@ -732,15 +731,12 @@ function showView(name) {
 
 // ===== モーダル =====
 // 設定モーダル(起動画面の「設定」から表示)
-// マップ表示の切替(時刻/緊急ポイント/ハイキングルート)とデータ件数、
-// および詳細設定(マーカー/撮影画像の解像度)への入口をまとめる。
+// 詳細設定(マーカー/撮影画像の解像度)への入口をまとめる。
 function openHomeSettingsModal() {
-  // 件数は読み込み完了時に反映済みだが、開いた時点の最新値で表示を整える
-  updateFeatureCounts();
   el.homeSettingsModal.hidden = false;
 }
 
-// 情報モーダル(起動画面の「情報」から表示)
+// バージョン等の情報モーダル(起動画面の「バージョン等の情報」から表示)
 async function openInfoSettingsModal() {
   // 起動時の更新確認トグルを現在の設定値で初期化
   el.toggleStartupUpdateCheck.checked = readStartupUpdateCheckEnabled();
@@ -754,13 +750,13 @@ async function openInfoSettingsModal() {
   el.infoAboutBody.hidden = true;
 
   // バージョン情報を反映
-  // 参照先URL: 現在表示しているページのURL(クエリ・ハッシュを除いた本体)
-  el.currentUrl.textContent = location.origin + location.pathname;
   el.versionManifest.textContent = getManifestVersion() || '不明';
   const shell = (await getCachedAppShellVersion()) || '不明';
   el.versionAppShell.textContent = shell;
   // 通行止め・通行困難地点: 現在反映されているデータのバージョン
   el.versionClosures.textContent = getClosureVersion() || '-';
+  // データ件数(ポイント/ルート/スポット/通行止め)を開いた時点の最新値で反映
+  updateFeatureCounts();
 
   // 履歴は開いたときにすぐ見えるよう事前に描画しておく
   renderMessageList();
@@ -772,7 +768,7 @@ async function openInfoSettingsModal() {
   checkUpdatesFromInfoModal();
 }
 
-// 設定と情報モーダルを開いたときの更新チェック。
+// 「バージョン等の情報」モーダルを開いたときの更新チェック。
 // 「バージョン情報」トグルがオンのとき、地図タイルとアプリ(アプリシェル)の
 // バージョンをサイトの最新と比較し、新しいものがあればそれぞれ別の confirm で案内する。
 // メッセージ表示・更新処理は update.js に集約している。
