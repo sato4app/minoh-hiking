@@ -14,10 +14,10 @@
 
 | 項目 | ドラフト（202606） | 実装（本書 202607） |
 |------|--------------------|---------------------|
-| 公開方式 | P2（API+Blob）を提案 | **P2 を採用・実装**（P1 の `publish-closures.bat` は非常用に残置） |
+| 公開方式 | P2（API+Blob）を提案 | **P2 を採用・実装**（P1 の git 公開スクリプトは安全性の観点から**廃止・削除**） |
 | 運用者UI | `?preview=closures` の preview モード | **`?closure=true` の編集パネル**（preview モードは未実装・不採用） |
 | 公開/非公開の区別 | 各地点の `status`（draft/published） | **`status` は廃止。** トップレベル `version` によるファイル**全置換**で公開 |
-| 端末反映と公開 | 取り込み→検証→公開 | **「マップに反映」（端末のみ）** と **「公開」（全ユーザー）** の2段構え |
+| 端末反映と公開 | 取り込み→検証→公開 | **「マップに反映」（端末のみ）** と **「公開」（ユーザー）** の2段構え |
 | マーカー | `MARKER_TYPES` に追加（色変更可） | **固定スタイル**（closed=赤ひし形 / difficult=橙三角）。ユーザー設定対象外 |
 | 表示トグル | 「通行止めを表示」トグル（既定ON） | 専用トグルは設けず、**マップ表示時は常時表示** |
 | 履歴 | 対象外 | **公開時に Blob へ履歴スナップショットを保存** |
@@ -48,9 +48,9 @@
 | 用語 | 意味 |
 |------|------|
 | closures | 本機能で扱う通行止め・通行困難地点の総称 |
-| 公開ストア | 全ユーザーの端末が取得しに行く共有の保存先（**Vercel Blob**） |
+| 公開ストア | ユーザーの端末が取得しに行く共有の保存先（**Vercel Blob**） |
 | マップに反映 | 読み込んだ geojson を**この端末のみ**に反映（localStorage 保存） |
-| 公開 | 反映済みデータを公開 API へ送信し、**全ユーザー**へ配信（Blob 全置換） |
+| 公開 | 反映済みデータを公開 API へ送信し、**ユーザー**へ配信（Blob 全置換） |
 | version | データのバージョン（トップレベル・必須）。更新のたびに変える |
 
 ---
@@ -60,8 +60,8 @@
 ### 2.1 検討した選択肢と結論
 | 案 | 内容 | 採否 |
 |----|------|------|
-| アプリシェル同梱 | 既存 geojson と同様に同梱 | ✕ 変更ごとに再デプロイ＋全ユーザー更新が必要で重い |
-| P1: 1コマンド git 公開 | スクリプトで commit→push→自動デプロイ | △ **非常用に残置**（ブラウザからは実行不可） |
+| アプリシェル同梱 | 既存 geojson と同様に同梱 | ✕ 変更ごとに再デプロイ＋ユーザー更新が必要で重い |
+| P1: 1コマンド git 公開 | スクリプトで commit→push→自動デプロイ | ✕ **廃止・削除**（ブラウザから実行不可＋push権限を配る運用が安全上不適） |
 | **P2: 同一プロジェクトの公開API** | Vercel Function 経由で公開ストア（Blob）へ保存 | **◎ 採用・実装** |
 | P3: Firebase | Firestore に保存＝公開 | ✕ Firebase 不使用のため対象外 |
 
@@ -70,13 +70,15 @@
   「スマホのブラウザだけで、ボタン一つで全公開」という要件を満たす唯一の方式。
 - 外部サービス依存ではなく**自プロジェクト（Vercel）自身の Function** であり、データ更新は
   **git / deploy を一切経由しない**。運用担当者の端末に git は不要。
-- 静的ホスティングの PWA で全ユーザーに見せるには、全端末が取得しに行く**共有の置き場**が必須。
+- 静的ホスティングの PWA でユーザーに見せるには、全端末が取得しに行く**共有の置き場**が必須。
   P2 は自配信元（Vercel Blob）をその置き場とし、運用担当者の操作を1ボタンに包む。
 
 ### 2.3 P1 → P2 の移行経緯
 当初（2026-07-15）は P1（`publish-closures.bat` による git 公開）で実装したが、
 運用要件が「git・PC 作業をなくし、スマホのブラウザだけで公開完結」に変わり、
-2026-07-16 に P2（API + Blob）へ移行した。P1 のスクリプトは**公開 API 障害時の非常用**として残す。
+2026-07-16 に P2（API + Blob）へ移行した。P1 のスクリプト（`publish-closures.bat` /
+`publish-closures.ps1`）は、push 権限を運用端末に配る必要があり安全上不適なため、
+その後**廃止・削除**した（公開 API 障害時は 5章 の「公開」再試行と、失敗時のバックアップ保存で対応）。
 
 ---
 
@@ -97,14 +99,14 @@
     ▼
 [公開ストア：Vercel Blob]  closures/minoh-hiking-closure.geojson
     ▲ GET /api/closures（認証不要・no-store・CORS *）
-    │   Blob 未作成時は同デプロイの静的ファイルへフォールバック
+    │   Blob 未作成・取得失敗時は空の FeatureCollection を返す
 [一般ユーザーの端末：本PWA]
     └ 起動時に取得して全地点を地図に描画
        （オフライン時は SW の closures-cache = 最終取得を表示）
 ```
 
 - 一般ユーザーには**公開された全地点をそのまま表示**する（`status` による絞り込みは行わない）。
-- 「マップに反映」は**その端末だけ**、「公開」で**全ユーザー**、という2段構え。
+- 「マップに反映」は**その端末だけ**、「公開」で**ユーザー**、という2段構え。
 
 ---
 
@@ -114,8 +116,9 @@
 - 既存 `minoh-hiking-routes-spots.geojson` とは**別ファイル**。
 - 本番の配信元は**公開 API（`GET /api/closures`）**＝ Vercel Blob。
 - **アプリシェル（`SHELL_CACHE`）には同梱しない**（再デプロイ・更新プロンプト無しで反映するため）。
-- 同梱の静的ファイル `public/data/minoh-hiking-closure.geojson` は、**初回公開前・API 障害時の
-  フォールバック**としてのみ使用（git 管理）。
+- 同梱の静的ファイルは**廃止・削除済み**（2026-07-18）。P2 移行後は公開のたびに更新する経路が
+  無く陳腐化するだけのため。API 不達時は SW の `closures-cache`（最終取得）が代替し、
+  それも無ければ表示なし（古い情報を出すより安全）。
 
 ### 4.2 GeoJSON スキーマ（実装）
 FeatureCollection。各 Feature は Point。
@@ -144,7 +147,7 @@ geometry: `{ "type": "Point", "coordinates": [経度, 緯度(, 標高)] }`
 
 > **ドラフト（202606）からの変更:** 各地点の `status`（draft/published）と、Feature の必須
 > `type: "closure"` は**廃止**した。公開/非公開はトップレベル `version` による**ファイル全置換**で表す
-> （公開されたファイル内の地点はすべて全ユーザーに表示される）。
+> （公開されたファイル内の地点はすべてユーザーに表示される）。
 
 ### 4.3 例
 ```json
@@ -202,10 +205,8 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 
 ### 5.3 GET の挙動
 1. `head(BLOB_PATH)` で Blob の存在を確認し、あればユニーククエリ付きで本体を取得して返す。
-2. Blob 未作成（初回公開前）や失敗時は、**同デプロイの静的ファイル**
-   `https://{host}/data/minoh-hiking-closure.geojson` を取得して返す（`x-forwarded-host`/`host` から組立）。
-3. どちらも取れない場合も `200` で空の `FeatureCollection`（`version: ""`, `features: []`）を返す
-   （アプリの表示を止めない）。
+2. Blob 未作成・取得失敗時は `200` で空の `FeatureCollection`（`version: ""`, `features: []`）を返す
+   （アプリの表示を止めない）。静的ファイルへのフォールバックは廃止（→ §4.1）。
 - ヘッダ: `Cache-Control: no-store` / `Content-Type: application/geo+json; charset=utf-8`。
 
 ### 5.4 POST の挙動（公開）
@@ -235,9 +236,8 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
   オフライン時はキャッシュ（最終取得）を返す。fetch は **`cache: 'no-cache'`** で
   HTTP キャッシュを再検証させる（公開直後でも最新を取得するため）。
 - SW は `/api/closures` を**オリジンに依らずパス判定**で処理する（GitHub Pages 版が
-  Vercel 本番の絶対 URL を叩くケースに対応）。同梱静的ファイルのパスも同様にキャッシュ対象。
-- install 時に静的フォールバックファイルを `closures-cache` に取り込み（初回オフライン対策）、
-  activate 時は `closures-cache` と `gsi-*` を保持（旧 `app-shell-*` のみ掃除）。
+  Vercel 本番の絶対 URL を叩くケースに対応）。
+- activate 時は `closures-cache` と `gsi-*` を保持（旧 `app-shell-*` のみ掃除）。
 - アプリ側は取得できた配信データと localStorage の「マップに反映」データを **version で突合**し、
   一致すれば localStorage を削除する**自己修復**を行う（公開完了後に素直に配信版へ戻す）。
 
@@ -261,24 +261,25 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 | バージョン入力 | 新しい version を入力する欄（現在値と異なる値にすると「マップに反映」が押せる） |
 | ファイル読み込み | geojson を選択し、地図に**プレビュー表示**（未反映。JSON/形式を一次検証） |
 | マップに反映 | 入力 version を付与して **localStorage（`minoh-hiking.closure-data`）に保存**。この端末のみに反映 |
-| 公開 | 反映済みデータを `POST /api/closures` で全ユーザーへ公開 |
+| 公開 | 反映済みデータを `POST /api/closures` でユーザーへ公開 |
 | キャンセル | 未反映の読み込みを破棄し、反映済み表示に戻す（マップ画面を離れると自動キャンセル） |
 
 - **「マップに反映」の活性条件**: ファイル読み込み済み、かつ version が現在値から変更されている。
 - **「公開」**: 反映済みデータが必要。0 件公開時は「全地点が消える」旨の**警告付き確認**を表示。
   公開トークンは初回に `prompt` で入力して localStorage（`minoh-hiking.closure-publish-token`）に保存し、
   `401`（トークン誤り）時は削除して再入力を促す。
-- **公開失敗時**: ダイアログから**非常用の公開ファイル**（`minoh-hiking-closure.geojson`）を
-  ダウンロードでき、PC 上の `publish-closures.bat`（P1）で git 経由公開に切り替えられる。
+- **公開失敗時**: 失敗メッセージは**エラーコード（E01〜E05）付き**で表示し、運用担当者が
+  開発担当者へコードを伝えるだけで切り分けできる（分類は運用手順書 §9）。あわせて編集内容を
+  **端末にバックアップ保存**でき（`minoh-hiking-closure.geojson`）、やり直し・開発担当者への連携に使える。
 
 ### 7.3 端末反映と公開の関係
-- ファイル読み込み＝プレビュー（未反映）、マップに反映＝この端末のみ、公開＝全ユーザー、の3段階。
+- ファイル読み込み＝プレビュー（未反映）、マップに反映＝この端末のみ、公開＝ユーザー、の3段階。
 - 「公開」は反映済みデータ（`version` 付き）に対して行う。バージョンは各端末の
   「新しいデータが来た」判定に使うため、更新のたびに必ず変える。
 
 ---
 
-## 8. 表示UI（全ユーザー）
+## 8. 表示UI（ユーザー）
 
 - **表示タイミング**: マップ表示（map ビュー）中は**常時表示**する（専用の表示トグルは設けない）。
   ホーム／ナビビューでは非表示。
@@ -312,11 +313,11 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 
 | ファイル | 実装内容 |
 |----------|----------|
-| `api/closures.js`（新規） | GET/POST。トークン認証（timing-safe）・スキーマ検証・Blob 全置換保存・履歴スナップショット・静的フォールバック |
-| `public/config.js` | closures 用キー（`CLOSURE_FLAG_KEY`/`CLOSURE_DATA_KEY`/`CLOSURE_TOKEN_KEY`）、`CLOSURE_URL`（静的）、`CLOSURE_API_URL`（GitHub Pages 時は Vercel 絶対 URL、他は相対） |
+| `api/closures.js`（新規） | GET/POST。トークン認証（timing-safe）・スキーマ検証・Blob 全置換保存・履歴スナップショット |
+| `public/config.js` | closures 用キー（`CLOSURE_FLAG_KEY`/`CLOSURE_DATA_KEY`/`CLOSURE_TOKEN_KEY`）、`CLOSURE_FILE_NAME`（バックアップ保存のファイル名）、`CLOSURE_API_URL`（GitHub Pages 時は Vercel 絶対 URL、他は相対） |
 | `public/map.js` | `setClosureGeoJSON`/`setClosuresVisible`/`buildClosureLayer`、固定 `CLOSURE_STYLES`、ポップアップ（escapeHtml） |
-| `public/app.js` | `?closure=true` 検出、編集パネル（読み込み/反映/公開/キャンセル）、`loadClosures`（API→静的→localStorage フォールバック＋自己修復）、公開 POST・非常用ダウンロード |
-| `public/service-worker.js` | `/api/closures` を network-first + `closures-cache`（パス判定・`no-cache`）、静的フォールバックの取り込み・保持 |
+| `public/app.js` | `?closure=true` 検出、編集パネル（読み込み/反映/公開/キャンセル）、`loadClosures`（API→静的→localStorage フォールバック＋自己修復）、公開 POST（失敗時 E01〜E05 案内・バックアップ保存） |
+| `public/service-worker.js` | `/api/closures` を network-first + `closures-cache`（パス判定・`no-cache`） |
 | `public/index.html` | ホームの「通行止め・通行困難地点」ボタン（既定 hidden）、編集パネル、情報モーダルのバージョン表示欄 |
 | Vercel 設定 | Blob ストア接続（`BLOB_READ_WRITE_TOKEN` 自動）、環境変数 `CLOSURES_PUBLISH_TOKEN` |
 
@@ -353,7 +354,7 @@ P2 では **「コード」と「実データ」で GitHub の扱いが正反対
 
 **運用上の注意**
 - **再デプロイで実データは消えない**（実データはリポジトリ外の Blob にあるため）。
-- 同梱静的ファイルは**フォールバック専用**。本番取得元が API である点と区別する。
+- データの取得元は**公開 API のみ**（同梱静的ファイルは廃止済み → §4.1）。
 - 履歴は Blob の履歴スナップショットで保持（git には求めない。P1 発想への逆戻りを避ける）。
 
 ---

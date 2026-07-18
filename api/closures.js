@@ -1,8 +1,7 @@
 // 通行止め・通行困難地点(closures)の公開API(Vercel Function)
 //
 // - GET  /api/closures: 公開ストア(Vercel Blob)の最新 geojson を返す(認証不要)。
-//   Blob 未作成(初回公開前)は、同デプロイの静的ファイル
-//   public/data/minoh-hiking-closure.geojson の内容を返し、移行を途切れさせない。
+//   Blob 未作成・取得失敗時は空の FeatureCollection を返す(アプリ表示を止めない)。
 // - POST /api/closures: 公開トークン(x-publish-token ヘッダ)を検証し、
 //   受け取った geojson を Blob へ全置換保存する(あわせて履歴スナップショットも保存)。
 //
@@ -19,9 +18,6 @@ import { head, put } from '@vercel/blob';
 // Blob 上の保存パス(全置換の対象)と履歴スナップショットの置き場
 const BLOB_PATH = 'closures/minoh-hiking-closure.geojson';
 const HISTORY_PREFIX = 'closures/history/';
-
-// 初回公開前のフォールバック(同デプロイの git 管理ファイル)
-const STATIC_FALLBACK_PATH = '/data/minoh-hiking-closure.geojson';
 
 // 座標の妥当範囲(箕面エリア周辺・広めに取る)。範囲外は入力ミスとして 400 にする
 const LON_RANGE = [135.2, 135.8];
@@ -50,16 +46,16 @@ export default async function handler(req, res) {
 
 // ===== GET: 最新データの配信 =====
 async function handleGet(req, res) {
-  // 全ユーザーが常にフレッシュ取得する(キャッシュは端末側の Service Worker が担う)
+  // ユーザーが常にフレッシュ取得する(キャッシュは端末側の Service Worker が担う)
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('Content-Type', 'application/geo+json; charset=utf-8');
 
-  const body = await readPublishedGeoJSON() ?? await readStaticFallback(req);
+  const body = await readPublishedGeoJSON();
   if (body !== null) {
     res.status(200).send(body);
     return;
   }
-  // どちらも取れない場合も 200 で空を返す(アプリ側の表示を止めない)
+  // Blob 未作成・取得失敗時も 200 で空を返す(アプリ側の表示を止めない)
   res.status(200).send(JSON.stringify({ type: 'FeatureCollection', version: '', features: [] }));
 }
 
@@ -75,20 +71,6 @@ async function readPublishedGeoJSON() {
   const blobRes = await fetch(`${meta.url}?_=${Date.now()}`, { cache: 'no-store' });
   if (!blobRes.ok) return null;
   return blobRes.text();
-}
-
-// 同デプロイの静的ファイル(git 管理・移行前の公開データ)を返す。失敗時は null
-async function readStaticFallback(req) {
-  const host = req.headers['x-forwarded-host'] || req.headers.host;
-  if (!host) return null;
-  const proto = req.headers['x-forwarded-proto'] || 'https';
-  try {
-    const staticRes = await fetch(`${proto}://${host}${STATIC_FALLBACK_PATH}`);
-    if (!staticRes.ok) return null;
-    return await staticRes.text();
-  } catch {
-    return null;
-  }
 }
 
 // ===== POST: 公開(全置換保存) =====

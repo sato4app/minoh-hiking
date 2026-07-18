@@ -22,7 +22,7 @@ import {
 } from './map.js';
 import {
   TOAST_DURATION_SEC, EMERGENCY_URL, HIKING_ROUTES_URL,
-  CLOSURE_FLAG_KEY, CLOSURE_URL, CLOSURE_DATA_KEY,
+  CLOSURE_FLAG_KEY, CLOSURE_FILE_NAME, CLOSURE_DATA_KEY,
   CLOSURE_API_URL, CLOSURE_TOKEN_KEY
 } from './config.js';
 import { logHistory, renderMessageList, clearMessageLog } from './messages.js';
@@ -212,8 +212,8 @@ function readAppliedClosureData() {
 // - 一致: 「公開」が完了しているのでサーバー側を正とし、
 //   localStorage を削除する(以降の公開が素直に反映されるようにする自己修復)
 // - 不一致: 未公開の反映データとして localStorage を優先する
-// API に届かないとき(GitHub Pages 単体運用・API 障害等)は同梱の静的ファイルへ
-// フォールバックする(オフライン時は SW の closures-cache が最終取得を返す)。
+// API に届かないとき(オフライン等)は SW の closures-cache が最終取得を返す。
+// それも無い場合は表示なしとする(古い情報を出すより安全)。
 async function loadClosures() {
   let served = null;
   try {
@@ -224,13 +224,6 @@ async function loadClosures() {
     served = await res.json();
   } catch (apiErr) {
     console.warn('通行止め・通行困難地点の公開API読込失敗:', apiErr);
-    try {
-      const res = await fetch(CLOSURE_URL, { cache: 'no-cache' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      served = await res.json();
-    } catch (err) {
-      console.warn('通行止め・通行困難地点GeoJSON読込失敗:', err);
-    }
   }
   const applied = readAppliedClosureData();
   let data = served;
@@ -314,7 +307,7 @@ function updateClosureApplyEnabled() {
 }
 
 // マップに反映: 読み込んだ geojson を新しいバージョンとしてこの端末に保存する。
-// 全ユーザーへの公開は、続けて「公開」ボタン(公開APIへの送信)で行う。
+// ユーザーへの公開は、続けて「公開」ボタン(公開APIへの送信)で行う。
 function applyClosureData() {
   if (!loadedClosureData) return;
   const version = el.closureVersionInput.value.trim();
@@ -342,11 +335,11 @@ function applyClosureData() {
   // パネルは閉じずに残し、続けて「公開」を押せるようにする
   alert(
     `バージョン ${version}(${count} 件)をこの端末のマップに反映しました。\n` +
-    '全ユーザーへ公開するには、続けて「公開」を押してください。'
+    'ユーザーへ公開するには、続けて「公開」を押してください。'
   );
 }
 
-// 公開: 反映済みデータを公開API(POST /api/closures)へ送信し、全ユーザーへ公開する。
+// 公開: 反映済みデータを公開API(POST /api/closures)へ送信し、ユーザーへ公開する。
 // git・PC は不要で、スマホ/タブレットのブラウザだけで完結する。
 // 公開トークンは初回に入力してこの端末に保存する(認証失敗時は削除して再入力を促す)。
 async function publishClosureData() {
@@ -361,7 +354,7 @@ async function publishClosureData() {
   }
   const count = data.features.length;
   const emptyWarn = count === 0 ? '\n【注意】0 件のため、公開中の全地点が地図から消えます。' : '';
-  if (!confirm(`バージョン ${data.version}(${count} 件)を全ユーザーへ公開します。よろしいですか?${emptyWarn}`)) {
+  if (!confirm(`バージョン ${data.version}(${count} 件)をユーザーへ公開します。よろしいですか?${emptyWarn}`)) {
     return;
   }
   let token = localStorage.getItem(CLOSURE_TOKEN_KEY) || '';
@@ -376,13 +369,46 @@ async function publishClosureData() {
       headers: { 'Content-Type': 'application/json', 'x-publish-token': token },
       body: JSON.stringify(data)
     });
+    // 失敗時はエラーコード(E01〜E05)付きで案内する。運用担当者が開発担当者へ
+    // コードを伝えるだけで原因を切り分けられるようにする(運用手順書 §9)。
     if (res.status === 401) {
+      // E01: 入力した公開トークンが違う。運用担当者が再入力で解決できる
       localStorage.removeItem(CLOSURE_TOKEN_KEY);
-      alert('公開トークンが正しくありません。もう一度「公開」を押して入力し直してください。');
+      alert(
+        '【E01】公開トークンが正しくありません。\n\n' +
+        'もう一度「公開」を押して、正しいトークンを入力してください。\n' +
+        'トークンが分からないときは、開発担当者に確認してください。'
+      );
       return;
     }
     if (!res.ok) {
-      alert(`公開に失敗しました: ${await readApiError(res)}`);
+      const detail = await readApiError(res);
+      if (res.status === 400) {
+        // E03: 送信データの不備。データ(geojson)側を直せば解決できる
+        alert(
+          '【E03】公開データに不備があります。\n\n' +
+          `理由: ${detail}\n\n` +
+          'バージョンを変えたか、地点の座標・IDが正しいかを確認し、\n' +
+          'データを作り直してからやり直してください。'
+        );
+        return;
+      }
+      if (res.status === 503) {
+        // E02: サーバー側の公開トークン未設定。操作では直らず開発担当者対応
+        alert(
+          '【E02】公開機能がサーバー側でまだ設定されていません。\n\n' +
+          'この画面の操作では直りません。\n' +
+          '開発担当者に「エラー E02(公開トークン未設定)」と伝えてください。'
+        );
+        return;
+      }
+      // E04: 公開ストア(Blob)への保存失敗。多くは時間をおくと回復。続く場合は開発担当者対応
+      alert(
+        '【E04】公開データの保存に失敗しました(サーバー側)。\n\n' +
+        `詳細: ${detail}\n\n` +
+        '少し時間をおいて、もう一度「公開」をお試しください。\n' +
+        '何度も続くときは、開発担当者に「エラー E04(公開ストア保存失敗)」と伝えてください。'
+      );
       offerEmergencyDownload(data);
       return;
     }
@@ -390,11 +416,16 @@ async function publishClosureData() {
     logHistory(`通行止め・通行困難地点を公開しました(バージョン ${data.version} / ${count} 件)`, 'success');
     exitClosureEditPanel();
     alert(
-      `バージョン ${data.version}(${count} 件)を全ユーザーへ公開しました。\n` +
+      `バージョン ${data.version}(${count} 件)をユーザーへ公開しました。\n` +
       '各端末には次回のマップ表示時に反映されます。'
     );
   } catch (err) {
-    alert(`公開に失敗しました(通信エラー): ${err.message}`);
+    // E05: API に接続できない(通信断・CORS・サーバー障害など)
+    alert(
+      '【E05】公開サーバーに接続できませんでした(通信エラー)。\n\n' +
+      'まず通信状況(電波・Wi-Fi)を確認して、もう一度お試しください。\n' +
+      `続くときは、開発担当者に「エラー E05(通信エラー): ${err.message}」と伝えてください。`
+    );
     offerEmergencyDownload(data);
   } finally {
     el.btnClosurePublish.disabled = false;
@@ -410,19 +441,14 @@ async function readApiError(res) {
   return `HTTP ${res.status}`;
 }
 
-// 非常用: API で公開できないとき、従来の publish-closures.bat 用ファイルを
-// ダウンロードして git 経由の公開手段を残す
+// 公開に失敗したとき、編集内容を端末に保存できるようにする(作業のやり直し防止・
+// 開発担当者への連携用のバックアップ)。公開自体はあくまで「公開」ボタン(API)で行う。
 function offerEmergencyDownload(data) {
   if (!confirm(
-    `非常用の公開ファイル ${closureFileName()} をダウンロードしますか?\n` +
-    '(PC でリポジトリ直下の publish-closures.bat を実行すると git 経由で公開できます)'
+    `今回のデータをこの端末に保存しますか?(ファイル名: ${CLOSURE_FILE_NAME})\n` +
+    '保存しておくと、あとで公開をやり直したり、開発担当者に渡して調べてもらえます。'
   )) return;
   downloadClosureFile(data);
-}
-
-// 公開用ファイル名(配信ファイルと同名にして publish-closures.bat が取り込めるようにする)
-function closureFileName() {
-  return CLOSURE_URL.split('/').pop();
 }
 
 // 反映した geojson を公開用にダウンロードする
@@ -431,7 +457,7 @@ function downloadClosureFile(data) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = closureFileName();
+  a.download = CLOSURE_FILE_NAME;
   a.click();
   // click 直後の revoke はダウンロード開始前に無効化される場合があるため遅延させる
   setTimeout(() => URL.revokeObjectURL(url), 10000);

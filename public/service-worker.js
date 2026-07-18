@@ -14,15 +14,13 @@
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-07-16.1';
+const SHELL_CACHE = 'app-shell-2026-07-18.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 通行止め・通行困難地点: 公開のたびに変わるためシェルに含めず、
 // network-first + 専用キャッシュで配信する(オフライン時は最終取得を返す)。
-// 本命は公開API(/api/closures、Vercel Function + Blob)で、静的ファイルは
-// 初回公開前・API障害時のフォールバック(アプリ側が順に取得する)。
+// 取得元は公開API(/api/closures、Vercel Function + Blob)のみ。
 const CLOSURE_CACHE = 'closures-cache';
-const CLOSURE_PATH = './data/minoh-hiking-closure.geojson';
 const CLOSURE_API_PATH = '/api/closures';
 
 // 同一オリジンの相対パス
@@ -71,10 +69,6 @@ self.addEventListener('install', (event) => {
           })
         )
       );
-      // closures はシェルに含めない(network-first)が、初回オフラインに備えて
-      // インストール時に一度取得して専用キャッシュへ入れておく
-      const closureCache = await caches.open(CLOSURE_CACHE);
-      await closureCache.add(CLOSURE_PATH).catch(() => { });
       await self.skipWaiting();
     })()
   );
@@ -137,12 +131,6 @@ self.addEventListener('fetch', (event) => {
     const reqPath = url.pathname; // 例: "/index.html" "/data/tile_manifest.json" "/"
     const swDir = self.location.pathname.replace(/[^/]*$/, ''); // 例: "/" or "/foo/"
 
-    // 通行止め・通行困難地点: 公開後すぐ反映されるよう network-first
-    if (reqPath === swDir + CLOSURE_PATH.replace(/^\.\//, '')) {
-      event.respondWith(handleClosureRequest(req));
-      return;
-    }
-
     const isShell = SHELL_LOCAL_PATHS.some((p) => {
       const expected = swDir + p.replace(/^\.\//, '');
       // "./" は SW スコープ直下を表す(末尾スラッシュで一致)
@@ -160,9 +148,8 @@ self.addEventListener('fetch', (event) => {
 // 通行止め・通行困難地点の取得: network-first + 専用キャッシュ。
 // オンライン時は常に最新を取得して closures-cache を更新し、
 // 取得できないとき(オフライン等)は最後に取得した内容を返す。
-// cache: 'no-cache' でブラウザHTTPキャッシュを再検証させる。これが無いと
-// Cache-Control(vercel.json の /data/* は max-age=3600)やヒューリスティック
-// キャッシュにより、公開後も古い内容が返り続ける。
+// cache: 'no-cache' でブラウザHTTPキャッシュを再検証させる(ヒューリスティック
+// キャッシュ等で公開後も古い内容が返り続けるのを防ぐ)。
 async function handleClosureRequest(req) {
   const cache = await caches.open(CLOSURE_CACHE);
   try {

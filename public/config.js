@@ -20,7 +20,7 @@ export const CLOSURE_FLAG_KEY = 'minoh-hiking.closure-flag';
 export const APP_UPDATED_FLAG_KEY = 'minoh-hiking.app-updated';
 
 // 「マップに反映」で適用した通行止め・通行困難地点データ(geojson の JSON 文字列)。
-// 保存があれば同梱の CLOSURE_URL より優先して読み込む(この端末のみに反映される)。
+// 保存があれば公開API の配信内容より優先して読み込む(この端末のみに反映される)。
 export const CLOSURE_DATA_KEY = 'minoh-hiking.closure-data';
 
 // 「公開」ボタンで使う公開トークン(運用担当者が初回に入力し、その端末にのみ保存)。
@@ -31,8 +31,9 @@ export const CLOSURE_TOKEN_KEY = 'minoh-hiking.closure-publish-token';
 export const MANIFEST_URL = 'data/tile_manifest.json';
 export const EMERGENCY_URL = 'data/minoh-emergency-points.geojson';
 export const HIKING_ROUTES_URL = 'data/minoh-hiking-routes-spots.geojson';
-// 通行止め・通行困難地点の静的ファイル(初回公開前・API 障害時のフォールバック)
-export const CLOSURE_URL = 'data/minoh-hiking-closure.geojson';
+// 通行止め・通行困難地点のファイル名(公開失敗時のバックアップ保存で使用。
+// Blob 上の配信ファイル名と同じにそろえる)
+export const CLOSURE_FILE_NAME = 'minoh-hiking-closure.geojson';
 
 // 通行止め・通行困難地点の公開API(Vercel Function + Blob)。
 // 公開ストアは Vercel 側にあるため、GitHub Pages 版アプリからは Vercel 本番の

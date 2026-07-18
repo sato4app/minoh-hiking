@@ -102,11 +102,11 @@
   **他オリジンの localStorage を読めない**ため、`*` でもトークンは盗めない（＝ CORS 単体での悪用は成立しない）。
 - **対策:** 現状維持で可。厳格化したいなら、POST 応答の許可オリジンを本番ドメインに限定することは可能（GET は `*` のまま）。
 
-### R7【低】readStaticFallback が Host ヘッダで fetch 先を組み立てる
-- **内容:** Blob 未作成時、`x-forwarded-host` / `host` から `https://{host}/data/minoh-hiking-closure.geojson` を取得する（[api/closures.js の readStaticFallback](../api/closures.js#L80)）。
-- **影響:** Vercel はこれらのヘッダをプラットフォーム側で設定するため通常は問題ないが、
-  もしヘッダ注入が可能な経路があれば、**固定パスの GET を別ホストに向ける軽微な SSRF**になり得る（応答は呼び出し元へ返るだけ）。
-- **対策:** フォールバック先ホストを**環境変数で固定**するか、許可ホストの allowlist で照合する。影響は小さいため優先度は低い。
+### R7【解消済み】readStaticFallback が Host ヘッダで fetch 先を組み立てる
+- **内容:** Blob 未作成時、`x-forwarded-host` / `host` から `https://{host}/data/minoh-hiking-closure.geojson` を取得していた（旧 `readStaticFallback`）。
+- **影響:** もしヘッダ注入が可能な経路があれば、**固定パスの GET を別ホストに向ける軽微な SSRF**になり得た。
+- **対応（2026-07-18）:** 静的フォールバック自体を廃止し、`readStaticFallback` と同梱ファイル
+  `public/data/minoh-hiking-closure.geojson` を削除した。**本リスクは解消**（GET は Blob 取得のみ）。
 
 ### R8【低】トークン入力が prompt()（平文表示）
 - **内容:** 初回のトークン入力に `prompt()` を使用（[app.js](../public/app.js)）。入力文字が画面に見える。
