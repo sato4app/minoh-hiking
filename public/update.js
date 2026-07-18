@@ -65,7 +65,7 @@ export async function checkAppShellUpdate() {
 }
 
 // アプリ更新の confirm を表示し、OK なら最新へ更新(再読み込み)する。
-// 起動時・「バージョン等の情報」モーダルの両方から呼べる共通処理。
+// 起動時・「設定と情報」モーダルの両方から呼べる共通処理。
 // confirm を表示したら true、対象なし(初回/取得失敗/最新)なら false を返す。
 export async function promptAppShellUpdate() {
   const [cached, latest] = await Promise.all([

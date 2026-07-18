@@ -56,15 +56,11 @@ const el = {
 
   // ホーム
   btnOpenDownload: document.getElementById('btnOpenDownload'),
-  btnOpenSettings: document.getElementById('btnOpenSettings'),
-  btnOpenInfo: document.getElementById('btnOpenInfo'),
+  btnOpenSettingsInfo: document.getElementById('btnOpenSettingsInfo'),
   // 通行止め・通行困難地点(MapGPS からの起動時のみ表示)
   btnClosureEdit: document.getElementById('btnClosureEdit'),
 
-  // 設定モーダル(起動画面の「設定」から表示)
-  homeSettingsModal: document.getElementById('homeSettingsModal'),
-
-  // バージョン等の情報モーダル(起動画面の「バージョン等の情報」から表示)
+  // 設定と情報モーダル(起動画面の「設定と情報」から表示)
   infoSettingsModal: document.getElementById('infoSettingsModal'),
   toggleStartupUpdateCheck: document.getElementById('toggleStartupUpdateCheck'),
   btnInfoOpenMarkerSettings: document.getElementById('btnInfoOpenMarkerSettings'),
@@ -491,9 +487,8 @@ function bindEvents() {
   el.btnClosureApply.addEventListener('click', applyClosureData);
   el.btnClosurePublish.addEventListener('click', publishClosureData);
   el.btnClosureCancel.addEventListener('click', () => cancelClosureEdit());
-  // 起動画面の「設定」ボタンは設定モーダル、「バージョン等の情報」ボタンは同名モーダルを表示
-  el.btnOpenSettings.addEventListener('click', openHomeSettingsModal);
-  el.btnOpenInfo.addEventListener('click', openInfoSettingsModal);
+  // 起動画面の「設定と情報」ボタンは設定と情報モーダルを表示
+  el.btnOpenSettingsInfo.addEventListener('click', openSettingsInfoModal);
 
   // 設定: 起動時の更新確認トグル(localStorage に保存)
   el.toggleStartupUpdateCheck.addEventListener('change', (e) => {
@@ -541,7 +536,7 @@ function bindEvents() {
       }
     });
   }
-  // 時刻表示トグル(「バージョン等の情報」内): ON でメニューボタンの左に現在時刻を表示
+  // 時刻表示トグル(「設定と情報」内): ON でメニューボタンの左に現在時刻を表示
   el.toggleClock.addEventListener('change', (e) => setClockVisible(e.target.checked));
   // 現在地点をマーカー表示: 現在地マーカー(青丸)・精度円の表示/非表示を切替
   el.toggleCurrentMarker.addEventListener('change', (e) => setCurrentMarkerVisible(e.target.checked));
@@ -662,7 +657,7 @@ function setClockVisible(on) {
 
 // ===== データ件数表示 =====
 // 読み込んだポイント/ルート/スポット/通行止めの件数を
-// 「バージョン等の情報」のバージョン情報内に横一列で反映(未読込は "-")。
+// 「設定と情報」のバージョン情報内に横一列で反映(未読込は "-")。
 function updateFeatureCounts() {
   const c = getFeatureCounts();
   el.countPoints.textContent = c.points == null ? '-' : String(c.points);
@@ -730,14 +725,10 @@ function showView(name) {
 }
 
 // ===== モーダル =====
-// 設定モーダル(起動画面の「設定」から表示)
-// 詳細設定(マーカー/撮影画像の解像度)への入口をまとめる。
-function openHomeSettingsModal() {
-  el.homeSettingsModal.hidden = false;
-}
-
-// バージョン等の情報モーダル(起動画面の「バージョン等の情報」から表示)
-async function openInfoSettingsModal() {
+// 設定と情報モーダル(起動画面の「設定と情報」から表示)。
+// 設定(マーカー/撮影画像の解像度への入口)を上、情報(時刻表示・更新確認・
+// バージョン情報・メッセージ履歴・このアプリについて)を下に配置する。
+async function openSettingsInfoModal() {
   // 起動時の更新確認トグルを現在の設定値で初期化
   el.toggleStartupUpdateCheck.checked = readStartupUpdateCheckEnabled();
 
@@ -768,7 +759,7 @@ async function openInfoSettingsModal() {
   checkUpdatesFromInfoModal();
 }
 
-// 「バージョン等の情報」モーダルを開いたときの更新チェック。
+// 「設定と情報」モーダルを開いたときの更新チェック。
 // 「バージョン情報」トグルがオンのとき、地図タイルとアプリ(アプリシェル)の
 // バージョンをサイトの最新と比較し、新しいものがあればそれぞれ別の confirm で案内する。
 // メッセージ表示・更新処理は update.js に集約している。

@@ -482,7 +482,7 @@ body.view-state-nav .leaflet-control-container {
 }
 
 /* データ件数(ポイント/ルート/スポット/通行止め):
-   「バージョン等の情報」のバージョン情報内に、各項目を横一列・右詰めで表示する。 */
+   「設定と情報」のバージョン情報内に、各項目を横一列・右詰めで表示する。 */
 .feature-counts-line {
   display: flex;
   flex-wrap: nowrap;
@@ -966,7 +966,7 @@ body.view-state-nav .leaflet-control-container {
   word-break: break-all;
 }
 
-/* ===== 「バージョン等の情報」・設定モーダル: セクション ===== */
+/* ===== 「設定と情報」モーダル: セクション ===== */
 .info-section {
   padding: 0.5rem 1rem 1rem;
   border-bottom: 1px solid #eee;
@@ -1014,7 +1014,7 @@ body.view-state-nav .leaflet-control-container {
   padding: 0.5rem 1.5rem;
 }
 
-/* 「バージョン等の情報」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
+/* 「設定と情報」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
 .info-collapse .message-list {
   flex: none;
   max-height: 240px;

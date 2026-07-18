@@ -1,6 +1,6 @@
 // メッセージ履歴モジュール
 // 主要な操作・状態(起動時のバージョン確認、地図のダウンロード、移動記録の開始・終了など)を
-// localStorage に蓄積し、「バージョン等の情報」モーダルの「メッセージ履歴の表示」で一覧表示する。
+// localStorage に蓄積し、「設定と情報」モーダルの「メッセージ履歴の表示」で一覧表示する。
 
 import { MESSAGE_LOG_KEY, MESSAGE_LOG_MAX } from './config.js';
 
@@ -10,7 +10,7 @@ const el = {
   infoMessagesBody: document.getElementById('infoMessagesBody')
 };
 
-// 履歴に1件追加する。「バージョン等の情報」モーダルで履歴を表示中なら即時再描画する。
+// 履歴に1件追加する。「設定と情報」モーダルで履歴を表示中なら即時再描画する。
 export function logHistory(text, level) {
   if (!text) return;
   const log = readMessageLog();

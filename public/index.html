@@ -49,8 +49,7 @@
       <button type="button" class="home-btn" id="btnOpenDownload">地図のダウンロード（オフライン用）</button>
       <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
       <button type="button" class="home-btn" id="btnClosureEdit" hidden>通行止め・通行困難地点</button>
-      <button type="button" class="home-btn" id="btnOpenInfo">バージョン等の情報</button>
-      <button type="button" class="home-btn" id="btnOpenSettings">設定</button>
+      <button type="button" class="home-btn" id="btnOpenSettingsInfo">設定と情報</button>
     </nav>
   </section>
 
@@ -169,12 +168,12 @@
     </div>
   </div>
 
-  <!-- 設定モーダル(起動画面の「設定」から表示) -->
-  <div class="modal" id="homeSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="homeSettingsTitle">
+  <!-- 設定と情報モーダル(起動画面の「設定と情報」から表示)。設定を上、情報を下に配置 -->
+  <div class="modal" id="infoSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="infoSettingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="homeSettingsTitle">設定</h2>
+        <h2 id="infoSettingsTitle">設定と情報</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
       </header>
       <div class="modal-body">
@@ -185,20 +184,8 @@
             <button type="button" class="btn btn-secondary" id="btnInfoOpenImageSettings">撮影画像の解像度の設定</button>
           </div>
         </section>
-      </div>
-    </div>
-  </div>
 
-  <!-- バージョン等の情報モーダル(起動画面の「バージョン等の情報」から表示) -->
-  <div class="modal" id="infoSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="infoSettingsTitle">
-    <div class="modal-backdrop" data-close-modal></div>
-    <div class="modal-panel" role="document">
-      <header class="modal-header">
-        <h2 id="infoSettingsTitle">バージョン等の情報</h2>
-        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
-      </header>
-      <div class="modal-body">
-        <!-- ===== バージョン等の情報 ===== -->
+        <!-- ===== 情報 ===== -->
         <section class="info-section">
 
           <!-- 時刻を表示(マップ画面のメニューボタン左に現在時刻を表示) -->
