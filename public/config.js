@@ -69,8 +69,8 @@ export const MARKER_TYPES = [
   { key: 'routeGuide', label: 'ルート案内写真', color: '#2563EB', shape: 'square', size: 12 },
   { key: 'spot', label: 'スポット', color: '#1E90FF', shape: 'square', size: 10 },
   // 通行止め・通行困難地点(closures)。kind=closed / difficult に対応
-  { key: 'closureClosed', label: '通行止め', color: '#DC2626', shape: 'x', size: 16 },
-  { key: 'closureDifficult', label: '通行困難地点', color: '#F59E0B', shape: 'triangle', size: 12 },
+  { key: 'closureClosed', label: '通行止め', color: '#DC2626', shape: 'x', size: 10 },
+  { key: 'closureDifficult', label: '通行困難地点', color: '#F59E0B', shape: 'triangle', size: 16 },
   // トラック関連(表示順はトラックの上)。色はトラックと同じ既定値。
   { key: 'trackStart', label: 'トラック開始点', color: '#000080', shape: 'square', size: 12 },
   { key: 'trackCurrent', label: 'トラック現在地点', color: '#000080', shape: 'triangle', size:16 },
