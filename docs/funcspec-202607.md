@@ -383,7 +383,7 @@ minoh-hiking/
 |-------------|------|------|
 | `gsi-{version}` | 地理院標準地図タイル | キャッシュ優先（明示DLでのみ書込、自動書込なし）。全 `gsi-*` を横断検索 |
 | `app-shell-<version>` | アプリシェル（HTML/CSS/JS、CDN、GeoJSON、tile_manifest.json） | 同一オリジン: stale-while-revalidate / CDN: cache-first |
-| `closures-cache` | 通行止め地点（公開API応答／同梱フォールバック） | network-first（オンライン時に最新取得しキャッシュ更新、オフライン時はキャッシュ） |
+| `closures-cache` | 通行止め地点（公開API応答） | network-first（オンライン時に最新取得しキャッシュ更新、オフライン時はキャッシュ） |
 
 - タイルは version 変更後も旧キャッシュを保持し、引き続き利用可能。
 - アクティベート時は現行シェルキャッシュ以外の `app-shell-*`（旧版）のみ削除し、`gsi-*` と
@@ -495,8 +495,7 @@ minoh-hiking/
 
 ### 12.1 Service Worker
 - インストール時にアプリシェル資産（同一オリジン + CDN）をキャッシュ。CDNの一部取得失敗は
-  許容して継続。あわせて通行止めの同梱ファイルを `closures-cache` に取り込む（初回オフライン対策）。
-  `skipWaiting` で即時待機解除。
+  許容して継続。`skipWaiting` で即時待機解除。
 - アプリからの `SKIP_WAITING` メッセージで即アクティベート。
 - fetch はリクエスト種別で分岐:
   - 通行止め公開API（`/api/closures`）: network-first（オンラインで最新取得し `closures-cache` を更新、

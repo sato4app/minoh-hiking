@@ -1,7 +1,7 @@
 # 通行止め・通行困難地点 表示・公開機能 設計書（実装済み版）
 
-**バージョン:** 0.2
-**最終更新日:** 2026年7月16日
+**バージョン:** 0.3
+**最終更新日:** 2026年7月18日
 **ステータス:** 実装済み（**P2: Vercel Function + Vercel Blob**）
 **関連:** [運用手順 `closures-operations-202607.md`](closures-operations-202607.md) / [セキュリティレビュー `closures-security-review-202607.md`](closures-security-review-202607.md) / [機能仕様書 `funcspec-202607.md`](funcspec-202607.md)
 
@@ -292,7 +292,7 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 
 - **ポップアップ**: 名称（`name`／無ければ `id`）・種別・理由・補足・更新日を表示
   （すべて `escapeHtml` で XSS 対策）。
-- **バージョン表示**: 情報モーダルの「バージョン情報」に、現在反映されている通行止めデータの
+- **バージョン表示**: 「設定と情報」モーダルの「バージョン情報」に、現在反映されている通行止めデータの
   `version` を表示する。
 - スタイルは `map.js` の `CLOSURE_STYLES` に固定で持ち、`MARKER_TYPES`（設定変更可能なマーカー）には含めない。
 
@@ -318,7 +318,7 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 | `public/map.js` | `setClosureGeoJSON`/`setClosuresVisible`/`buildClosureLayer`、固定 `CLOSURE_STYLES`、ポップアップ（escapeHtml） |
 | `public/app.js` | `?closure=true` 検出、編集パネル（読み込み/反映/公開/キャンセル）、`loadClosures`（API→静的→localStorage フォールバック＋自己修復）、公開 POST（失敗時 E01〜E05 案内・バックアップ保存） |
 | `public/service-worker.js` | `/api/closures` を network-first + `closures-cache`（パス判定・`no-cache`） |
-| `public/index.html` | ホームの「通行止め・通行困難地点」ボタン（既定 hidden）、編集パネル、情報モーダルのバージョン表示欄 |
+| `public/index.html` | ホームの「通行止め・通行困難地点」ボタン（既定 hidden）、編集パネル、「設定と情報」モーダルのバージョン・件数表示欄 |
 | Vercel 設定 | Blob ストア接続（`BLOB_READ_WRITE_TOKEN` 自動）、環境変数 `CLOSURES_PUBLISH_TOKEN` |
 
 ---
@@ -373,3 +373,4 @@ P2 では **「コード」と「実データ」で GitHub の扱いが正反対
 |------|-----------|------|
 | 2026-06-20 | 0.1（ドラフト） | 設計検討ドラフト（P2 提案・preview モード・`status` フラグ案）。※本ドラフト文書は廃止（内容は git 履歴に保存） |
 | 2026-07-16 | 0.2 | 実装済み（as-built）版に更新。P2（Vercel Function + Blob）採用、`?closure=true` 編集パネル、`version` ベース全置換（`status` 廃止）、固定マーカースタイル、常時表示、履歴スナップショット、timing-safe 認証、GitHub Pages 絶対 URL を反映 |
+| 2026-07-18 | 0.3 | 旧 P1 スクリプト（publish-closures.bat/ps1）を安全性の観点から廃止・削除。同梱静的ファイルと静的フォールバック（API・アプリ・SW）を廃止し、配信を公開APIに一本化（GET は Blob 未取得時に空 FeatureCollection）。公開失敗メッセージをエラーコード（E01〜E05）付きに刷新し、失敗時のバックアップ保存に改称。呼称を「ユーザー」「開発担当者」に統一 |
