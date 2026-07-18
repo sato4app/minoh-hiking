@@ -18,7 +18,7 @@
 | 運用者UI | `?preview=closures` の preview モード | **`?closure=true` の編集パネル**（preview モードは未実装・不採用） |
 | 公開/非公開の区別 | 各地点の `status`（draft/published） | **`status` は廃止。** トップレベル `version` によるファイル**全置換**で公開 |
 | 端末反映と公開 | 取り込み→検証→公開 | **「マップに反映」（端末のみ）** と **「公開」（ユーザー）** の2段構え |
-| マーカー | `MARKER_TYPES` に追加（色変更可） | **固定スタイル**（closed=赤ひし形 / difficult=橙三角）。ユーザー設定対象外 |
+| マーカー | `MARKER_TYPES` に追加（色変更可） | **`MARKER_TYPES` に追加**（既定: closed=赤✖ 16px / difficult=橙三角 12px。マーカー設定で変更可。当初は固定スタイルだったが 2026-07-18 に設定対象化） |
 | 表示トグル | 「通行止めを表示」トグル（既定ON） | 専用トグルは設けず、**マップ表示時は常時表示** |
 | 履歴 | 対象外 | **公開時に Blob へ履歴スナップショットを保存** |
 
@@ -283,18 +283,19 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 
 - **表示タイミング**: マップ表示（map ビュー）中は**常時表示**する（専用の表示トグルは設けない）。
   ホーム／ナビビューでは非表示。
-- **マーカー（固定スタイル・ユーザー設定対象外）**:
+- **マーカー（既定スタイル。「マーカーの設定」で色・形・サイズを変更可能）**:
 
-  | 種別（`kind`） | 形状・色 |
-  |----------------|----------|
-  | closed（通行止め） | **赤いひし形**（`#DC2626` / size 14） |
-  | difficult（通行困難） | **橙色の三角**（`#F59E0B` / size 14） |
+  | 種別（`kind`） | 既定の形状・色 |
+  |----------------|----------------|
+  | closed（通行止め） | **赤い✖**（`#DC2626` / size 16） |
+  | difficult（通行困難） | **橙色の三角**（`#F59E0B` / size 12） |
 
 - **ポップアップ**: 名称（`name`／無ければ `id`）・種別・理由・補足・更新日を表示
   （すべて `escapeHtml` で XSS 対策）。
 - **バージョン表示**: 「設定と情報」モーダルの「バージョン情報」に、現在反映されている通行止めデータの
   `version` を表示する。
-- スタイルは `map.js` の `CLOSURE_STYLES` に固定で持ち、`MARKER_TYPES`（設定変更可能なマーカー）には含めない。
+- スタイルは `MARKER_TYPES`（`closureClosed` / `closureDifficult`）の既定値を「マーカーの設定」で
+  変更できる。`map.js` は設定未適用時のフォールバック `CLOSURE_FALLBACK_STYLES` を持つ。
 
 ---
 
@@ -315,8 +316,8 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 |----------|----------|
 | `api/closures.js`（新規） | GET/POST。トークン認証（timing-safe）・スキーマ検証・Blob 全置換保存・履歴スナップショット |
 | `public/config.js` | closures 用キー（`CLOSURE_FLAG_KEY`/`CLOSURE_DATA_KEY`/`CLOSURE_TOKEN_KEY`）、`CLOSURE_FILE_NAME`（バックアップ保存のファイル名）、`CLOSURE_API_URL`（GitHub Pages 時は Vercel 絶対 URL、他は相対） |
-| `public/map.js` | `setClosureGeoJSON`/`setClosuresVisible`/`buildClosureLayer`、固定 `CLOSURE_STYLES`、ポップアップ（escapeHtml） |
-| `public/app.js` | `?closure=true` 検出、編集パネル（読み込み/反映/公開/キャンセル）、`loadClosures`（API→静的→localStorage フォールバック＋自己修復）、公開 POST（失敗時 E01〜E05 案内・バックアップ保存） |
+| `public/map.js` | `setClosureGeoJSON`/`setClosuresVisible`/`buildClosureLayer`、`setClosureClosedStyle`/`setClosureDifficultStyle`（マーカー設定連動、既定は `CLOSURE_FALLBACK_STYLES`）、ポップアップ（escapeHtml） |
+| `public/closures.js`（app.js から分離） | `?closure=true` 検出、編集パネル（読み込み/反映/公開/キャンセル）、`loadClosures`（API→静的→localStorage フォールバック＋自己修復）、公開 POST（失敗時 E01〜E05 案内・バックアップ保存） |
 | `public/service-worker.js` | `/api/closures` を network-first + `closures-cache`（パス判定・`no-cache`） |
 | `public/index.html` | ホームの「通行止め・通行困難地点」ボタン（既定 hidden）、編集パネル、「設定と情報」モーダルのバージョン・件数表示欄 |
 | Vercel 設定 | Blob ストア接続（`BLOB_READ_WRITE_TOKEN` 自動）、環境変数 `CLOSURES_PUBLISH_TOKEN` |

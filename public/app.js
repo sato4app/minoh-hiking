@@ -16,7 +16,7 @@ import {
   initMap, resizeMap,
   loadEmergencyPointsLayer, setEmergencyPointsVisible,
   loadHikingRoutesLayer, setHikingRoutesVisible,
-  setClosuresVisible,
+  setClosuresVisible, setClosureClosedStyle, setClosureDifficultStyle,
   getFeatureCounts
 } from './map.js';
 import {
@@ -151,6 +151,10 @@ async function init() {
     if (currentView === 'map') setHikingRoutesVisible(true);
     updateFeatureCounts();
   });
+  // 通行止め・通行困難地点のマーカースタイルは読込前に設定しておく
+  // (setClosureGeoJSON でのレイヤー構築時に反映される)
+  setClosureClosedStyle(markerSettings.closureClosed);
+  setClosureDifficultStyle(markerSettings.closureDifficult);
   loadClosures().then(() => {
     if (currentView === 'map') setClosuresVisible(true);
     updateFeatureCounts();

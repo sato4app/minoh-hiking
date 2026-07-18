@@ -104,6 +104,14 @@ function shapeToSVG(shape, color, size) {
       return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><polygon points="${starPoints(s)}" fill="${color}" stroke="${stroke}" stroke-width="1"/></svg>`;
     case 'line':
       return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><line x1="1" y1="${c}" x2="${s - 1}" y2="${c}" stroke="${color}" stroke-width="${Math.max(2, Math.round(s / 3))}"/></svg>`;
+    case 'x': {
+      // ✖(バツ)。他形状の白縁取りに合わせ、白の太線を下に敷いてから色線を重ねる
+      const w = Math.max(2, Math.round(s / 5));
+      const lines = (sw, col) =>
+        `<line x1="1" y1="1" x2="${s - 1}" y2="${s - 1}" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>` +
+        `<line x1="${s - 1}" y1="1" x2="1" y2="${s - 1}" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>`;
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}">${lines(w + 2, stroke)}${lines(w, color)}</svg>`;
+    }
     default:
       return shapeToSVG('circle', color, size);
   }
@@ -212,15 +220,18 @@ export function setEmergencyPointsVisible(visible) {
 // ===== 通行止め・通行困難地点(closures) =====
 // データの取得(同梱ファイル / localStorage / 読み込みファイル)は closures.js 側が行い、
 // ここでは渡された GeoJSON の描画のみを担う。
-// kind で固定スタイルを分ける: closed(通行止め)=赤ひし形 / difficult(通行困難)=橙三角。
-const CLOSURE_STYLES = {
-  closed: { color: '#DC2626', shape: 'diamond', size: 14 },
-  difficult: { color: '#F59E0B', shape: 'triangle', size: 14 }
+// kind でスタイルを分ける: closed(通行止め)=赤✖ / difficult(通行困難)=橙三角(既定)。
+// スタイルはマーカー設定で変更可能(setClosureClosedStyle / setClosureDifficultStyle)。
+const CLOSURE_FALLBACK_STYLES = {
+  closed: { color: '#DC2626', shape: 'x', size: 16 },
+  difficult: { color: '#F59E0B', shape: 'triangle', size: 12 }
 };
 const CLOSURE_KIND_LABELS = { closed: '通行止め', difficult: '通行困難' };
 
 let closureGeoJSON = null;
 let closureLayer = null;
+let closureClosedStyle = null;
+let closureDifficultStyle = null;
 
 // 表示データを差し替える(初回読込・プレビュー・反映・キャンセル時の復元で共通)。
 // 表示中だった場合は差し替え後も表示を維持する。null で非表示・破棄。
@@ -235,7 +246,10 @@ function buildClosureLayer() {
   return L.geoJSON(closureGeoJSON, {
     filter: (feature) => feature.geometry?.type === 'Point',
     pointToLayer: (feature, latlng) => {
-      const style = CLOSURE_STYLES[feature.properties?.kind] || CLOSURE_STYLES.closed;
+      // kind が difficult 以外(closed・不明)は通行止めスタイルで描画する
+      const style = feature.properties?.kind === 'difficult'
+        ? (closureDifficultStyle || CLOSURE_FALLBACK_STYLES.difficult)
+        : (closureClosedStyle || CLOSURE_FALLBACK_STYLES.closed);
       return createPointMarker(latlng, style, 'custom-marker closure-marker');
     },
     onEachFeature: (feature, layer) => {
@@ -253,6 +267,23 @@ function buildClosureLayer() {
 
 export function setClosuresVisible(visible) {
   setLayerVisible(closureLayer, visible);
+}
+
+// 通行止め(kind=closed)マーカーのスタイル。表示中なら即時反映。
+export function setClosureClosedStyle(style) {
+  closureClosedStyle = style;
+  rebuildClosureLayer();
+}
+
+// 通行困難地点(kind=difficult)マーカーのスタイル。表示中なら即時反映。
+export function setClosureDifficultStyle(style) {
+  closureDifficultStyle = style;
+  rebuildClosureLayer();
+}
+
+function rebuildClosureLayer() {
+  if (!closureGeoJSON || !mapInstance) return;
+  closureLayer = replaceLayer(closureLayer, buildClosureLayer);
 }
 
 // ===== ハイキング(ルート+スポット) =====

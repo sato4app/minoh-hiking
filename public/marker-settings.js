@@ -7,7 +7,8 @@ import {
 } from './config.js';
 import {
   setEmergencyStyle,
-  setHikingRouteStyle, setHikingSpotStyle
+  setHikingRouteStyle, setHikingSpotStyle,
+  setClosureClosedStyle, setClosureDifficultStyle
 } from './map.js';
 import { setTrackStyle, setTrackStartStyle, setTrackCurrentStyle } from './geolocation.js';
 
@@ -121,6 +122,8 @@ function applyMarkerSettingToMap(key, style) {
   if (key === 'emergency') setEmergencyStyle(style);
   else if (key === 'hikingRoute') setHikingRouteStyle(style);
   else if (key === 'spot') setHikingSpotStyle(style);
+  else if (key === 'closureClosed') setClosureClosedStyle(style);
+  else if (key === 'closureDifficult') setClosureDifficultStyle(style);
   else if (key === 'track') setTrackStyle(style);
   else if (key === 'trackStart') setTrackStartStyle(style);
   else if (key === 'trackCurrent') setTrackCurrentStyle(style);
