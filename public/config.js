@@ -71,10 +71,10 @@ export const MARKER_TYPES = [
   // 通行止め・通行困難地点(closures)。kind=closed / difficult に対応
   { key: 'closureClosed', label: '通行止め地点', color: '#DC2626', shape: 'x', size: 10 },
   { key: 'closureDifficult', label: '通行困難地点', color: '#F59E0B', shape: 'triangle', size: 16 },
-  // トラック関連(表示順はトラックの上)。色はトラックと同じ既定値。
-  { key: 'trackStart', label: 'トラック開始点', color: '#000080', shape: 'square', size: 12 },
-  { key: 'trackCurrent', label: 'トラック現在地点', color: '#000080', shape: 'triangle', size:16 },
-  { key: 'track', label: '移動記録', color: '#000080', shape: 'line', size: 4 },
+  // 移動記録関連(表示順は移動記録経路の上)。色は移動記録経路と同じ既定値。
+  { key: 'trackStart', label: '移動記録開始点', color: '#000080', shape: 'square', size: 12 },
+  { key: 'trackCurrent', label: '移動記録現在地点', color: '#000080', shape: 'triangle', size:16 },
+  { key: 'track', label: '移動記録経路', color: '#000080', shape: 'line', size: 4 },
   { key: 'photoLocation', label: '写真撮影場所', color: '#000080', shape: 'star', size: 12 }
 ];
 

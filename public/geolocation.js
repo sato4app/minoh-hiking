@@ -1,4 +1,4 @@
-// 現在地表示 + 移動経路(トラック)記録モジュール(map.js から分離)
+// 現在地表示 + 移動記録(移動経路の記録)モジュール(map.js から分離)
 // Geolocation API による現在地マーカー + 精度円(現在地点を中心とする円)。
 // 精度円は常時表示せず、マップ表示への切替時・「現在地点をマーカー表示」ON 時に
 // 3秒間だけ表示する(requestCurrentCircleFlash / showTemporaryCircle)。
@@ -34,17 +34,17 @@ let lastKnownAccuracy = null;
 let locationErrorCb = null;
 let locationErrorReported = false;
 
-// トラック(移動経路)
+// 移動記録(移動経路)
 // 「移動した」の判定: 直近の記録点から 20m 以上離れたか、1 分以上経過した場合に記録
 const TRACK_MIN_DISTANCE_M = 20;
 const TRACK_MIN_INTERVAL_MS = 60 * 1000;
 let isRecordingTrack = false;
-let trackPolyline = null;        // 記録点を順に結ぶ線(トラック)
-let trackStartMarker = null;     // 開始地点マーカー(トラック開始点)
-let trackCurrentMarker = null;   // 最終記録地点マーカー(トラック現在地点・進行方向)
-let trackStyle = null;           // 線のスタイル(トラック)
-let trackStartStyle = null;      // 開始点マーカーのスタイル(トラック開始点)
-let trackCurrentStyle = null;    // 現在地点マーカーのスタイル(トラック現在地点)
+let trackPolyline = null;        // 記録点を順に結ぶ線(移動記録経路)
+let trackStartMarker = null;     // 開始地点マーカー(移動記録開始点)
+let trackCurrentMarker = null;   // 最終記録地点マーカー(移動記録現在地点・進行方向)
+let trackStyle = null;           // 線のスタイル(移動記録経路)
+let trackStartStyle = null;      // 開始点マーカーのスタイル(移動記録開始点)
+let trackCurrentStyle = null;    // 現在地点マーカーのスタイル(移動記録現在地点)
 let lastTrackLatLng = null;
 let lastTrackTimeMs = 0;
 
@@ -58,7 +58,7 @@ export function setTrackStyle(style) {
   }
 }
 
-// トラック開始点マーカーのスタイル。既存マーカーがあれば即時反映。
+// 移動記録開始点マーカーのスタイル。既存マーカーがあれば即時反映。
 export function setTrackStartStyle(style) {
   trackStartStyle = style;
   if (trackStartMarker) {
@@ -66,13 +66,13 @@ export function setTrackStartStyle(style) {
   }
 }
 
-// トラック現在地点マーカーのスタイル。既存マーカーがあれば即時反映(進行方向を再計算)。
+// 移動記録現在地点マーカーのスタイル。既存マーカーがあれば即時反映(進行方向を再計算)。
 export function setTrackCurrentStyle(style) {
   trackCurrentStyle = style;
   if (trackCurrentMarker) updateTrackCurrentMarker();
 }
 
-// トラック系マーカー用 divIcon を生成(map.js の共通関数に既定値を渡す薄いラッパー)
+// 移動記録系マーカー用 divIcon を生成(map.js の共通関数に既定値を渡す薄いラッパー)
 function buildShapeIcon(style, fallbackShape, rotationDeg = 0) {
   return buildMarkerIcon(style, {
     fallbackShape,
@@ -140,7 +140,7 @@ export function startTrackRecording() {
     }).addTo(map);
   }
   // 既に現在地が取得済なら、最初の点として打つ(待たずに描画開始する)。
-  // このとき現在地マーカーを青丸から三角(トラック現在地点)へ切り替える。
+  // このとき現在地マーカーを青丸から三角(移動記録現在地点)へ切り替える。
   if (currentLocationMarker) {
     const ll = currentLocationMarker.getLatLng();
     appendTrackPoint([ll.lat, ll.lng]);
@@ -184,7 +184,7 @@ export function getTrackStats() {
   return { pointCount, distanceM };
 }
 
-// トラック表示(線・開始点・現在地点)を全削除する。
+// 移動記録の表示(線・開始点・現在地点)を全削除する。
 // 「移動経路をクリア」ボタンからのみ呼び出す(トグル OFF では消さない)。
 export function clearTrack() {
   const map = getMap();
@@ -286,7 +286,7 @@ function onGeoSuccess(pos) {
   hasHadFirstFix = true;
 
   // 現在地マーカー(青丸): 「現在地点をマーカー表示」ON かつ 非記録中のみ表示。
-  // 記録中はライブ現在地を三角(トラック現在地点)で表すため青丸は出さない。
+  // 記録中はライブ現在地を三角(移動記録現在地点)で表すため青丸は出さない。
   if (showCurrentMarker && !isRecordingTrack) {
     showOrUpdateCurrentMarker(latlng);
   } else {

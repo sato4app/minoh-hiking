@@ -1,6 +1,6 @@
 // アプリのエントリポイント
 // - SPA ビュー切替(home / map / nav)+ 各モーダル
-// - 現在地・移動経路の記録操作(トラック)の取りまとめ
+// - 現在地・移動記録(移動経路の記録)の操作の取りまとめ
 // - 各機能モジュールの初期化と連携
 //
 // 機能別の実装は以下のモジュールに分離している:
@@ -458,7 +458,7 @@ function openSettingsModal(section) {
   el.settingsModal.hidden = false;
 }
 
-// ===== 移動経路(トラック)記録の取りまとめ =====
+// ===== 移動記録の取りまとめ =====
 // 移動経路を記録トグルの状態に応じて、操作ボタン群(記録開始/写真撮影/記録停止)の表示を切替
 function updateTrackButtonState(enabled) {
   if (el.mapTrackActions) el.mapTrackActions.hidden = !enabled;
@@ -490,7 +490,7 @@ function formatTrackSummary(stats) {
 }
 
 // 移動記録を開始(記録開始ボタン)。開始を履歴に残す。
-// 写真枚数や軌跡は「クリア」までトラックと共に保持するため、ここではリセットしない。
+// 写真枚数や軌跡は「クリア」まで移動記録と共に保持するため、ここではリセットしない。
 function beginTrackRecording() {
   startTrackRecording();
   setTrackRecordingActive(true);

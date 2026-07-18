@@ -131,7 +131,7 @@ function starPoints(s) {
   return pts.join(' ');
 }
 
-// マーカー用 divIcon を生成する共通関数(ポイント系・トラック系マーカーで共用)。
+// マーカー用 divIcon を生成する共通関数(ポイント系・移動記録系マーカーで共用)。
 // style の欠損値は fallback で補い、rotationDeg を与えると中心まわりに回転する。
 export function buildMarkerIcon(style, {
   fallbackShape = 'circle',
@@ -223,8 +223,8 @@ export function setEmergencyPointsVisible(visible) {
 // kind でスタイルを分ける: closed(通行止め)=赤✖ / difficult(通行困難)=橙三角(既定)。
 // スタイルはマーカー設定で変更可能(setClosureClosedStyle / setClosureDifficultStyle)。
 const CLOSURE_FALLBACK_STYLES = {
-  closed: { color: '#DC2626', shape: 'x', size: 16 },
-  difficult: { color: '#F59E0B', shape: 'triangle', size: 12 }
+  closed: { color: '#DC2626', shape: 'x', size: 10 },
+  difficult: { color: '#F59E0B', shape: 'triangle', size: 16 }
 };
 const CLOSURE_KIND_LABELS = { closed: '通行止め', difficult: '通行困難' };
 
