@@ -482,10 +482,11 @@ body.view-state-nav .leaflet-control-container {
 }
 
 /* データ件数(ポイント/ルート/スポット/通行止め):
-   「バージョン等の情報」のバージョン情報内に、各項目を横一列で表示する。 */
+   「バージョン等の情報」のバージョン情報内に、各項目を横一列・右詰めで表示する。 */
 .feature-counts-line {
   display: flex;
   flex-wrap: nowrap;
+  justify-content: flex-end;
   gap: 0.75rem;
   margin: 0.2rem 0.75rem 0.4rem;
   white-space: nowrap;
