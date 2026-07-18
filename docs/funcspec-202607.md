@@ -39,11 +39,13 @@ minoh-hiking/
 ├── public/
 │   ├── index.html              # 単一HTML（全ビュー・モーダルを内包）
 │   ├── style.css               # スタイルシート
-│   ├── app.js                  # エントリポイント（ビュー切替・DL・設定・履歴・通行止め編集）
-│   ├── map.js                  # Leaflet地図・オーバーレイ・現在地/トラック
+│   ├── app.js                  # エントリポイント（ビュー切替・モーダル・記録操作の取りまとめ）
+│   ├── map.js                  # Leaflet地図・オーバーレイ描画
+│   ├── geolocation.js          # 現在地表示・移動経路（トラック）の記録
+│   ├── closures.js             # 通行止め・通行困難地点の表示・編集・公開
 │   ├── tiles.js                # オフライン地図DL・マニフェスト・更新バナー
 │   ├── update.js               # アプリシェルの更新確認
-│   ├── messages.js             # メッセージ履歴
+│   ├── messages.js             # メッセージ履歴・トースト
 │   ├── marker-settings.js      # マーカーの色・形状・サイズ設定
 │   ├── db.js                   # IndexedDB（ダウンロード履歴）
 │   ├── config.js               # 既定値・共有定数（キー・URL・マーカー種別）

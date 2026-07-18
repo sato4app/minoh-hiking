@@ -7,9 +7,9 @@ import {
 } from './config.js';
 import {
   setEmergencyStyle,
-  setHikingRouteStyle, setHikingSpotStyle,
-  setTrackStyle, setTrackStartStyle, setTrackCurrentStyle
+  setHikingRouteStyle, setHikingSpotStyle
 } from './map.js';
+import { setTrackStyle, setTrackStartStyle, setTrackCurrentStyle } from './geolocation.js';
 
 const el = {
   markerSettingsList: document.getElementById('markerSettingsList'),

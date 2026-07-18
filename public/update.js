@@ -32,7 +32,7 @@ export async function getCachedAppShellVersion() {
 }
 
 // service-worker.js を取得し SHELL_CACHE のバージョンを抽出
-export async function fetchServiceWorkerShellVersion() {
+async function fetchServiceWorkerShellVersion() {
   try {
     const res = await fetch('service-worker.js', { cache: 'no-store' });
     if (!res.ok) return null;
@@ -101,7 +101,7 @@ export function promptMapTileUpdate(savedMap, latestMap) {
 }
 
 // アプリシェルキャッシュを破棄し、SW を更新して再読み込み(タイル gsi-* は保持)
-export async function updateAppToLatest() {
+async function updateAppToLatest() {
   try {
     if ('caches' in self) {
       const keys = await caches.keys();

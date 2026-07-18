@@ -216,7 +216,8 @@ async function startDownload(layerKeys) {
 }
 
 // ===== マニフェスト更新DL(差分 / 全部) =====
-export async function startManifestUpdate(mode) {
+// 更新バナーのボタンからのみ呼ばれる(モジュール内で完結)
+async function startManifestUpdate(mode) {
   if (!manifest || isDownloading) return;
   if (!manifest.layers) {
     setStatus('マニフェストにレイヤー情報がありません', 'error');

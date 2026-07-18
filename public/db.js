@@ -25,46 +25,34 @@ function openDB() {
   return dbPromise;
 }
 
-// パッケージ情報を保存(同じpackageIdなら上書き)
-export async function savePackage(record) {
+// STORE への操作を1トランザクションで実行する共通ヘルパー。
+// op でリクエストを返すと、トランザクション完了時にその結果で解決する。
+async function withStore(mode, op) {
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).put(record);
-    tx.oncomplete = () => resolve();
+    const tx = db.transaction(STORE, mode);
+    const req = op(tx.objectStore(STORE));
+    tx.oncomplete = () => resolve(req ? req.result : undefined);
     tx.onerror = () => reject(tx.error);
   });
+}
+
+// パッケージ情報を保存(同じpackageIdなら上書き)
+export function savePackage(record) {
+  return withStore('readwrite', (store) => store.put(record));
 }
 
 // 全パッケージを返す
 export async function listPackages() {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readonly');
-    const req = tx.objectStore(STORE).getAll();
-    req.onsuccess = () => resolve(req.result || []);
-    req.onerror = () => reject(req.error);
-  });
+  return (await withStore('readonly', (store) => store.getAll())) || [];
 }
 
 // 全パッケージを削除
-export async function clearPackages() {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).clear();
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
+export function clearPackages() {
+  return withStore('readwrite', (store) => store.clear());
 }
 
 // 指定 packageId のパッケージを削除
-export async function deletePackage(packageId) {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, 'readwrite');
-    tx.objectStore(STORE).delete(packageId);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
+export function deletePackage(packageId) {
+  return withStore('readwrite', (store) => store.delete(packageId));
 }

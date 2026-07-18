@@ -1,13 +1,16 @@
-// メッセージ履歴モジュール
-// 主要な操作・状態(起動時のバージョン確認、地図のダウンロード、移動記録の開始・終了など)を
-// localStorage に蓄積し、「設定と情報」モーダルの「メッセージ履歴の表示」で一覧表示する。
+// メッセージ表示モジュール
+// - メッセージ履歴: 主要な操作・状態(起動時のバージョン確認、地図のダウンロード、
+//   移動記録の開始・終了など)を localStorage に蓄積し、
+//   「設定と情報」モーダルの「メッセージ履歴の表示」で一覧表示する。
+// - トースト: 画面中央下の一時メッセージ(自動で閉じる)。
 
-import { MESSAGE_LOG_KEY, MESSAGE_LOG_MAX } from './config.js';
+import { MESSAGE_LOG_KEY, MESSAGE_LOG_MAX, TOAST_DURATION_SEC } from './config.js';
 
 const el = {
   messageList: document.getElementById('messageList'),
   messageEmpty: document.getElementById('messageEmpty'),
-  infoMessagesBody: document.getElementById('infoMessagesBody')
+  infoMessagesBody: document.getElementById('infoMessagesBody'),
+  toast: document.getElementById('toast')
 };
 
 // 履歴に1件追加する。「設定と情報」モーダルで履歴を表示中なら即時再描画する。
@@ -69,4 +72,27 @@ function formatLogTime(ts) {
   const hh = String(d.getHours()).padStart(2, '0');
   const mi = String(d.getMinutes()).padStart(2, '0');
   return `${mm}/${dd} ${hh}:${mi}`;
+}
+
+// ===== 一時メッセージ(トースト) =====
+let toastTimerId = null;
+
+// 画面中央下に一時メッセージを表示し、config.js の秒数で自動的に閉じる
+export function showToast(text) {
+  if (!el.toast || !text) return;
+  el.toast.textContent = text;
+  el.toast.hidden = false;
+  // hidden 解除直後に表示クラスを付けてフェードインさせる
+  requestAnimationFrame(() => el.toast.classList.add('toast-show'));
+
+  if (toastTimerId !== null) clearTimeout(toastTimerId);
+  const ms = Math.max(0, (Number(TOAST_DURATION_SEC) || 0) * 1000);
+  toastTimerId = setTimeout(() => {
+    el.toast.classList.remove('toast-show');
+    // フェードアウト(0.25s)後に hidden へ
+    toastTimerId = setTimeout(() => {
+      el.toast.hidden = true;
+      toastTimerId = null;
+    }, 250);
+  }, ms);
 }
