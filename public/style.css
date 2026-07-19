@@ -507,8 +507,34 @@ body.view-state-nav .leaflet-control-container {
 .track-inline-actions {
   display: flex;
   gap: 0.4rem;
+  align-items: center;
   justify-content: flex-end;
   margin: 0.3rem 0 0.1rem;
+}
+
+/* 移動経路の統計表(地点数・移動距離): ボタン群の左に配置 */
+.track-stats-table {
+  margin-right: auto;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  color: #222;
+}
+
+.track-stats-table th,
+.track-stats-table td {
+  border: 1px solid #ccc;
+  padding: 0.1rem 0.45rem;
+}
+
+.track-stats-table th {
+  font-weight: normal;
+  text-align: left;
+}
+
+.track-stats-table td {
+  text-align: right;
+  min-width: 3.2em;
+  font-variant-numeric: tabular-nums;
 }
 
 .btn-track-mini {

@@ -206,6 +206,10 @@ export function clearTrack() {
   lastTrackTimeMs = 0;
 }
 
+// 記録点追加時の通知先(app.js がパネル内の統計表の更新に使用)
+let onTrackPointAppended = null;
+export function setOnTrackPointAppended(fn) { onTrackPointAppended = fn; }
+
 // 記録点を追加: 線に頂点を足し、最初の点なら開始点マーカー、
 // 毎回 現在地点マーカー(進行方向つき)を最終点へ更新する。
 function appendTrackPoint(latlng) {
@@ -230,6 +234,7 @@ function appendTrackPoint(latlng) {
   // 現在地点マーカー(三角)の位置・向きは呼び出し側(記録中はライブ現在地)で更新する。
   lastTrackLatLng = [lat, lng];
   lastTrackTimeMs = Date.now();
+  onTrackPointAppended?.();
 }
 
 // ===== 現在地監視の制御 =====

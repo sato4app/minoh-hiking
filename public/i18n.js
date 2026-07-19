@@ -60,7 +60,10 @@ const DICT = {
   'track.start': { ja: '記録開始', en: 'Start recording' },
   'track.stop': { ja: '記録停止', en: 'Stop recording' },
   'track.photo': { ja: '写真撮影', en: 'Take photo' },
-  'track.statsBtn': { ja: 'サイズ', en: 'Size' },
+  'track.export': { ja: '出力', en: 'Export' },
+  'track.ariaStats': { ja: '移動経路の統計', en: 'Track statistics' },
+  'track.statPoints': { ja: '地点数', en: 'Points' },
+  'track.statDistance': { ja: '移動距離(km)', en: 'Distance (km)' },
   'track.summary': {
     ja: '記録地点 {points} 点 / 写真 {photos} 枚 / 移動距離 {km} km',
     en: 'Points {points} / Photos {photos} / Distance {km} km'

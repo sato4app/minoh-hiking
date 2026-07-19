@@ -22,7 +22,8 @@ import {
 import {
   setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
-  startTrackRecording, stopTrackRecording, getTrackStats, clearTrack
+  startTrackRecording, stopTrackRecording, getTrackStats, clearTrack,
+  setOnTrackPointAppended
 } from './geolocation.js';
 import {
   initClosures, applyClosureFlag, loadClosures,
@@ -94,8 +95,10 @@ const el = {
   mapTrackActions: document.getElementById('mapTrackActions'),
   btnTrackToggle: document.getElementById('btnTrackToggle'),
   btnTrackPhoto: document.getElementById('btnTrackPhoto'),
-  // レイヤーパネル内: 移動経路の統計表示(サイズ)・クリア
-  btnTrackStats: document.getElementById('btnTrackStats'),
+  // レイヤーパネル内: 移動経路の統計表(地点数・移動距離)・出力・クリア
+  trackStatPoints: document.getElementById('trackStatPoints'),
+  trackStatDistance: document.getElementById('trackStatDistance'),
+  btnTrackExport: document.getElementById('btnTrackExport'),
   btnTrackClear: document.getElementById('btnTrackClear'),
 
   // マーカーの設定モーダル
@@ -215,9 +218,10 @@ function bindEvents() {
     });
   }
 
-  // マップ表示設定
+  // マップ表示設定(開くとき、移動経路の統計表を最新化する)
   el.btnMapLayers.addEventListener('click', () => {
     el.mapLayerPanel.hidden = !el.mapLayerPanel.hidden;
+    if (!el.mapLayerPanel.hidden) updateTrackStatsDisplay();
   });
   // 地図部分(#map)クリックでメニューを閉じる(マップ画面でメニュー表示中のみ)
   const mapEl = document.getElementById('map');
@@ -261,10 +265,13 @@ function bindEvents() {
     capturePhoto();
   });
 
-  // サイズ: 現在の移動経路の統計(記録地点数・写真枚数・移動距離)を表示
-  el.btnTrackStats.addEventListener('click', () => {
-    showToast(formatTrackSummary(getTrackStats()));
+  // 出力: 移動経路の出力(実装は別途指示。現状は準備中の案内のみ)
+  el.btnTrackExport.addEventListener('click', () => {
+    showToast(t('nav.pending'));
   });
+
+  // 記録点が追加されるたびにパネル内の統計表を最新化する
+  setOnTrackPointAppended(updateTrackStatsDisplay);
 
   // クリア: 記録した移動経路(線・開始点・現在地点)を消去
   el.btnTrackClear.addEventListener('click', () => {
@@ -278,6 +285,7 @@ function bindEvents() {
     isTrackRecording = false;
     setTrackRecordingActive(false);
     trackPhotoCount = 0;
+    updateTrackStatsDisplay();
     logHistory(t('track.cleared'), '');
     showToast(t('track.cleared'));
   });
@@ -475,10 +483,17 @@ let isTrackRecording = false;
 // 今回の記録中に撮影した写真の枚数
 let trackPhotoCount = 0;
 
-// 記録地点数・写真枚数・移動距離の統計文言(「サイズ」表示と記録終了時で共通)
+// 記録地点数・写真枚数・移動距離の統計文言(記録終了時のメッセージに使用)
 function formatTrackSummary(stats) {
   const km = (stats.distanceM / 1000).toFixed(2);
   return t('track.summary', { points: stats.pointCount, photos: trackPhotoCount, km });
+}
+
+// レイヤーパネル内の統計表(地点数・移動距離)を現在の記録内容で更新する
+function updateTrackStatsDisplay() {
+  const stats = getTrackStats();
+  el.trackStatPoints.textContent = String(stats.pointCount);
+  el.trackStatDistance.textContent = (stats.distanceM / 1000).toFixed(2);
 }
 
 // 移動記録を開始(記録開始ボタン)。開始を履歴に残す。

@@ -118,9 +118,21 @@
         <span class="toggle-slider" aria-hidden="true"></span>
         <span class="toggle-text" data-i18n="map.toggleTrackRecording">移動経路を記録</span>
       </label>
-      <!-- 移動経路: 統計表示(サイズ)とクリア -->
+      <!-- 移動経路: 統計表(地点数・移動距離)と出力・クリア -->
       <div class="track-inline-actions">
-        <button type="button" class="btn-track-mini" id="btnTrackStats" data-i18n="track.statsBtn">サイズ</button>
+        <table class="track-stats-table" aria-label="移動経路の統計" data-i18n-aria="track.ariaStats">
+          <tbody>
+            <tr>
+              <th data-i18n="track.statPoints">地点数</th>
+              <td id="trackStatPoints">0</td>
+            </tr>
+            <tr>
+              <th data-i18n="track.statDistance">移動距離(km)</th>
+              <td id="trackStatDistance">0.00</td>
+            </tr>
+          </tbody>
+        </table>
+        <button type="button" class="btn-track-mini" id="btnTrackExport" data-i18n="track.export">出力</button>
         <button type="button" class="btn-track-mini" id="btnTrackClear" data-i18n="common.clear">クリア</button>
       </div>
       <hr class="panel-divider" />
