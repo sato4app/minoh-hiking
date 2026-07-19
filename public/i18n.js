@@ -71,7 +71,7 @@ const DICT = {
   'track.exported': { ja: '移動経路を {name} に出力しました', en: 'Track exported to {name}' },
   'track.ariaStats': { ja: '移動経路の統計', en: 'Track statistics' },
   'track.statPoints': { ja: '地点数', en: 'Points' },
-  'track.statDistance': { ja: '移動距離(km)', en: 'Distance (km)' },
+  'track.statDistance': { ja: '移動距離', en: 'Distance' },
   'track.summary': {
     ja: '記録地点 {points} 点 / 写真 {photos} 枚 / 移動距離 {km} km',
     en: 'Points {points} / Photos {photos} / Distance {km} km'

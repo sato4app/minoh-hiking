@@ -487,17 +487,19 @@ let isTrackRecording = false;
 // 今回の記録中に撮影した写真の枚数
 let trackPhotoCount = 0;
 
-// 記録地点数・写真枚数・移動距離の統計文言(記録終了時のメッセージに使用)
+// 記録地点数・写真枚数・移動距離の統計文言(記録終了時のメッセージに使用)。
+// 移動距離は統計表と同じ小数点以下1位までの表記にそろえる。
 function formatTrackSummary(stats) {
-  const km = (stats.distanceM / 1000).toFixed(2);
+  const km = (stats.distanceM / 1000).toFixed(1);
   return t('track.summary', { points: stats.pointCount, photos: trackPhotoCount, km });
 }
 
-// レイヤーパネル内の統計表(地点数・移動距離)を現在の記録内容で更新する
+// レイヤーパネル内の統計表(地点数・移動距離)を現在の記録内容で更新する。
+// 移動距離は小数点以下1位までの km 表記(例: 0.2 (km))。
 function updateTrackStatsDisplay() {
   const stats = getTrackStats();
   el.trackStatPoints.textContent = String(stats.pointCount);
-  el.trackStatDistance.textContent = (stats.distanceM / 1000).toFixed(2);
+  el.trackStatDistance.textContent = `${(stats.distanceM / 1000).toFixed(1)} (km)`;
 }
 
 // 移動記録を開始(記録開始ボタン)。開始を履歴に残す。
