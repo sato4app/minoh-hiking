@@ -204,10 +204,10 @@ const DICT = {
   },
 
   // ----- マーカーの設定 -----
-  'markerSettings.title': { ja: 'マーカーの設定', en: 'Marker Settings' },
+  'markerSettings.title': { ja: 'マーカー属性の設定', en: 'Marker Settings' },
   'markerSettings.reset': { ja: '規定値に戻す', en: 'Reset to defaults' },
   'markerSettings.resetConfirm': {
-    ja: 'マーカーの設定を規定値に戻します。よろしいですか?',
+    ja: 'マーカー属性の設定を規定値に戻します。よろしいですか?',
     en: 'Reset marker settings to defaults?'
   },
   'markerSettings.ariaColor': { ja: '{name} 色', en: '{name} color' },
