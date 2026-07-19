@@ -130,7 +130,6 @@ function applyMarkerSettingToMap(key, style) {
   else if (key === 'track') setTrackStyle(style);
   else if (key === 'trackStart') setTrackStartStyle(style);
   else if (key === 'trackCurrent') setTrackCurrentStyle(style);
-  // routeGuide / photoLocation はレイヤー未実装のため反映先なし
 }
 
 // 規定値に戻す: config.js の MARKER_TYPES の値で localStorage を上書きし、

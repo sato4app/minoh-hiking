@@ -205,10 +205,10 @@ const DICT = {
   },
 
   // ----- マーカーの設定 -----
-  'markerSettings.title': { ja: 'マーカー属性の設定', en: 'Marker Settings' },
+  'markerSettings.title': { ja: 'マーカーの設定', en: 'Marker Settings' },
   'markerSettings.reset': { ja: '規定値に戻す', en: 'Reset to defaults' },
   'markerSettings.resetConfirm': {
-    ja: 'マーカー属性の設定を規定値に戻します。よろしいですか?',
+    ja: 'マーカーの設定を規定値に戻します。よろしいですか?',
     en: 'Reset marker settings to defaults?'
   },
   'markerSettings.ariaColor': { ja: '{name} 色', en: '{name} color' },
@@ -218,14 +218,12 @@ const DICT = {
   // マーカー種別(config.js の MARKER_TYPES の key と一致)
   'markerType.emergency': { ja: '緊急ポイント', en: 'Emergency point' },
   'markerType.hikingRoute': { ja: 'ハイキングルート', en: 'Hiking route' },
-  'markerType.routeGuide': { ja: 'ルート案内写真', en: 'Route guide photo' },
   'markerType.spot': { ja: 'スポット', en: 'Spot' },
   'markerType.closureClosed': { ja: '通行止め地点', en: 'Closed point' },
   'markerType.closureDifficult': { ja: '通行困難地点', en: 'Difficult point' },
   'markerType.trackStart': { ja: '移動記録開始点', en: 'Track start point' },
   'markerType.trackCurrent': { ja: '移動記録現在地点', en: 'Track current point' },
   'markerType.track': { ja: '移動記録経路', en: 'Track route' },
-  'markerType.photoLocation': { ja: '写真撮影場所', en: 'Photo location' },
 
   // マーカー形状(config.js の MARKER_SHAPES の value と一致)
   'markerShape.circle': { ja: '円', en: 'Circle' },

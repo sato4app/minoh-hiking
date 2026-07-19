@@ -73,7 +73,6 @@ export const TOAST_DURATION_SEC = 3;
 export const MARKER_TYPES = [
   { key: 'emergency', color: '#00AA00', shape: 'circle', size: 12 },      // 緊急ポイント
   { key: 'hikingRoute', color: '#007d00', shape: 'line', size: 3 },       // ハイキングルート
-  { key: 'routeGuide', color: '#2563EB', shape: 'square', size: 12 },     // ルート案内写真
   { key: 'spot', color: '#1E90FF', shape: 'square', size: 10 },           // スポット
   // 通行止め・通行困難地点(closures)。kind=closed / difficult に対応
   { key: 'closureClosed', color: '#DC2626', shape: 'x', size: 10 },
@@ -81,8 +80,7 @@ export const MARKER_TYPES = [
   // 移動記録関連(表示順は移動記録経路の上)。色は移動記録経路と同じ既定値。
   { key: 'trackStart', color: '#000080', shape: 'square', size: 12 },     // 移動記録開始点
   { key: 'trackCurrent', color: '#000080', shape: 'triangle', size: 16 }, // 移動記録現在地点
-  { key: 'track', color: '#000080', shape: 'line', size: 4 },             // 移動記録経路
-  { key: 'photoLocation', color: '#000080', shape: 'star', size: 12 }     // 写真撮影場所
+  { key: 'track', color: '#000080', shape: 'line', size: 4 }              // 移動記録経路
 ];
 
 // マーカー形状の選択肢(設定UIのドロップダウン)。
