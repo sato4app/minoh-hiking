@@ -336,10 +336,11 @@
           <!-- マーカー属性の設定(マーカーの設定モーダルを開く) -->
           <button type="button" class="settings-link-btn" id="btnOpenMarkerSettings" data-i18n="markerSettings.title">マーカー属性の設定</button>
 
-          <!-- 言語/Languageの設定(表示言語の選択。既定: 日本語。変更すると保存してリロードし、
-               選択言語でUI文言を再表示する。ラベルと選択肢は両言語表記のため翻訳対象外) -->
+          <!-- 言語の設定/Language Settings(表示言語の選択。既定: 日本語。変更すると保存して
+               リロードし、選択言語でUI文言を再表示する。設定中の言語が分からない人でも
+               ここで変更できると分かるよう、ラベルは日英併記とし翻訳対象外(言語切替で不変) -->
           <div class="language-row">
-            <label class="language-label" for="languageSelect">言語/Languageの設定</label>
+            <label class="language-label" for="languageSelect">言語の設定/Language Settings</label>
             <select id="languageSelect" class="language-select">
               <option value="ja" selected>日本語</option>
               <option value="en">English</option>
