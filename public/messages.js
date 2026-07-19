@@ -5,6 +5,7 @@
 // - トースト: 画面中央下の一時メッセージ(自動で閉じる)。
 
 import { MESSAGE_LOG_KEY, MESSAGE_LOG_MAX, TOAST_DURATION_SEC } from './config.js';
+import { t } from './i18n.js';
 
 const el = {
   messageList: document.getElementById('messageList'),
@@ -60,7 +61,7 @@ export function renderMessageList() {
 }
 
 export function clearMessageLog() {
-  if (!confirm('メッセージ履歴を全て削除します。よろしいですか?')) return;
+  if (!confirm(t('messages.clearConfirm'))) return;
   try { localStorage.removeItem(MESSAGE_LOG_KEY); } catch { /* noop */ }
   renderMessageList();
 }

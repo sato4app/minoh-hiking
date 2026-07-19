@@ -9,6 +9,7 @@ import {
   CLOSURE_API_URL, CLOSURE_TOKEN_KEY
 } from './config.js';
 import { logHistory, showToast } from './messages.js';
+import { t } from './i18n.js';
 
 // ===== DOM要素 =====
 const el = {
@@ -139,11 +140,11 @@ function exitClosureEditPanel() {
 // 読み込んだ geojson の妥当性確認。問題なければ null、あればエラーメッセージを返す
 function validateClosureGeoJSON(data) {
   if (!data || data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
-    return 'FeatureCollection 形式の geojson ではありません';
+    return t('closure.invalidFormat');
   }
   if (data.features.length > 0 &&
       !data.features.some((f) => f?.geometry?.type === 'Point')) {
-    return 'Point 地物が含まれていません';
+    return t('closure.noPoints');
   }
   return null;
 }
@@ -159,12 +160,12 @@ async function handleClosureFileSelected() {
   try {
     data = JSON.parse(await file.text());
   } catch {
-    showToast(`${file.name} を JSON として読み込めませんでした`);
+    showToast(t('closure.jsonParseFailed', { name: file.name }));
     return;
   }
   const error = validateClosureGeoJSON(data);
   if (error) {
-    showToast(`読み込み失敗: ${error}`);
+    showToast(t('closure.loadFailed', { error }));
     return;
   }
 
@@ -172,7 +173,7 @@ async function handleClosureFileSelected() {
   setClosureGeoJSON(data);
   setClosuresVisible(true);
   updateClosureApplyEnabled();
-  showToast(`${file.name} を読み込みました(${data.features.length} 件)。反映にはバージョンの変更が必要です`);
+  showToast(t('closure.fileLoaded', { name: file.name, count: data.features.length }));
 }
 
 // 「マップに反映」の活性制御: ファイル読み込み済みで、かつバージョンが
@@ -188,18 +189,18 @@ function applyClosureData() {
   if (!loadedClosureData) return;
   const version = el.closureVersionInput.value.trim();
   if (!version || version === getClosureVersion()) {
-    showToast('新しいバージョンを入力してください');
+    showToast(t('closure.needNewVersion'));
     return;
   }
   const data = { ...loadedClosureData, version };
   const count = data.features.length;
-  if (!confirm(`バージョン ${version}(${count} 件)をこの端末のマップに反映します。よろしいですか?`)) {
+  if (!confirm(t('closure.applyConfirm', { version, count }))) {
     return;
   }
   try {
     localStorage.setItem(CLOSURE_DATA_KEY, JSON.stringify(data));
   } catch (err) {
-    showToast(`保存に失敗しました: ${err.message}`);
+    showToast(t('closure.saveFailed', { message: err.message }));
     return;
   }
   activeClosureData = data;
@@ -207,12 +208,9 @@ function applyClosureData() {
   setClosureGeoJSON(data);
   setClosuresVisible(true);
   updateClosureApplyEnabled();
-  logHistory(`通行止め・通行困難地点を反映しました(バージョン ${version} / ${count} 件)`, 'success');
+  logHistory(t('closure.appliedLog', { version, count }), 'success');
   // パネルは閉じずに残し、続けて「公開」を押せるようにする
-  alert(
-    `バージョン ${version}(${count} 件)をこの端末のマップに反映しました。\n` +
-    'ユーザーへ公開するには、続けて「公開」を押してください。'
-  );
+  alert(t('closure.appliedAlert', { version, count }));
 }
 
 // 公開: 反映済みデータを公開API(POST /api/closures)へ送信し、ユーザーへ公開する。
@@ -221,21 +219,21 @@ function applyClosureData() {
 async function publishClosureData() {
   const data = activeClosureData;
   if (!data || !data.version) {
-    showToast('先に「ファイル読み込み」→「マップに反映」でデータを反映してください');
+    showToast(t('closure.needApplyFirst'));
     return;
   }
   if (loadedClosureData) {
-    showToast('未反映の読み込みデータがあります。先に「マップに反映」を押してください');
+    showToast(t('closure.unappliedData'));
     return;
   }
   const count = data.features.length;
-  const emptyWarn = count === 0 ? '\n【注意】0 件のため、公開中の全地点が地図から消えます。' : '';
-  if (!confirm(`バージョン ${data.version}(${count} 件)をユーザーへ公開します。よろしいですか?${emptyWarn}`)) {
+  const emptyWarn = count === 0 ? t('closure.publishEmptyWarn') : '';
+  if (!confirm(t('closure.publishConfirm', { version: data.version, count, warn: emptyWarn }))) {
     return;
   }
   let token = localStorage.getItem(CLOSURE_TOKEN_KEY) || '';
   if (!token) {
-    token = (prompt('公開トークンを入力してください(この端末に保存されます)') || '').trim();
+    token = (prompt(t('closure.tokenPrompt')) || '').trim();
     if (!token) return;
   }
   el.btnClosurePublish.disabled = true;
@@ -250,58 +248,33 @@ async function publishClosureData() {
     if (res.status === 401) {
       // E01: 入力した公開トークンが違う。運用担当者が再入力で解決できる
       localStorage.removeItem(CLOSURE_TOKEN_KEY);
-      alert(
-        '【E01】公開トークンが正しくありません。\n\n' +
-        'もう一度「公開」を押して、正しいトークンを入力してください。\n' +
-        'トークンが分からないときは、開発担当者に確認してください。'
-      );
+      alert(t('closure.e01'));
       return;
     }
     if (!res.ok) {
       const detail = await readApiError(res);
       if (res.status === 400) {
         // E03: 送信データの不備。データ(geojson)側を直せば解決できる
-        alert(
-          '【E03】公開データに不備があります。\n\n' +
-          `理由: ${detail}\n\n` +
-          'バージョンを変えたか、地点の座標・IDが正しいかを確認し、\n' +
-          'データを作り直してからやり直してください。'
-        );
+        alert(t('closure.e03', { detail }));
         return;
       }
       if (res.status === 503) {
         // E02: サーバー側の公開トークン未設定。操作では直らず開発担当者対応
-        alert(
-          '【E02】公開機能がサーバー側でまだ設定されていません。\n\n' +
-          'この画面の操作では直りません。\n' +
-          '開発担当者に「エラー E02(公開トークン未設定)」と伝えてください。'
-        );
+        alert(t('closure.e02'));
         return;
       }
       // E04: 公開ストア(Blob)への保存失敗。多くは時間をおくと回復。続く場合は開発担当者対応
-      alert(
-        '【E04】公開データの保存に失敗しました(サーバー側)。\n\n' +
-        `詳細: ${detail}\n\n` +
-        '少し時間をおいて、もう一度「公開」をお試しください。\n' +
-        '何度も続くときは、開発担当者に「エラー E04(公開ストア保存失敗)」と伝えてください。'
-      );
+      alert(t('closure.e04', { detail }));
       offerEmergencyDownload(data);
       return;
     }
     localStorage.setItem(CLOSURE_TOKEN_KEY, token);
-    logHistory(`通行止め・通行困難地点を公開しました(バージョン ${data.version} / ${count} 件)`, 'success');
+    logHistory(t('closure.publishedLog', { version: data.version, count }), 'success');
     exitClosureEditPanel();
-    alert(
-      `バージョン ${data.version}(${count} 件)をユーザーへ公開しました。\n` +
-      '各端末には次回のマップ表示時に反映されます。'
-    );
+    alert(t('closure.publishedAlert', { version: data.version, count }));
   } catch (err) {
     // E05: API に接続できない(通信断・CORS・サーバー障害など)
-    alert(
-      '【E05】公開サーバーに接続できませんでした(通信エラー)。\n\n' +
-      'まず通信状況(電波・Wi-Fi)を確認して、もう一度お試しください。\n' +
-      `続くときは、開発担当者に「エラー E05(通信エラー): ${err.message}」と伝えてください。`
-    );
+    alert(t('closure.e05', { message: err.message }));
     offerEmergencyDownload(data);
   } finally {
     el.btnClosurePublish.disabled = false;
@@ -320,10 +293,7 @@ async function readApiError(res) {
 // 公開に失敗したとき、編集内容を端末に保存できるようにする(作業のやり直し防止・
 // 開発担当者への連携用のバックアップ)。公開自体はあくまで「公開」ボタン(API)で行う。
 function offerEmergencyDownload(data) {
-  if (!confirm(
-    `今回のデータをこの端末に保存しますか?(ファイル名: ${CLOSURE_FILE_NAME})\n` +
-    '保存しておくと、あとで公開をやり直したり、開発担当者に渡して調べてもらえます。'
-  )) return;
+  if (!confirm(t('closure.backupConfirm', { name: CLOSURE_FILE_NAME }))) return;
   downloadClosureFile(data);
 }
 
@@ -349,7 +319,7 @@ function cancelClosureEdit(silent = false) {
     if (deps.isMapView()) setClosuresVisible(true);
   }
   exitClosureEditPanel();
-  if (!silent && hadPreview) showToast('読み込んだ内容を反映せずにキャンセルしました');
+  if (!silent && hadPreview) showToast(t('closure.cancelled'));
 }
 
 // マップ画面を離れるときの自動キャンセル(編集パネル表示中のみ)。app.js のビュー切替から呼ぶ。

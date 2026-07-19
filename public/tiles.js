@@ -11,6 +11,7 @@ import {
 } from './config.js';
 import { savePackage, listPackages, clearPackages, deletePackage } from './db.js';
 import { logHistory } from './messages.js';
+import { t } from './i18n.js';
 
 // ===== 状態 =====
 let manifest = null;
@@ -52,7 +53,7 @@ export async function loadManifest() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     manifest = await res.json();
   } catch (err) {
-    setStatus(`マニフェスト読込失敗: ${err.message}`, 'error');
+    setStatus(t('download.manifestLoadFailed', { message: err.message }), 'error');
   }
 }
 
@@ -91,7 +92,7 @@ export function evaluateManifestVersion() {
 function showUpdateBanner() {
   if (!manifest || manifest.version == null) return;
   el.updateBannerMessage.textContent =
-    `タイル情報が更新されました(${manifest.version})。新しい範囲のオフライン地図をダウンロードできます。`;
+    t('banner.tilesUpdated', { version: manifest.version });
   el.updateBanner.hidden = false;
 }
 
@@ -162,24 +163,28 @@ async function onDownloadMap() {
 async function startDownload(layerKeys) {
   if (!manifest || isDownloading) return;
   if (!manifest.layers) {
-    setStatus('マニフェストにレイヤー情報がありません', 'error');
+    setStatus(t('download.noLayers'), 'error');
     return;
   }
 
   const jobs = buildJobs(layerKeys);
   if (jobs.length === 0) {
-    setStatus('ダウンロード対象がありません', 'warning');
+    setStatus(t('download.noTargets'), 'warning');
     return;
   }
 
   hideUpdateBanner();
-  setStatus(`ダウンロード開始: ${jobs.length} タイル`, '');
+  setStatus(t('download.started', { n: jobs.length }), '');
 
   const result = await runJobs(jobs);
 
   if (result.aborted) {
-    setStatus(`中断しました(${result.completed}/${result.total} 完了, 失敗 ${result.failed.length})`, 'warning');
-    logHistory(`地図のダウンロードを中断しました(${result.completed}/${result.total})`, 'warning');
+    setStatus(t('download.abortedStatus', {
+      completed: result.completed, total: result.total, failed: result.failed.length
+    }), 'warning');
+    logHistory(t('download.abortedLog', {
+      completed: result.completed, total: result.total
+    }), 'warning');
     evaluateManifestVersion();
   } else {
     // packageId は「バージョン + レイヤー」で決定的にする。
@@ -199,12 +204,12 @@ async function startDownload(layerKeys) {
       });
     }
     if (result.failed.length > 0) {
-      setStatus(`完了(失敗 ${result.failed.length} 件あり)`, 'warning');
-      logHistory(`地図のダウンロード完了(失敗 ${result.failed.length} 件あり)`, 'warning');
+      setStatus(t('download.doneWithFailures', { failed: result.failed.length }), 'warning');
+      logHistory(t('download.doneWithFailuresLog', { failed: result.failed.length }), 'warning');
       evaluateManifestVersion();
     } else {
-      setStatus('ダウンロード完了', 'success');
-      logHistory('地図のダウンロードが完了しました', 'success');
+      setStatus(t('download.done'), 'success');
+      logHistory(t('download.doneLog'), 'success');
       const allLayerKeys = Object.keys(manifest.layers);
       const coversAll = allLayerKeys.every((k) => layerKeys.includes(k));
       if (coversAll) saveManifestVersion();
@@ -220,7 +225,7 @@ async function startDownload(layerKeys) {
 async function startManifestUpdate(mode) {
   if (!manifest || isDownloading) return;
   if (!manifest.layers) {
-    setStatus('マニフェストにレイヤー情報がありません', 'error');
+    setStatus(t('download.noLayers'), 'error');
     return;
   }
 
@@ -233,7 +238,7 @@ async function startManifestUpdate(mode) {
       const cachedUrls = await getCachedTileUrlSet();
       jobs = allJobs.filter((j) => !cachedUrls.has(tileUrl(j)));
     } catch (err) {
-      setStatus(`キャッシュ参照失敗: ${err.message}`, 'error');
+      setStatus(t('download.cacheReadFailed', { message: err.message }), 'error');
       return;
     }
   } else if (mode === 'all') {
@@ -243,8 +248,8 @@ async function startManifestUpdate(mode) {
   hideUpdateBanner();
 
   if (jobs.length === 0) {
-    setStatus('追加でダウンロードするタイルはありません。バージョンを更新しました', 'success');
-    logHistory('地図は最新の状態です(バージョンを更新)', 'success');
+    setStatus(t('download.upToDate'), 'success');
+    logHistory(t('download.upToDateLog'), 'success');
     saveManifestVersion();
     await refreshStorageInfo();
     return;
@@ -253,22 +258,27 @@ async function startManifestUpdate(mode) {
   // 進捗表示のためダウンロードモーダルを開く
   openDownloadModal();
 
-  const label = mode === 'diff' ? '差分更新' : '全部更新';
-  setStatus(`${label}開始: ${jobs.length} タイル`, '');
+  // 呼び名(差分更新/全部更新)は全文キーの {label} に埋め込む(日英で語順が変わるため)
+  const label = t(mode === 'diff' ? 'download.diffLabel' : 'download.allLabel');
+  setStatus(t('download.updateStarted', { label, n: jobs.length }), '');
 
   const result = await runJobs(jobs, { overwrite });
 
   if (result.aborted) {
-    setStatus(`中断しました(${result.completed}/${result.total} 完了, 失敗 ${result.failed.length})`, 'warning');
-    logHistory(`地図の${label}を中断しました(${result.completed}/${result.total})`, 'warning');
+    setStatus(t('download.abortedStatus', {
+      completed: result.completed, total: result.total, failed: result.failed.length
+    }), 'warning');
+    logHistory(t('download.updateAbortedLog', {
+      label, completed: result.completed, total: result.total
+    }), 'warning');
     showUpdateBanner();
   } else if (result.failed.length > 0) {
-    setStatus(`${label}完了(失敗 ${result.failed.length} 件あり)`, 'warning');
-    logHistory(`地図の${label}完了(失敗 ${result.failed.length} 件あり)`, 'warning');
+    setStatus(t('download.updateDoneWithFailures', { label, failed: result.failed.length }), 'warning');
+    logHistory(t('download.updateDoneWithFailuresLog', { label, failed: result.failed.length }), 'warning');
     showUpdateBanner();
   } else {
-    setStatus(`${label}が完了しました`, 'success');
-    logHistory(`地図の${label}が完了しました`, 'success');
+    setStatus(t('download.updateDone', { label }), 'success');
+    logHistory(t('download.updateDoneLog', { label }), 'success');
     saveManifestVersion();
   }
 
@@ -279,7 +289,7 @@ async function startManifestUpdate(mode) {
 async function runJobs(jobs, { overwrite = false } = {}) {
   const writeCacheName = currentTileCacheName();
   if (!writeCacheName) {
-    setStatus('マニフェストの version が不明なため開始できません', 'error');
+    setStatus(t('download.noVersion'), 'error');
     return { aborted: true, completed: 0, failed: [], total: jobs.length };
   }
 
@@ -326,7 +336,7 @@ async function runJobs(jobs, { overwrite = false } = {}) {
       if (!ok) failed.push([job.z, job.x, job.y]);
       completed++;
       if (completed === 1 || completed % 50 === 0 || completed === jobs.length) {
-        setStatus(`ダウンロード中... ${completed} / ${jobs.length}`, '');
+        setStatus(t('download.progress', { completed, total: jobs.length }), '');
       }
     }
   }
@@ -368,17 +378,17 @@ async function fetchAndCacheTile(cache, url, signal) {
 // ネットワーク切断時、ダウンロード中なら警告を表示する
 function handleOffline() {
   if (isDownloading) {
-    setStatus('ネットワーク切断: ダウンロードが失敗する可能性があります', 'warning');
+    setStatus(t('download.offlineWarning'), 'warning');
   }
 }
 
 // ===== キャッシュ削除 =====
 async function onClearCache() {
   if (isDownloading) {
-    setStatus('ダウンロード中は削除できません', 'warning');
+    setStatus(t('download.cannotClearWhileDownloading'), 'warning');
     return;
   }
-  if (!confirm('キャッシュ済みのタイルを全て削除します。よろしいですか?')) return;
+  if (!confirm(t('download.clearConfirm'))) return;
 
   try {
     for (const name of await listTileCacheNames()) {
@@ -387,10 +397,10 @@ async function onClearCache() {
     await clearPackages();
     try { localStorage.removeItem(VERSION_STORAGE_KEY); } catch { /* noop */ }
     hideUpdateBanner();
-    setStatus('キャッシュを削除しました', 'success');
+    setStatus(t('download.cleared'), 'success');
     await refreshStorageInfo();
   } catch (err) {
-    setStatus(`削除失敗: ${err.message}`, 'error');
+    setStatus(t('download.clearFailed', { message: err.message }), 'error');
   }
 }
 
@@ -452,7 +462,7 @@ export async function refreshStorageInfo() {
       const est = await navigator.storage.estimate();
       if (Number.isFinite(est.usage)) bytes = est.usage;
       if (est.quota && est.usage / est.quota > 0.9) {
-        setStatus('ストレージ残量が少なくなっています', 'warning');
+        setStatus(t('download.lowStorage'), 'warning');
       }
     } catch { /* noop */ }
   }

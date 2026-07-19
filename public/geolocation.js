@@ -9,6 +9,7 @@
 // 地図インスタンスは map.js の getMap() を通じて共有する。
 import * as L from 'leaflet';
 import { getMap, buildMarkerIcon } from './map.js';
+import { t } from './i18n.js';
 
 let currentLocationMarker = null;
 let currentLocationCircle = null;
@@ -247,13 +248,13 @@ function refreshLocationWatch() {
 function startGeoWatch() {
   if (!getMap() || geoWatchId != null) return; // 既に監視中
   if (!('geolocation' in navigator)) {
-    reportLocationError('この端末は位置情報に対応していません');
+    reportLocationError(t('geo.notSupported'));
     return;
   }
   locationErrorReported = false;
   geoWatchId = navigator.geolocation.watchPosition(
     onGeoSuccess,
-    (err) => reportLocationError(`位置情報の取得に失敗: ${err.message}`),
+    (err) => reportLocationError(t('geo.fetchFailed', { message: err.message })),
     { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
   );
 }

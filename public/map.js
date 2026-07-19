@@ -4,6 +4,7 @@
 // 現在地表示・移動経路の記録は geolocation.js に分離している。
 // leaflet-src.esm.js は名前空間exportのため `* as L` で受ける(default exportではない)
 import * as L from 'leaflet';
+import { t } from './i18n.js';
 
 const GSI_TILE_URL = 'https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png';
 const GSI_ATTRIBUTION =
@@ -226,7 +227,8 @@ const CLOSURE_FALLBACK_STYLES = {
   closed: { color: '#DC2626', shape: 'x', size: 10 },
   difficult: { color: '#F59E0B', shape: 'triangle', size: 16 }
 };
-const CLOSURE_KIND_LABELS = { closed: '通行止め', difficult: '通行困難' };
+// kind → ポップアップ表示名の翻訳キー(表示名は i18n.js の辞書で管理)
+const CLOSURE_KIND_KEYS = { closed: 'closure.kindClosed', difficult: 'closure.kindDifficult' };
 
 let closureGeoJSON = null;
 let closureLayer = null;
@@ -254,12 +256,12 @@ function buildClosureLayer() {
     },
     onEachFeature: (feature, layer) => {
       const p = feature.properties || {};
-      const kind = CLOSURE_KIND_LABELS[p.kind] || p.kind || '';
+      const kind = CLOSURE_KIND_KEYS[p.kind] ? t(CLOSURE_KIND_KEYS[p.kind]) : (p.kind || '');
       const lines = [`<strong>${escapeHtml(p.name ?? p.id ?? '')}</strong>`];
       if (kind) lines.push(escapeHtml(kind));
-      if (p.reason) lines.push(`理由: ${escapeHtml(p.reason)}`);
+      if (p.reason) lines.push(t('closure.popupReason', { reason: escapeHtml(p.reason) }));
       if (p.note) lines.push(escapeHtml(p.note));
-      if (p.updatedAt) lines.push(`更新日: ${escapeHtml(p.updatedAt)}`);
+      if (p.updatedAt) lines.push(t('closure.popupUpdated', { date: escapeHtml(p.updatedAt) }));
       layer.bindPopup(lines.join('<br>'));
     }
   });

@@ -8,7 +8,7 @@ export const VERSION_STORAGE_KEY = 'minoh-hiking.tile-manifest-version';
 export const MESSAGE_LOG_KEY = 'minoh-hiking.message-log';
 export const STARTUP_UPDATE_CHECK_KEY = 'minoh-hiking.startup-update-check';
 // 表示言語(「言語/Language」ドロップダウン)。'ja'(日本語・既定) / 'en'(English)。
-// 現状は選択値の保存のみで、表示言語の切替は今後実装する。
+// 読み書きと文言の切替は i18n.js(getLang/setLang/t/applyStaticTranslations)が担う。
 export const LANGUAGE_KEY = 'minoh-hiking.language';
 
 // ===== sessionStorage キー =====
@@ -65,29 +65,23 @@ export const MESSAGE_LOG_MAX = 100;
 // 移動記録の開始・終了時などに表示し、この秒数で自動的に閉じる。
 export const TOAST_DURATION_SEC = 3;
 
-// マーカー設定の対象種別と既定値
+// マーカー設定の対象種別と既定値。
+// 表示名は i18n.js の辞書で管理する(キーは markerType.<key> で導出)。
 export const MARKER_TYPES = [
-  { key: 'emergency', label: '緊急ポイント', color: '#00AA00', shape: 'circle', size: 12 },
-  { key: 'hikingRoute', label: 'ハイキングルート', color: '#007d00', shape: 'line', size: 3 },
-  { key: 'routeGuide', label: 'ルート案内写真', color: '#2563EB', shape: 'square', size: 12 },
-  { key: 'spot', label: 'スポット', color: '#1E90FF', shape: 'square', size: 10 },
+  { key: 'emergency', color: '#00AA00', shape: 'circle', size: 12 },      // 緊急ポイント
+  { key: 'hikingRoute', color: '#007d00', shape: 'line', size: 3 },       // ハイキングルート
+  { key: 'routeGuide', color: '#2563EB', shape: 'square', size: 12 },     // ルート案内写真
+  { key: 'spot', color: '#1E90FF', shape: 'square', size: 10 },           // スポット
   // 通行止め・通行困難地点(closures)。kind=closed / difficult に対応
-  { key: 'closureClosed', label: '通行止め地点', color: '#DC2626', shape: 'x', size: 10 },
-  { key: 'closureDifficult', label: '通行困難地点', color: '#F59E0B', shape: 'triangle', size: 16 },
+  { key: 'closureClosed', color: '#DC2626', shape: 'x', size: 10 },
+  { key: 'closureDifficult', color: '#F59E0B', shape: 'triangle', size: 16 },
   // 移動記録関連(表示順は移動記録経路の上)。色は移動記録経路と同じ既定値。
-  { key: 'trackStart', label: '移動記録開始点', color: '#000080', shape: 'square', size: 12 },
-  { key: 'trackCurrent', label: '移動記録現在地点', color: '#000080', shape: 'triangle', size:16 },
-  { key: 'track', label: '移動記録経路', color: '#000080', shape: 'line', size: 4 },
-  { key: 'photoLocation', label: '写真撮影場所', color: '#000080', shape: 'star', size: 12 }
+  { key: 'trackStart', color: '#000080', shape: 'square', size: 12 },     // 移動記録開始点
+  { key: 'trackCurrent', color: '#000080', shape: 'triangle', size: 16 }, // 移動記録現在地点
+  { key: 'track', color: '#000080', shape: 'line', size: 4 },             // 移動記録経路
+  { key: 'photoLocation', color: '#000080', shape: 'star', size: 12 }     // 写真撮影場所
 ];
 
-// マーカー形状の選択肢(設定UIのドロップダウン)
-export const MARKER_SHAPES = [
-  { value: 'circle', label: '円' },
-  { value: 'square', label: '四角' },
-  { value: 'triangle', label: '三角' },
-  { value: 'diamond', label: 'ひし形' },
-  { value: 'star', label: '星' },
-  { value: 'line', label: '線' },
-  { value: 'x', label: '✖' }
-];
+// マーカー形状の選択肢(設定UIのドロップダウン)。
+// 表示名は i18n.js の辞書で管理する(キーは markerShape.<value> で導出)。
+export const MARKER_SHAPES = ['circle', 'square', 'triangle', 'diamond', 'star', 'line', 'x'];

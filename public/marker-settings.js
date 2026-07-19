@@ -11,6 +11,7 @@ import {
   setClosureClosedStyle, setClosureDifficultStyle
 } from './map.js';
 import { setTrackStyle, setTrackStartStyle, setTrackCurrentStyle } from './geolocation.js';
+import { t } from './i18n.js';
 
 const el = {
   markerSettingsList: document.getElementById('markerSettingsList'),
@@ -53,13 +54,15 @@ function renderMarkerSettings() {
 
   for (const m of MARKER_TYPES) {
     const cur = settings[m.key];
+    // 表示名は辞書から導出(markerType.<key>)
+    const name = t(`markerType.${m.key}`);
 
     const row = document.createElement('div');
     row.className = 'marker-row';
 
     const label = document.createElement('span');
     label.className = 'marker-label';
-    label.textContent = m.label;
+    label.textContent = name;
     row.appendChild(label);
 
     const controls = document.createElement('div');
@@ -69,18 +72,18 @@ function renderMarkerSettings() {
     colorInput.type = 'color';
     colorInput.className = 'marker-color';
     colorInput.value = cur.color;
-    colorInput.setAttribute('aria-label', `${m.label} 色`);
+    colorInput.setAttribute('aria-label', t('markerSettings.ariaColor', { name }));
     colorInput.addEventListener('input', () => updateMarkerSetting(m.key, 'color', colorInput.value));
     controls.appendChild(colorInput);
 
     const shapeSelect = document.createElement('select');
     shapeSelect.className = 'marker-shape';
-    shapeSelect.setAttribute('aria-label', `${m.label} 形状`);
-    for (const s of MARKER_SHAPES) {
+    shapeSelect.setAttribute('aria-label', t('markerSettings.ariaShape', { name }));
+    for (const shape of MARKER_SHAPES) {
       const opt = document.createElement('option');
-      opt.value = s.value;
-      opt.textContent = s.label;
-      if (s.value === cur.shape) opt.selected = true;
+      opt.value = shape;
+      opt.textContent = t(`markerShape.${shape}`);
+      if (shape === cur.shape) opt.selected = true;
       shapeSelect.appendChild(opt);
     }
     shapeSelect.addEventListener('change', () => updateMarkerSetting(m.key, 'shape', shapeSelect.value));
@@ -92,7 +95,7 @@ function renderMarkerSettings() {
     sizeInput.min = '1';
     sizeInput.max = '50';
     sizeInput.value = String(cur.size);
-    sizeInput.setAttribute('aria-label', `${m.label} サイズ`);
+    sizeInput.setAttribute('aria-label', t('markerSettings.ariaSize', { name }));
     sizeInput.addEventListener('change', () => {
       const v = parseInt(sizeInput.value, 10);
       if (Number.isFinite(v) && v > 0) updateMarkerSetting(m.key, 'size', v);
@@ -133,7 +136,7 @@ function applyMarkerSettingToMap(key, style) {
 // 規定値に戻す: config.js の MARKER_TYPES の値で localStorage を上書きし、
 // UI と地図の両方に反映する
 function resetMarkerSettings() {
-  if (!confirm('マーカーの設定を規定値に戻します。よろしいですか?')) return;
+  if (!confirm(t('markerSettings.resetConfirm'))) return;
   const defaults = {};
   for (const m of MARKER_TYPES) {
     defaults[m.key] = { color: m.color, shape: m.shape, size: m.size };

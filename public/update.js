@@ -4,6 +4,7 @@
 // キャッシュ済み version と、サイトの service-worker.js 内の version を比較して更新を促す。
 
 import { STARTUP_UPDATE_CHECK_KEY, APP_UPDATED_FLAG_KEY } from './config.js';
+import { t } from './i18n.js';
 
 // ===== 起動時の更新確認の設定(localStorage) =====
 export function readStartupUpdateCheckEnabled() {
@@ -75,14 +76,7 @@ export async function promptAppShellUpdate() {
   // 初回(キャッシュ無し)や取得失敗時は何もしない
   if (!cached || !latest) return false;
   if (cached === latest) return false;
-  const ok = confirm(
-    `新しいバージョンのアプリが利用可能です。\n` +
-    `現在: ${cached}\n` +
-    `最新: ${latest}\n\n` +
-    `アプリを再読み込みして、最新の状態に更新しますか？\n` +
-    `アプリには更新された、ハイキングルートを含みます。\n` +
-    `ダウンロードした地図タイルは更新されません。`
-  );
+  const ok = confirm(t('update.appConfirm', { cached, latest }));
   if (ok) await updateAppToLatest();
   return true;
 }
@@ -91,13 +85,7 @@ export async function promptAppShellUpdate() {
 // 「地図のダウンロード」画面からの手動ダウンロードを案内するのみ。
 // OK・キャンセルとも処理は行わない(案内表示専用)。
 export function promptMapTileUpdate(savedMap, latestMap) {
-  confirm(
-    `ダウンロード対象の地図タイルが拡張されました。\n` +
-    `現在: ${savedMap}\n` +
-    `最新: ${latestMap}\n\n` +
-    `地図のダウンロードから、ダウンロードしてください。\n` +
-    `サイズは合計20MB弱で、既存分があれば差分のみです。`
-  );
+  confirm(t('update.mapTilesNotice', { saved: savedMap, latest: latestMap }));
 }
 
 // アプリシェルキャッシュを破棄し、SW を更新して再読み込み(タイル gsi-* は保持)

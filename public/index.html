@@ -25,7 +25,10 @@
 </head>
 <body>
   <!-- 全画面の地理院地図(ホーム/マップビューで共有、常時表示) -->
-  <div id="map" role="application" aria-label="箕面エリア地理院地図"></div>
+  <!-- 表示言語: 日本語の文言はHTMLに直書きし、英語選択時のみ i18n.js が
+       data-i18n(textContent) / data-i18n-aria(aria-label) / data-i18n-title(title)
+       のキーで起動時に一括置換する。JSが動的に書き換える文言には付けない。 -->
+  <div id="map" role="application" aria-label="箕面エリア地理院地図" data-i18n-aria="map.ariaMap"></div>
 
   <!-- 一時メッセージ(トースト): 移動記録の開始・終了時などに表示し自動で閉じる -->
   <div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
@@ -34,33 +37,34 @@
   <div id="updateBanner" class="update-banner" hidden role="status" aria-live="polite">
     <div class="update-banner-message" id="updateBannerMessage"></div>
     <div class="update-banner-actions">
-      <button type="button" id="btnUpdateDiff" class="btn btn-banner">差分のみ更新</button>
-      <button type="button" id="btnUpdateAll" class="btn btn-banner">すべて更新</button>
-      <button type="button" id="btnUpdateLater" class="btn btn-banner btn-banner-secondary">後で</button>
-      <button type="button" id="btnUpdateClose" class="update-banner-close" aria-label="バナーを閉じる">×</button>
+      <button type="button" id="btnUpdateDiff" class="btn btn-banner" data-i18n="banner.updateDiff">差分のみ更新</button>
+      <button type="button" id="btnUpdateAll" class="btn btn-banner" data-i18n="banner.updateAll">すべて更新</button>
+      <button type="button" id="btnUpdateLater" class="btn btn-banner btn-banner-secondary" data-i18n="banner.later">後で</button>
+      <button type="button" id="btnUpdateClose" class="update-banner-close" aria-label="バナーを閉じる" data-i18n-aria="banner.ariaClose">×</button>
     </div>
   </div>
 
   <!-- 初期画面(ホーム) -->
   <section class="view view-home" id="viewHome">
     <img class="home-image" src="icons/Startup-512x918.png" alt="" aria-hidden="true" />
-    <nav class="home-menu" aria-label="メインメニュー">
-      <button type="button" class="home-btn" data-view="map">ハイキングマップ表示</button>
-      <button type="button" class="home-btn" id="btnOpenDownload">地図のダウンロード（オフライン用）</button>
+    <nav class="home-menu" aria-label="メインメニュー" data-i18n-aria="home.ariaMainMenu">
+      <button type="button" class="home-btn" data-view="map" data-i18n="home.showMap">ハイキングマップ表示</button>
+      <button type="button" class="home-btn" id="btnOpenDownload" data-i18n="home.download">地図のダウンロード（オフライン用）</button>
       <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
-      <button type="button" class="home-btn" id="btnClosureEdit" hidden>通行止め・通行困難地点</button>
-      <button type="button" class="home-btn" id="btnOpenSettingsInfo">バージョン情報等</button>
+      <button type="button" class="home-btn" id="btnClosureEdit" hidden data-i18n="closure.title">通行止め・通行困難地点</button>
+      <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-i18n="home.versionInfo">バージョン情報等</button>
     </nav>
   </section>
 
   <!-- ハイキングマップ表示(地図そのものは body 直下の #map を共有) -->
   <section class="view view-map" id="viewMap" hidden>
-    <button type="button" class="btn-float btn-menu-float" id="btnMapLayers" aria-label="表示設定">≡</button>
+    <button type="button" class="btn-float btn-menu-float" id="btnMapLayers" aria-label="表示設定" data-i18n-aria="map.ariaLayers">≡</button>
     <!-- 時刻表示(メニューボタンの左): 「時刻を表示」トグル ON のときのみ表示 -->
     <div class="map-clock" id="mapClock" hidden role="status" aria-live="off"></div>
     <!-- 移動経路を記録 ON のとき、メニューボタンの下に表示する操作ボタン群 -->
     <div class="map-track-actions" id="mapTrackActions" hidden>
-      <!-- 記録開始/停止を兼ねるトグルボタン。記録中は is-recording クラスで停止アイコンに切替 -->
+      <!-- 記録開始/停止を兼ねるトグルボタン。記録中は is-recording クラスで停止アイコンに切替。
+           aria-label/title は app.js が記録状態に応じて動的に更新するため data-i18n は付けない -->
       <button type="button" class="btn-float btn-track-action" id="btnTrackToggle" aria-label="記録開始" title="記録開始">
         <svg class="icon-track-start" viewBox="0 0 24 24" width="32" height="32" aria-hidden="true" focusable="false">
           <path d="M8 5v14l11-7z" fill="currentColor"/>
@@ -69,7 +73,7 @@
           <rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/>
         </svg>
       </button>
-      <button type="button" class="btn-float btn-track-action" id="btnTrackPhoto" aria-label="写真撮影" title="写真撮影">
+      <button type="button" class="btn-float btn-track-action" id="btnTrackPhoto" aria-label="写真撮影" title="写真撮影" data-i18n-aria="track.photo" data-i18n-title="track.photo">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false">
           <path d="M9 3l-1.8 2H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z" fill="currentColor"/>
         </svg>
@@ -78,55 +82,55 @@
     <!-- 通行止め・通行困難地点の編集パネル(ホームの「通行止め・通行困難地点」ボタンから表示)。
          メニューボタン(≡)や時刻表示を隠さないよう、その下の右上に配置する。 -->
     <div class="closure-edit-panel" id="closureEditPanel" hidden>
-      <div class="closure-edit-title">通行止め・通行困難地点</div>
+      <div class="closure-edit-title" data-i18n="closure.title">通行止め・通行困難地点</div>
       <label class="closure-version-row">
-        <span class="closure-version-label">バージョン:</span>
+        <span class="closure-version-label" data-i18n="closure.versionLabel">バージョン:</span>
         <input type="text" id="closureVersionInput" class="closure-version-input" autocomplete="off" />
       </label>
-      <button type="button" class="closure-edit-btn" id="btnClosureLoadFile">ファイル読み込み</button>
-      <button type="button" class="closure-edit-btn" id="btnClosureApply" disabled>マップに反映</button>
-      <button type="button" class="closure-edit-btn" id="btnClosurePublish">公開</button>
-      <button type="button" class="closure-edit-btn closure-edit-btn-cancel" id="btnClosureCancel">キャンセル</button>
+      <button type="button" class="closure-edit-btn" id="btnClosureLoadFile" data-i18n="closure.loadFile">ファイル読み込み</button>
+      <button type="button" class="closure-edit-btn" id="btnClosureApply" disabled data-i18n="closure.apply">マップに反映</button>
+      <button type="button" class="closure-edit-btn" id="btnClosurePublish" data-i18n="closure.publish">公開</button>
+      <button type="button" class="closure-edit-btn closure-edit-btn-cancel" id="btnClosureCancel" data-i18n="common.cancel">キャンセル</button>
       <input type="file" id="closureFileInput" accept=".geojson,.json" hidden />
     </div>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
       <label class="toggle toggle-switch">
         <input type="checkbox" id="toggleCurrentMarker" checked />
         <span class="toggle-slider" aria-hidden="true"></span>
-        <span class="toggle-text">現在地点をマーカー表示</span>
+        <span class="toggle-text" data-i18n="map.toggleCurrentMarker">現在地点をマーカー表示</span>
       </label>
       <label class="toggle toggle-switch">
         <input type="checkbox" id="toggleCenterCurrent" checked />
         <span class="toggle-slider" aria-hidden="true"></span>
-        <span class="toggle-text">現在地点は中央に表示</span>
+        <span class="toggle-text" data-i18n="map.toggleCenterCurrent">現在地点は中央に表示</span>
       </label>
       <label class="toggle toggle-switch">
         <input type="checkbox" id="toggleTrackRecording" />
         <span class="toggle-slider" aria-hidden="true"></span>
-        <span class="toggle-text">移動経路を記録</span>
+        <span class="toggle-text" data-i18n="map.toggleTrackRecording">移動経路を記録</span>
       </label>
       <!-- 移動経路: 統計表示(サイズ)とクリア -->
       <div class="track-inline-actions">
-        <button type="button" class="btn-track-mini" id="btnTrackStats">サイズ</button>
-        <button type="button" class="btn-track-mini" id="btnTrackClear">クリア</button>
+        <button type="button" class="btn-track-mini" id="btnTrackStats" data-i18n="track.statsBtn">サイズ</button>
+        <button type="button" class="btn-track-mini" id="btnTrackClear" data-i18n="common.clear">クリア</button>
       </div>
       <hr class="panel-divider" />
-      <button type="button" class="panel-btn" id="btnMapOpenMarkerSettings">マーカーの設定</button>
+      <button type="button" class="panel-btn" id="btnMapOpenMarkerSettings" data-i18n="markerSettings.title">マーカーの設定</button>
       <hr class="panel-divider" />
-      <button type="button" class="panel-btn panel-btn-back" data-view="home">起動時の画面に戻る</button>
+      <button type="button" class="panel-btn panel-btn-back" data-view="home" data-i18n="map.backToHome">起動時の画面に戻る</button>
     </div>
   </section>
 
   <!-- ハイキングコースの案内・ナビ(地図そのものは body 直下の #map を共有) -->
   <section class="view view-nav" id="viewNav" hidden>
-    <button type="button" class="btn-float btn-back-float" data-view="home" aria-label="ホームに戻る">
+    <button type="button" class="btn-float btn-back-float" data-view="home" aria-label="ホームに戻る" data-i18n-aria="nav.ariaBack">
       <svg class="icon-back" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
         <path d="M15.5 4.5L8 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
-    <button type="button" class="btn-float btn-menu-float" id="btnNavMenu" aria-label="ナビメニュー">≡</button>
+    <button type="button" class="btn-float btn-menu-float" id="btnNavMenu" aria-label="ナビメニュー" data-i18n-aria="nav.ariaMenu">≡</button>
     <div class="nav-pending">
-      <p class="placeholder-message">この機能は準備中です。</p>
+      <p class="placeholder-message" data-i18n="nav.pending">この機能は準備中です。</p>
     </div>
   </section>
 
@@ -135,17 +139,17 @@
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="downloadTitle">地図のダウンロード（オフライン用）</h2>
-        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
+        <h2 id="downloadTitle" data-i18n="home.download">地図のダウンロード（オフライン用）</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
       </header>
       <div class="modal-body">
         <div class="storage-info">
           <div class="info-row">
-            <span class="info-label">ダウンロード済み地図バージョン:</span>
+            <span class="info-label" data-i18n="download.savedVersion">ダウンロード済み地図バージョン:</span>
             <span class="info-value" id="downloadedVersion">-</span>
           </div>
           <div class="info-row">
-            <span class="info-label">ファイルサイズ(MB):</span>
+            <span class="info-label" data-i18n="download.fileSize">ファイルサイズ(MB):</span>
             <span class="info-value" id="downloadedSizeMB">-</span>
           </div>
         </div>
@@ -153,13 +157,13 @@
         <label class="toggle toggle-row">
           <input type="checkbox" id="toggleDetail" checked />
           <span class="toggle-label">
-            <span class="toggle-title">詳細地図(z=18)を含む</span>
+            <span class="toggle-title" data-i18n="download.includeDetail">詳細地図(z=18)を含む</span>
           </span>
         </label>
 
         <div class="button-group button-group-row">
-          <button type="button" id="btnDownloadMap" class="btn btn-primary">ダウンロード</button>
-          <button type="button" id="btnClearCache" class="btn btn-danger">クリア</button>
+          <button type="button" id="btnDownloadMap" class="btn btn-primary" data-i18n="download.startBtn">ダウンロード</button>
+          <button type="button" id="btnClearCache" class="btn btn-danger" data-i18n="common.clear">クリア</button>
         </div>
 
         <div class="status-message" id="statusMessage" role="status" aria-live="polite"></div>
@@ -172,13 +176,14 @@
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="infoSettingsTitle">バージョン情報等</h2>
-        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
+        <h2 id="infoSettingsTitle" data-i18n="home.versionInfo">バージョン情報等</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
       </header>
       <div class="modal-body">
         <section class="info-section">
 
-          <!-- 言語/Language(表示言語の選択。既定: 日本語。選択値の保存のみで切替の反映は今後実装) -->
+          <!-- 言語/Language(表示言語の選択。既定: 日本語。変更すると保存してリロードし、
+               選択言語でUI文言を再表示する。ラベルと選択肢は両言語表記のため翻訳対象外) -->
           <div class="language-row">
             <label class="language-label" for="languageSelect">言語/Language</label>
             <select id="languageSelect" class="language-select">
@@ -191,49 +196,49 @@
           <label class="toggle toggle-switch">
             <input type="checkbox" id="toggleClock" checked />
             <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text">時刻を表示</span>
+            <span class="toggle-text" data-i18n="info.showClock">時刻を表示</span>
           </label>
 
           <!-- 起動時にアプリの更新版を確認 -->
           <label class="toggle toggle-switch">
             <input type="checkbox" id="toggleStartupUpdateCheck" />
             <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text">起動時にアプリの更新版を確認</span>
+            <span class="toggle-text" data-i18n="info.startupUpdateCheck">起動時にアプリの更新版を確認</span>
           </label>
 
           <!-- バージョン情報(既定オン) -->
           <label class="toggle toggle-switch">
             <input type="checkbox" id="toggleInfoVersion" checked />
             <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text">バージョン情報</span>
+            <span class="toggle-text" data-i18n="info.versionInfo">バージョン情報</span>
           </label>
           <div class="info-collapse" id="infoVersionBody">
             <div class="info-row">
               <span class="info-label">
-                地図バージョン：
-                <span class="info-sublabel">（ダウンロード対象とする地図タイルの指定）</span>
+                <span data-i18n="info.mapVersion">地図バージョン：</span>
+                <span class="info-sublabel" data-i18n="info.mapVersionNote">（ダウンロード対象とする地図タイルの指定）</span>
               </span>
               <span class="info-value" id="versionManifest">-</span>
             </div>
             <div class="info-row">
               <span class="info-label">
-                アプリバージョン：
-                <span class="info-sublabel">（ハイキングルート等を含む）</span>
+                <span data-i18n="info.appVersion">アプリバージョン：</span>
+                <span class="info-sublabel" data-i18n="info.appVersionNote">（ハイキングルート等を含む）</span>
               </span>
               <span class="info-value" id="versionAppShell">-</span>
             </div>
             <!-- 通行止め・通行困難地点のバージョン(「マップに反映」で入力された値) -->
             <div class="info-row">
-              <span class="info-label">通行止め・通行困難地点：</span>
+              <span class="info-label" data-i18n="info.closuresVersion">通行止め・通行困難地点：</span>
               <span class="info-value" id="versionClosures">-</span>
             </div>
             <!-- データ件数: 各項目の件数を横一列で表示(未読込は "-")。
                  ポイント=緊急ポイント、ルート・スポット=ハイキングデータ、通行止め=反映中データ。 -->
-            <div class="feature-counts-line" aria-label="データ件数">
-              <span class="feature-count-item">ポイント <span class="feature-count-value" id="countPoints">-</span></span>
-              <span class="feature-count-item">ルート <span class="feature-count-value" id="countRoutes">-</span></span>
-              <span class="feature-count-item">スポット <span class="feature-count-value" id="countSpots">-</span></span>
-              <span class="feature-count-item">通行止め <span class="feature-count-value" id="countClosures">-</span></span>
+            <div class="feature-counts-line" aria-label="データ件数" data-i18n-aria="info.ariaDataCounts">
+              <span class="feature-count-item"><span data-i18n="info.countPoints">ポイント</span> <span class="feature-count-value" id="countPoints">-</span></span>
+              <span class="feature-count-item"><span data-i18n="info.countRoutes">ルート</span> <span class="feature-count-value" id="countRoutes">-</span></span>
+              <span class="feature-count-item"><span data-i18n="info.countSpots">スポット</span> <span class="feature-count-value" id="countSpots">-</span></span>
+              <span class="feature-count-item"><span data-i18n="info.countClosures">通行止め</span> <span class="feature-count-value" id="countClosures">-</span></span>
             </div>
           </div>
 
@@ -241,26 +246,26 @@
           <label class="toggle toggle-switch">
             <input type="checkbox" id="toggleInfoMessages" />
             <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text">メッセージ履歴の表示</span>
+            <span class="toggle-text" data-i18n="info.showMessages">メッセージ履歴の表示</span>
           </label>
           <div class="info-collapse" id="infoMessagesBody" hidden>
             <div class="info-messages-actions">
-              <button type="button" class="btn-icon" id="btnClearMessages" aria-label="履歴を消去">🗑</button>
+              <button type="button" class="btn-icon" id="btnClearMessages" aria-label="履歴を消去" data-i18n-aria="info.ariaClearMessages">🗑</button>
             </div>
             <ul class="message-list" id="messageList"></ul>
-            <p class="message-empty" id="messageEmpty" hidden>履歴はありません。</p>
+            <p class="message-empty" id="messageEmpty" hidden data-i18n="info.noMessages">履歴はありません。</p>
           </div>
 
           <!-- このアプリについて(既定オフ) -->
           <label class="toggle toggle-switch">
             <input type="checkbox" id="toggleInfoAbout" />
             <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text">このアプリについて</span>
+            <span class="toggle-text" data-i18n="info.about">このアプリについて</span>
           </label>
           <div class="info-collapse" id="infoAboutBody" hidden>
             <div class="info-row">
-              <span class="info-label">アプリ名:</span>
-              <span class="info-value">箕面ハイキングマップ</span>
+              <span class="info-label" data-i18n="info.appName">アプリ名:</span>
+              <span class="info-value" data-i18n="info.appNameValue">箕面ハイキングマップ</span>
             </div>
             <div class="info-row">
               <span class="info-label">URL:</span>
@@ -268,7 +273,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">contributors:</span>
-              <span class="info-value">仕様検討中</span>
+              <span class="info-value" data-i18n="info.contributorsValue">仕様検討中</span>
             </div>
           </div>
         </section>
@@ -281,14 +286,14 @@
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="settingsTitle">マーカーの設定</h2>
-        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる">×</button>
+        <h2 id="settingsTitle" data-i18n="markerSettings.title">マーカーの設定</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
       </header>
       <div class="modal-body">
         <section class="settings-section">
           <div class="marker-settings-list" id="markerSettingsList"></div>
           <div class="marker-settings-actions">
-            <button type="button" class="btn btn-secondary" id="btnResetMarkerSettings">規定値に戻す</button>
+            <button type="button" class="btn btn-secondary" id="btnResetMarkerSettings" data-i18n="markerSettings.reset">規定値に戻す</button>
           </div>
         </section>
       </div>

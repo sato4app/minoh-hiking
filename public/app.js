@@ -28,7 +28,8 @@ import {
   initClosures, applyClosureFlag, loadClosures,
   getClosureVersion, getClosureCount, autoCancelOnLeaveMap
 } from './closures.js';
-import { EMERGENCY_URL, HIKING_ROUTES_URL, LANGUAGE_KEY } from './config.js';
+import { EMERGENCY_URL, HIKING_ROUTES_URL } from './config.js';
+import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
 import {
   checkAppShellUpdate, promptAppShellUpdate, promptMapTileUpdate,
@@ -106,6 +107,9 @@ const el = {
 
 // ===== 初期化 =====
 async function init() {
+  // 選択言語が英語のとき、静的なHTML文言(data-i18n属性)を一括置換する。
+  // 以降の confirm・トースト等の動的文言より必ず先に適用する
+  applyStaticTranslations();
   // MapGPS からの起動フラグはネットワークに依存しないため最初に反映する
   applyClosureFlag();
   await loadManifest();
@@ -174,8 +178,11 @@ function bindEvents() {
   // 起動画面の「バージョン情報等」ボタンはバージョン情報等モーダルを表示
   el.btnOpenSettingsInfo.addEventListener('click', openSettingsInfoModal);
 
-  // 言語/Language: 選択値を保存する(表示言語の切替は今後実装)
-  el.languageSelect.addEventListener('change', (e) => writeLanguage(e.target.value));
+  // 言語/Language: 選択値を保存し、リロードして選択言語で全文言を再表示する
+  el.languageSelect.addEventListener('change', (e) => {
+    setLang(e.target.value);
+    location.reload();
+  });
   // 設定: 起動時の更新確認トグル(localStorage に保存)
   el.toggleStartupUpdateCheck.addEventListener('change', (e) => {
     writeStartupUpdateCheckEnabled(e.target.checked);
@@ -261,16 +268,16 @@ function bindEvents() {
   el.btnTrackClear.addEventListener('click', () => {
     const stats = getTrackStats();
     if (stats.pointCount === 0) {
-      showToast('クリアする移動経路がありません');
+      showToast(t('track.nothingToClear'));
       return;
     }
-    if (!confirm('記録した移動経路をクリアします。よろしいですか?')) return;
+    if (!confirm(t('track.clearConfirm'))) return;
     clearTrack();
     isTrackRecording = false;
     setTrackRecordingActive(false);
     trackPhotoCount = 0;
-    logHistory('移動経路をクリアしました', '');
-    showToast('移動経路をクリアしました');
+    logHistory(t('track.cleared'), '');
+    showToast(t('track.cleared'));
   });
 
   // マップ画面メニューから「マーカーの設定」モーダルを開く
@@ -379,24 +386,13 @@ function showView(name) {
   }
 }
 
-// ===== 言語設定 =====
-// 「言語/Language」の選択値(ja=日本語・既定 / en=English)。
-// 現状は選択値の保存のみで、表示言語の切替は今後実装する。
-function readLanguage() {
-  try { return localStorage.getItem(LANGUAGE_KEY) || 'ja'; } catch { return 'ja'; }
-}
-
-function writeLanguage(lang) {
-  try { localStorage.setItem(LANGUAGE_KEY, lang); } catch { /* noop */ }
-}
-
 // ===== モーダル =====
 // バージョン情報等モーダル(起動画面の「バージョン情報等」から表示)。
 // 言語選択・時刻表示・更新確認の設定を上、情報(バージョン情報・
 // メッセージ履歴・このアプリについて)を下に配置する。
 async function openSettingsInfoModal() {
   // 言語・起動時の更新確認トグルを現在の設定値で初期化
-  el.languageSelect.value = readLanguage();
+  el.languageSelect.value = getLang();
   el.toggleStartupUpdateCheck.checked = readStartupUpdateCheckEnabled();
 
   // --- 情報: トグルを既定状態(バージョン情報のみオン)にリセット ---
@@ -408,8 +404,8 @@ async function openSettingsInfoModal() {
   el.infoAboutBody.hidden = true;
 
   // バージョン情報を反映
-  el.versionManifest.textContent = getManifestVersion() || '不明';
-  const shell = (await getCachedAppShellVersion()) || '不明';
+  el.versionManifest.textContent = getManifestVersion() || t('common.unknown');
+  const shell = (await getCachedAppShellVersion()) || t('common.unknown');
   el.versionAppShell.textContent = shell;
   // 通行止め・通行困難地点: 現在反映されているデータのバージョン
   el.versionClosures.textContent = getClosureVersion() || '-';
@@ -468,7 +464,7 @@ function updateTrackButtonState(enabled) {
 // 記録中フラグに応じてトグルボタンのアイコン(開始▶/停止■)とラベルを切り替える
 function setTrackRecordingActive(active) {
   el.btnTrackToggle.classList.toggle('is-recording', active);
-  const label = active ? '記録停止' : '記録開始';
+  const label = active ? t('track.stop') : t('track.start');
   el.btnTrackToggle.setAttribute('aria-label', label);
   el.btnTrackToggle.setAttribute('title', label);
 }
@@ -481,7 +477,7 @@ let trackPhotoCount = 0;
 // 記録地点数・写真枚数・移動距離の統計文言(「サイズ」表示と記録終了時で共通)
 function formatTrackSummary(stats) {
   const km = (stats.distanceM / 1000).toFixed(2);
-  return `記録地点 ${stats.pointCount} 点 / 写真 ${trackPhotoCount} 枚 / 移動距離 ${km} km`;
+  return t('track.summary', { points: stats.pointCount, photos: trackPhotoCount, km });
 }
 
 // 移動記録を開始(記録開始ボタン)。開始を履歴に残す。
@@ -490,8 +486,8 @@ function beginTrackRecording() {
   startTrackRecording();
   setTrackRecordingActive(true);
   isTrackRecording = true;
-  logHistory('移動記録を開始しました', 'success');
-  showToast('移動記録を開始しました');
+  logHistory(t('track.started'), 'success');
+  showToast(t('track.started'));
 }
 
 // 移動記録を終了(記録停止/トグルOFF/画面遷移)。記録中だったときのみ、
@@ -504,7 +500,7 @@ function finishTrackRecording() {
   setTrackRecordingActive(false);
   isTrackRecording = false;
   if (wasRecording) {
-    const summary = `移動記録を終了しました(${formatTrackSummary(stats)})`;
+    const summary = t('track.finished', { summary: formatTrackSummary(stats) });
     logHistory(summary, 'success');
     showToast(summary);
   }
@@ -533,9 +529,9 @@ function capturePhoto() {
 // 起動時に確認したバージョン(地図/アプリ)を履歴に残す
 async function logStartupVersionCheck() {
   const v = getManifestVersion();
-  const mv = v ? `v${v}` : '不明';
-  const shell = (await getCachedAppShellVersion()) || '不明';
-  logHistory(`起動時のバージョン確認: 地図 ${mv} / アプリ ${shell}`, '');
+  const mv = v ? `v${v}` : t('common.unknown');
+  const shell = (await getCachedAppShellVersion()) || t('common.unknown');
+  logHistory(t('startup.versionCheck', { map: mv, app: shell }), '');
 }
 
 // 起動
