@@ -41,7 +41,8 @@ const DICT = {
   'home.ariaMainMenu': { ja: 'メインメニュー', en: 'Main menu' },
   'home.showMap': { ja: 'ハイキングマップ表示', en: 'Show Hiking Map' },
   'home.download': { ja: '地図のダウンロード（オフライン用）', en: 'Download Maps (Offline)' },
-  'home.versionInfo': { ja: 'バージョン情報等', en: 'Version & Info' },
+  'home.versionInfo': { ja: 'バージョン情報', en: 'Version Info' },
+  'home.settings': { ja: '設定', en: 'Settings' },
 
   // ----- マップ画面 -----
   'map.ariaMap': { ja: '箕面エリア地理院地図', en: 'GSI map of the Minoh area' },

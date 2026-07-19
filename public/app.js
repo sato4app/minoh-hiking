@@ -60,22 +60,25 @@ const el = {
   // ホーム
   btnOpenDownload: document.getElementById('btnOpenDownload'),
   btnOpenSettingsInfo: document.getElementById('btnOpenSettingsInfo'),
+  btnOpenAppSettings: document.getElementById('btnOpenAppSettings'),
 
-  // バージョン情報等モーダル(起動画面の「バージョン情報等」から表示)
+  // バージョン情報モーダル(起動画面の「バージョン情報」から表示)
   infoSettingsModal: document.getElementById('infoSettingsModal'),
-  languageSelect: document.getElementById('languageSelect'),
   toggleStartupUpdateCheck: document.getElementById('toggleStartupUpdateCheck'),
-  toggleInfoVersion: document.getElementById('toggleInfoVersion'),
-  infoVersionBody: document.getElementById('infoVersionBody'),
-  toggleInfoMessages: document.getElementById('toggleInfoMessages'),
-  infoMessagesBody: document.getElementById('infoMessagesBody'),
-  toggleInfoAbout: document.getElementById('toggleInfoAbout'),
-  infoAboutBody: document.getElementById('infoAboutBody'),
   versionManifest: document.getElementById('versionManifest'),
   versionAppShell: document.getElementById('versionAppShell'),
   // 通行止め・通行困難地点のバージョン表示欄(バージョン情報内)
   versionClosures: document.getElementById('versionClosures'),
+
+  // 設定モーダル(起動画面の「設定」から表示)
+  appSettingsModal: document.getElementById('appSettingsModal'),
+  languageSelect: document.getElementById('languageSelect'),
+  toggleInfoMessages: document.getElementById('toggleInfoMessages'),
+  infoMessagesBody: document.getElementById('infoMessagesBody'),
+  toggleInfoAbout: document.getElementById('toggleInfoAbout'),
+  infoAboutBody: document.getElementById('infoAboutBody'),
   btnClearMessages: document.getElementById('btnClearMessages'),
+  btnOpenMarkerSettings: document.getElementById('btnOpenMarkerSettings'),
 
   // マップ
   btnMapLayers: document.getElementById('btnMapLayers'),
@@ -183,25 +186,24 @@ function bindEvents() {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
   el.btnOpenDownload.addEventListener('click', openDownloadModal);
-  // 起動画面の「バージョン情報等」ボタンはバージョン情報等モーダルを表示
+  // 起動画面の「バージョン情報」ボタンはバージョン情報モーダルを表示
   el.btnOpenSettingsInfo.addEventListener('click', openSettingsInfoModal);
+  // 起動画面の「設定」ボタンは設定モーダルを表示
+  el.btnOpenAppSettings.addEventListener('click', openAppSettingsModal);
 
-  // 言語/Language(ホーム画面): 現在の設定値を表示し、変更時は保存して
+  // 言語/Language(設定モーダル): 現在の設定値を表示し、変更時は保存して
   // リロードし、選択言語で全文言を再表示する
   el.languageSelect.value = getLang();
   el.languageSelect.addEventListener('change', (e) => {
     setLang(e.target.value);
     location.reload();
   });
-  // 設定: 起動時の更新確認トグル(localStorage に保存)
+  // バージョン情報: 起動時の更新確認トグル(localStorage に保存)
   el.toggleStartupUpdateCheck.addEventListener('change', (e) => {
     writeStartupUpdateCheckEnabled(e.target.checked);
   });
 
-  // 情報: 各トグルで内容領域の表示/非表示を切替
-  el.toggleInfoVersion.addEventListener('change', (e) => {
-    el.infoVersionBody.hidden = !e.target.checked;
-  });
+  // 設定: 各トグルで内容領域の表示/非表示を切替
   el.toggleInfoMessages.addEventListener('change', (e) => {
     el.infoMessagesBody.hidden = !e.target.checked;
     if (e.target.checked) renderMessageList();
@@ -297,6 +299,12 @@ function bindEvents() {
   // マップ画面メニューから「マーカーの設定」モーダルを開く
   el.btnMapOpenMarkerSettings.addEventListener('click', () => {
     el.mapLayerPanel.hidden = true;
+    openMarkerSettingsModal();
+  });
+
+  // 設定モーダルから「マーカーの設定」モーダルを開く(設定モーダルは閉じる)
+  el.btnOpenMarkerSettings.addEventListener('click', () => {
+    el.appSettingsModal.hidden = true;
     openMarkerSettingsModal();
   });
 
@@ -401,20 +409,11 @@ function showView(name) {
 }
 
 // ===== モーダル =====
-// バージョン情報等モーダル(起動画面の「バージョン情報等」から表示)。
-// 時刻表示・更新確認の設定を上、情報(バージョン情報・
-// メッセージ履歴・このアプリについて)を下に配置する。
+// バージョン情報モーダル(起動画面の「バージョン情報」から表示)。
+// 内容は「起動時にアプリの更新版を確認」トグルと、バージョン情報(常時表示)のみ。
 async function openSettingsInfoModal() {
   // 起動時の更新確認トグルを現在の設定値で初期化
   el.toggleStartupUpdateCheck.checked = readStartupUpdateCheckEnabled();
-
-  // --- 情報: トグルを既定状態(バージョン情報のみオン)にリセット ---
-  el.toggleInfoVersion.checked = true;
-  el.infoVersionBody.hidden = false;
-  el.toggleInfoMessages.checked = false;
-  el.infoMessagesBody.hidden = true;
-  el.toggleInfoAbout.checked = false;
-  el.infoAboutBody.hidden = true;
 
   // バージョン情報を反映
   el.versionManifest.textContent = getManifestVersion() || t('common.unknown');
@@ -425,23 +424,33 @@ async function openSettingsInfoModal() {
   // データ件数(ポイント/ルート/スポット/通行止め)を開いた時点の最新値で反映
   updateFeatureCounts();
 
-  // 履歴は開いたときにすぐ見えるよう事前に描画しておく
-  renderMessageList();
-
   el.infoSettingsModal.hidden = false;
 
-  // バージョン情報トグルがオンなら、地図/アプリの更新有無を確認して
-  // 新しいものがあれば更新の confirm を表示する
+  // 地図/アプリの更新有無を確認して、新しいものがあれば更新の confirm を表示する
   checkUpdatesFromInfoModal();
 }
 
-// 「バージョン情報等」モーダルを開いたときの更新チェック。
-// 「バージョン情報」トグルがオンのとき、地図タイルとアプリ(アプリシェル)の
-// バージョンをサイトの最新と比較し、新しいものがあればそれぞれ別の confirm で案内する。
+// 設定モーダル(起動画面の「設定」から表示)。
+// 時刻を表示・メッセージ履歴・このアプリについて・マーカーの設定・言語/Language をまとめる。
+// 時刻表示トグルは現在の表示状態を保持したまま表示する。
+function openAppSettingsModal() {
+  // メッセージ履歴・このアプリについては既定状態(オフ)にリセット
+  el.toggleInfoMessages.checked = false;
+  el.infoMessagesBody.hidden = true;
+  el.toggleInfoAbout.checked = false;
+  el.infoAboutBody.hidden = true;
+
+  // 履歴はトグルを開いたときにすぐ見えるよう事前に描画しておく
+  renderMessageList();
+
+  el.appSettingsModal.hidden = false;
+}
+
+// バージョン情報モーダルを開いたときの更新チェック。
+// 地図タイルとアプリ(アプリシェル)のバージョンをサイトの最新と比較し、
+// 新しいものがあればそれぞれ別の confirm で案内する。
 // メッセージ表示・更新処理は update.js に集約している。
 async function checkUpdatesFromInfoModal() {
-  if (!el.toggleInfoVersion.checked) return;
-
   // 地図タイル → アプリの順に確認する。アプリ更新は OK で即再読み込みするため最後に確認する
   // (先に出すと地図タイルの案内が表示される前に画面が再読込される)。
 

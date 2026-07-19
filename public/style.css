@@ -483,21 +483,33 @@ body.view-state-nav .leaflet-control-container {
 
 /* データ件数(ポイント/ルート/スポット/通行止め):
    「バージョン情報等」のバージョン情報内に、各項目を横一列・中央寄せで表示する。 */
-.feature-counts-line {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: center;
-  gap: 0.75rem;
-  margin: 0.2rem 0.75rem 0.4rem;
+/* データ件数: ラベル行(1行目)+値行(2行目)の2行表・罫線なし。
+   margin-left: auto で表を右に寄せ、右端を上の info-row の値
+   (通行止め・通行困難地点)の右端に合わせる */
+.feature-counts-table {
+  margin: 0.2rem 0 0.4rem auto;
+  border-collapse: collapse;
   white-space: nowrap;
 }
 
-.feature-count-item {
+.feature-counts-table th,
+.feature-counts-table td {
+  padding: 0 0 0 0.9rem;
+  text-align: center;
+}
+
+.feature-counts-table th:first-child,
+.feature-counts-table td:first-child {
+  padding-left: 0;
+}
+
+.feature-counts-table th {
+  font-weight: normal;
   font-size: 0.85rem;
   color: #555;
 }
 
-.feature-count-value {
+.feature-counts-table td {
   font-size: 0.9rem;
   color: #222;
   font-variant-numeric: tabular-nums;
@@ -1012,22 +1024,6 @@ body.view-state-nav .leaflet-control-container {
   color: #222;
 }
 
-/* ホームメニュー内の言語選択行: home-btn と同じ配色・角丸で並べる */
-.home-language-row {
-  max-width: 80%;
-  min-height: 48px;
-  padding: 0.5rem 1.1rem;
-  background: rgba(186, 230, 253, 0.9);
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-}
-
-.home-language-row .language-label {
-  color: #0c4a6e;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
 .language-select {
   min-height: 36px;
   padding: 0.25rem 0.5rem;
@@ -1035,6 +1031,23 @@ body.view-state-nav .leaflet-control-container {
   border: 1px solid #ccc;
   border-radius: 6px;
   background: #fff;
+}
+
+/* 設定モーダル内の画面遷移ボタン(マーカーの設定など) */
+.settings-link-btn {
+  display: block;
+  margin: 0.5rem 0 0.25rem;
+  padding: 0.45rem 0.9rem;
+  font: inherit;
+  border: 1px solid #1d4ed8;
+  background: #fff;
+  color: #1d4ed8;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.settings-link-btn:hover {
+  background: #eef2ff;
 }
 
 /* トグルで開閉する内容領域 */

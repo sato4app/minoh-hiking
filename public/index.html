@@ -52,16 +52,8 @@
       <button type="button" class="home-btn" id="btnOpenDownload" data-i18n="home.download">地図のダウンロード（オフライン用）</button>
       <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
       <button type="button" class="home-btn" id="btnClosureEdit" hidden data-i18n="closure.title">通行止め・通行困難地点</button>
-      <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-i18n="home.versionInfo">バージョン情報等</button>
-      <!-- 言語/Language(表示言語の選択。既定: 日本語。変更すると保存してリロードし、
-           選択言語でUI文言を再表示する。ラベルと選択肢は両言語表記のため翻訳対象外) -->
-      <div class="language-row home-language-row">
-        <label class="language-label" for="languageSelect">言語/Language</label>
-        <select id="languageSelect" class="language-select">
-          <option value="ja" selected>日本語</option>
-          <option value="en">English</option>
-        </select>
-      </div>
+      <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-i18n="home.versionInfo">バージョン情報</button>
+      <button type="button" class="home-btn" id="btnOpenAppSettings" data-i18n="home.settings">設定</button>
     </nav>
   </section>
 
@@ -218,23 +210,17 @@
     </div>
   </div>
 
-  <!-- バージョン情報等モーダル(起動画面の「バージョン情報等」から表示) -->
+  <!-- バージョン情報モーダル(起動画面の「バージョン情報」から表示)。
+       内容は「起動時にアプリの更新版を確認」トグルと、バージョン情報(常時表示)のみ。 -->
   <div class="modal" id="infoSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="infoSettingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="infoSettingsTitle" data-i18n="home.versionInfo">バージョン情報等</h2>
+        <h2 id="infoSettingsTitle" data-i18n="home.versionInfo">バージョン情報</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
       </header>
       <div class="modal-body">
         <section class="info-section">
-
-          <!-- 時刻を表示(マップ画面のメニューボタン左に現在時刻を表示) -->
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleClock" checked />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text" data-i18n="info.showClock">時刻を表示</span>
-          </label>
 
           <!-- 起動時にアプリの更新版を確認 -->
           <label class="toggle toggle-switch">
@@ -243,12 +229,8 @@
             <span class="toggle-text" data-i18n="info.startupUpdateCheck">起動時にアプリの更新版を確認</span>
           </label>
 
-          <!-- バージョン情報(既定オン) -->
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleInfoVersion" checked />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text" data-i18n="info.versionInfo">バージョン情報</span>
-          </label>
+          <!-- バージョン情報(トグルなしの常時表示) -->
+          <h3 class="info-section-title" data-i18n="info.versionInfo">バージョン情報</h3>
           <div class="info-collapse" id="infoVersionBody">
             <div class="info-row">
               <span class="info-label">
@@ -269,15 +251,52 @@
               <span class="info-label" data-i18n="info.closuresVersion">通行止め・通行困難地点：</span>
               <span class="info-value" id="versionClosures">-</span>
             </div>
-            <!-- データ件数: 各項目の件数を横一列で表示(未読込は "-")。
+            <!-- データ件数: ラベル行(1行目)+値行(2行目)の2行表・罫線なし(未読込は "-")。
+                 右端は上の info-row の値の右端に合わせる。
                  ポイント=緊急ポイント、ルート・スポット=ハイキングデータ、通行止め=反映中データ。 -->
-            <div class="feature-counts-line" aria-label="データ件数" data-i18n-aria="info.ariaDataCounts">
-              <span class="feature-count-item"><span data-i18n="info.countPoints">ポイント</span> <span class="feature-count-value" id="countPoints">-</span></span>
-              <span class="feature-count-item"><span data-i18n="info.countRoutes">ルート</span> <span class="feature-count-value" id="countRoutes">-</span></span>
-              <span class="feature-count-item"><span data-i18n="info.countSpots">スポット</span> <span class="feature-count-value" id="countSpots">-</span></span>
-              <span class="feature-count-item"><span data-i18n="info.countClosures">通行止め</span> <span class="feature-count-value" id="countClosures">-</span></span>
-            </div>
+            <table class="feature-counts-table" aria-label="データ件数" data-i18n-aria="info.ariaDataCounts">
+              <thead>
+                <tr>
+                  <th data-i18n="info.countPoints">ポイント</th>
+                  <th data-i18n="info.countRoutes">ルート</th>
+                  <th data-i18n="info.countSpots">スポット</th>
+                  <th data-i18n="info.countClosures">通行止め</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td id="countPoints">-</td>
+                  <td id="countRoutes">-</td>
+                  <td id="countSpots">-</td>
+                  <td id="countClosures">-</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- 設定モーダル(起動画面の「設定」から表示)。
+       時刻を表示・メッセージ履歴・このアプリについて(旧バージョン情報等から移動)と、
+       マーカーの設定・言語/Language をまとめる。 -->
+  <div class="modal" id="appSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="appSettingsTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="appSettingsTitle" data-i18n="home.settings">設定</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      </header>
+      <div class="modal-body">
+        <section class="info-section">
+
+          <!-- 時刻を表示(マップ画面のメニューボタン左に現在時刻を表示) -->
+          <label class="toggle toggle-switch">
+            <input type="checkbox" id="toggleClock" checked />
+            <span class="toggle-slider" aria-hidden="true"></span>
+            <span class="toggle-text" data-i18n="info.showClock">時刻を表示</span>
+          </label>
 
           <!-- メッセージ履歴の表示(既定オフ) -->
           <label class="toggle toggle-switch">
@@ -312,6 +331,19 @@
               <span class="info-label">contributors:</span>
               <span class="info-value" data-i18n="info.contributorsValue">仕様検討中</span>
             </div>
+          </div>
+
+          <!-- マーカー属性の設定(マーカーの設定モーダルを開く) -->
+          <button type="button" class="settings-link-btn" id="btnOpenMarkerSettings" data-i18n="markerSettings.title">マーカーの設定</button>
+
+          <!-- 言語/Language(表示言語の選択。既定: 日本語。変更すると保存してリロードし、
+               選択言語でUI文言を再表示する。ラベルと選択肢は両言語表記のため翻訳対象外) -->
+          <div class="language-row">
+            <label class="language-label" for="languageSelect">言語/Language</label>
+            <select id="languageSelect" class="language-select">
+              <option value="ja" selected>日本語</option>
+              <option value="en">English</option>
+            </select>
           </div>
         </section>
       </div>
