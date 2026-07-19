@@ -1034,10 +1034,12 @@ body.view-state-nav .leaflet-control-container {
   background: #fff;
 }
 
-/* 設定モーダル内の画面遷移ボタン(マーカーの設定など) */
+/* 設定モーダル内の画面遷移ボタン(マーカー属性の設定など)。
+   右寄せにし、右余白は language-row の横パディング(0.75rem)と同じにして
+   下の言語ドロップダウンの右端にボタンの右端を合わせる */
 .settings-link-btn {
   display: block;
-  margin: 0.5rem 0 0.25rem;
+  margin: 0.5rem 0.75rem 0.25rem auto;
   padding: 0.45rem 0.9rem;
   font: inherit;
   border: 1px solid #1d4ed8;
