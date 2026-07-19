@@ -53,6 +53,15 @@
       <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
       <button type="button" class="home-btn" id="btnClosureEdit" hidden data-i18n="closure.title">通行止め・通行困難地点</button>
       <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-i18n="home.versionInfo">バージョン情報等</button>
+      <!-- 言語/Language(表示言語の選択。既定: 日本語。変更すると保存してリロードし、
+           選択言語でUI文言を再表示する。ラベルと選択肢は両言語表記のため翻訳対象外) -->
+      <div class="language-row home-language-row">
+        <label class="language-label" for="languageSelect">言語/Language</label>
+        <select id="languageSelect" class="language-select">
+          <option value="ja" selected>日本語</option>
+          <option value="en">English</option>
+        </select>
+      </div>
     </nav>
   </section>
 
@@ -181,16 +190,6 @@
       </header>
       <div class="modal-body">
         <section class="info-section">
-
-          <!-- 言語/Language(表示言語の選択。既定: 日本語。変更すると保存してリロードし、
-               選択言語でUI文言を再表示する。ラベルと選択肢は両言語表記のため翻訳対象外) -->
-          <div class="language-row">
-            <label class="language-label" for="languageSelect">言語/Language</label>
-            <select id="languageSelect" class="language-select">
-              <option value="ja" selected>日本語</option>
-              <option value="en">English</option>
-            </select>
-          </div>
 
           <!-- 時刻を表示(マップ画面のメニューボタン左に現在時刻を表示) -->
           <label class="toggle toggle-switch">

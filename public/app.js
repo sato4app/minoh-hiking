@@ -178,7 +178,9 @@ function bindEvents() {
   // 起動画面の「バージョン情報等」ボタンはバージョン情報等モーダルを表示
   el.btnOpenSettingsInfo.addEventListener('click', openSettingsInfoModal);
 
-  // 言語/Language: 選択値を保存し、リロードして選択言語で全文言を再表示する
+  // 言語/Language(ホーム画面): 現在の設定値を表示し、変更時は保存して
+  // リロードし、選択言語で全文言を再表示する
+  el.languageSelect.value = getLang();
   el.languageSelect.addEventListener('change', (e) => {
     setLang(e.target.value);
     location.reload();
@@ -388,11 +390,10 @@ function showView(name) {
 
 // ===== モーダル =====
 // バージョン情報等モーダル(起動画面の「バージョン情報等」から表示)。
-// 言語選択・時刻表示・更新確認の設定を上、情報(バージョン情報・
+// 時刻表示・更新確認の設定を上、情報(バージョン情報・
 // メッセージ履歴・このアプリについて)を下に配置する。
 async function openSettingsInfoModal() {
-  // 言語・起動時の更新確認トグルを現在の設定値で初期化
-  el.languageSelect.value = getLang();
+  // 起動時の更新確認トグルを現在の設定値で初期化
   el.toggleStartupUpdateCheck.checked = readStartupUpdateCheckEnabled();
 
   // --- 情報: トグルを既定状態(バージョン情報のみオン)にリセット ---
