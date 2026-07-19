@@ -520,19 +520,19 @@ body.view-state-nav .leaflet-control-container {
   color: #222;
 }
 
+/* 見出し行(地点数・移動距離)+ 値行の横型・罫線なし */
 .track-stats-table th,
 .track-stats-table td {
-  border: 1px solid #ccc;
-  padding: 0.1rem 0.45rem;
+  padding: 0.05rem 0.45rem;
+  text-align: center;
 }
 
 .track-stats-table th {
   font-weight: normal;
-  text-align: left;
+  color: #555;
 }
 
 .track-stats-table td {
-  text-align: right;
   min-width: 3.2em;
   font-variant-numeric: tabular-nums;
 }
@@ -1142,6 +1142,45 @@ body.view-state-nav .leaflet-control-container {
 
 .btn-danger:not(:disabled):hover {
   background: #991616;
+}
+
+/* キャンセル等の中立ボタン(灰色) */
+.btn-neutral {
+  background: #9ca3af;
+}
+
+.btn-neutral:not(:disabled):hover {
+  background: #6b7280;
+}
+
+/* ===== 移動経路の出力(GPX)モーダル ===== */
+/* ファイル名: 日付部分(yyyymmdd-)は固定表示、連番以降のみ入力欄で編集可能 */
+.track-export-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem 0.25rem;
+  font-size: 0.95rem;
+}
+
+.track-export-label {
+  color: #666;
+  white-space: nowrap;
+}
+
+.track-export-filename {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+#trackExportSuffix {
+  width: 5.5em;
+  padding: 0.3rem 0.4rem;
+  font: inherit;
+  border: 1px solid #ccc;
+  border-radius: 6px;
 }
 
 .btn-secondary {

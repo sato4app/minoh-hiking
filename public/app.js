@@ -22,14 +22,14 @@ import {
 import {
   setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
-  startTrackRecording, stopTrackRecording, getTrackStats, clearTrack,
+  startTrackRecording, stopTrackRecording, getTrackStats, getTrackPoints, clearTrack,
   setOnTrackPointAppended
 } from './geolocation.js';
 import {
   initClosures, applyClosureFlag, loadClosures,
   getClosureVersion, getClosureCount, autoCancelOnLeaveMap
 } from './closures.js';
-import { EMERGENCY_URL, HIKING_ROUTES_URL } from './config.js';
+import { EMERGENCY_URL, HIKING_ROUTES_URL, TRACK_EXPORT_SEQ_KEY } from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
 import {
@@ -100,6 +100,11 @@ const el = {
   trackStatDistance: document.getElementById('trackStatDistance'),
   btnTrackExport: document.getElementById('btnTrackExport'),
   btnTrackClear: document.getElementById('btnTrackClear'),
+  // 移動経路の出力(GPX)モーダル
+  trackExportModal: document.getElementById('trackExportModal'),
+  trackExportPrefix: document.getElementById('trackExportPrefix'),
+  trackExportSuffix: document.getElementById('trackExportSuffix'),
+  btnTrackExportSave: document.getElementById('btnTrackExportSave'),
 
   // マーカーの設定モーダル
   settingsModal: document.getElementById('settingsModal'),
@@ -265,10 +270,9 @@ function bindEvents() {
     capturePhoto();
   });
 
-  // 出力: 移動経路の出力(実装は別途指示。現状は準備中の案内のみ)
-  el.btnTrackExport.addEventListener('click', () => {
-    showToast(t('nav.pending'));
-  });
+  // 出力: 記録済みの移動経路を GPX 形式でファイルに出力する
+  el.btnTrackExport.addEventListener('click', openTrackExportModal);
+  el.btnTrackExportSave.addEventListener('click', exportTrackGpx);
 
   // 記録点が追加されるたびにパネル内の統計表を最新化する
   setOnTrackPointAppended(updateTrackStatsDisplay);
@@ -521,6 +525,103 @@ function finishTrackRecording() {
     showToast(summary);
   }
   // 写真枚数・軌跡は「クリア」まで保持するため、ここではリセットしない。
+}
+
+// ===== 移動経路の出力(GPX) =====
+// ファイル名の日付部分(yyyymmdd)。記録開始の当日=最初の記録点の記録日を使う
+// (記録点に時刻が無い場合のみ今日の日付で代替)。
+function getTrackDateStr() {
+  const points = getTrackPoints();
+  const firstMs = (points.length > 0 && points[0].timeMs) ? points[0].timeMs : Date.now();
+  const d = new Date(firstMs);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}${m}${day}`;
+}
+
+// 連番のデフォルト値: 同日の前回出力の連番 +1(保存が無い・日付が違うときは 01)
+function readNextExportSeq(dateStr) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(TRACK_EXPORT_SEQ_KEY));
+    if (saved && saved.date === dateStr && Number.isInteger(saved.seq)) return saved.seq + 1;
+  } catch { /* 保存なし・不正値は 01 から */ }
+  return 1;
+}
+
+// 出力に使った連番を保存する(次回デフォルトの決定用)。
+// 連番部分が数値でない自由入力のときは保存しない(連番の並びに影響させない)。
+function writeExportSeq(dateStr, suffix) {
+  if (!/^\d+$/.test(suffix)) return;
+  try {
+    localStorage.setItem(TRACK_EXPORT_SEQ_KEY, JSON.stringify({ date: dateStr, seq: parseInt(suffix, 10) }));
+  } catch { /* noop */ }
+}
+
+// 出力モーダルを開く。ファイル名は yyyymmdd-nn を既定とし、
+// 日付部分は固定表示、連番以降(nn…)のみ編集できる。
+function openTrackExportModal() {
+  const stats = getTrackStats();
+  if (stats.pointCount === 0) {
+    showToast(t('track.nothingToExport'));
+    return;
+  }
+  const dateStr = getTrackDateStr();
+  el.trackExportPrefix.textContent = `${dateStr}-`;
+  el.trackExportSuffix.value = String(readNextExportSeq(dateStr)).padStart(2, '0');
+  el.trackExportModal.hidden = false;
+  el.trackExportSuffix.focus();
+  el.trackExportSuffix.select();
+}
+
+// GPX 1.1 文字列を生成(トラック1本・セグメント1本、各点に記録時刻を含む)
+function buildTrackGpx(points, name) {
+  const esc = (s) => String(s)
+    .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+  const trkpts = points.map((p) => {
+    const time = p.timeMs ? `<time>${new Date(p.timeMs).toISOString()}</time>` : '';
+    return `      <trkpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}">${time}</trkpt>`;
+  }).join('\n');
+  return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<gpx version="1.1" creator="minoh-hiking" xmlns="http://www.topografix.com/GPX/1/1">\n' +
+    '  <trk>\n' +
+    `    <name>${esc(name)}</name>\n` +
+    '    <trkseg>\n' +
+    `${trkpts}\n` +
+    '    </trkseg>\n' +
+    '  </trk>\n' +
+    '</gpx>\n';
+}
+
+// 出力ボタン: GPX を生成してダウンロードし、連番を保存してモーダルを閉じる
+function exportTrackGpx() {
+  const points = getTrackPoints();
+  if (points.length === 0) {
+    showToast(t('track.nothingToExport'));
+    el.trackExportModal.hidden = true;
+    return;
+  }
+  // 連番以降(編集可能部分): ファイル名に使えない文字は除去して検証する
+  const suffix = el.trackExportSuffix.value.trim().replace(/[\\/:*?"<>|]/g, '');
+  if (!suffix) {
+    showToast(t('track.exportNeedSuffix'));
+    return;
+  }
+  const dateStr = el.trackExportPrefix.textContent.replace(/-$/, '');
+  const name = `${dateStr}-${suffix}`;
+  const fileName = `${name}.gpx`;
+  const blob = new Blob([buildTrackGpx(points, name)], { type: 'application/gpx+xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  // click 直後の revoke はダウンロード開始前に無効化される場合があるため遅延させる
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  writeExportSeq(dateStr, suffix);
+  el.trackExportModal.hidden = true;
+  logHistory(t('track.exported', { name: fileName }), 'success');
+  showToast(t('track.exported', { name: fileName }));
 }
 
 // 写真撮影: 端末のカメラ/写真選択ダイアログを起動(取得後の保存処理は今後実装)

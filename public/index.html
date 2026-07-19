@@ -121,13 +121,15 @@
       <!-- 移動経路: 統計表(地点数・移動距離)と出力・クリア -->
       <div class="track-inline-actions">
         <table class="track-stats-table" aria-label="移動経路の統計" data-i18n-aria="track.ariaStats">
-          <tbody>
+          <thead>
             <tr>
               <th data-i18n="track.statPoints">地点数</th>
-              <td id="trackStatPoints">0</td>
-            </tr>
-            <tr>
               <th data-i18n="track.statDistance">移動距離(km)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td id="trackStatPoints">0</td>
               <td id="trackStatDistance">0.00</td>
             </tr>
           </tbody>
@@ -154,6 +156,30 @@
       <p class="placeholder-message" data-i18n="nav.pending">この機能は準備中です。</p>
     </div>
   </section>
+
+  <!-- 移動経路の出力(GPX)モーダル: ファイル名は yyyymmdd-nn を既定とし、
+       日付部分(yyyymmdd-)は固定表示、連番以降(nn…)のみ編集できる -->
+  <div class="modal" id="trackExportModal" hidden role="dialog" aria-modal="true" aria-labelledby="trackExportTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="trackExportTitle" data-i18n="track.exportTitle">移動経路の出力(GPX)</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      </header>
+      <div class="modal-body">
+        <div class="track-export-row">
+          <label class="track-export-label" for="trackExportSuffix" data-i18n="track.exportFilename">ファイル名</label>
+          <span class="track-export-filename">
+            <span id="trackExportPrefix">-</span><input type="text" id="trackExportSuffix" autocomplete="off" /><span class="track-export-ext">.gpx</span>
+          </span>
+        </div>
+        <div class="button-group button-group-row">
+          <button type="button" id="btnTrackExportSave" class="btn btn-primary" data-i18n="track.export">出力</button>
+          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.cancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- オフライン地図ダウンロードモーダル -->
   <div class="modal" id="downloadModal" hidden role="dialog" aria-modal="true" aria-labelledby="downloadTitle">

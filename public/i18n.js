@@ -61,6 +61,14 @@ const DICT = {
   'track.stop': { ja: '記録停止', en: 'Stop recording' },
   'track.photo': { ja: '写真撮影', en: 'Take photo' },
   'track.export': { ja: '出力', en: 'Export' },
+  'track.exportTitle': { ja: '移動経路の出力(GPX)', en: 'Export Track (GPX)' },
+  'track.exportFilename': { ja: 'ファイル名', en: 'File name' },
+  'track.nothingToExport': { ja: '出力する移動経路がありません', en: 'No recorded track to export' },
+  'track.exportNeedSuffix': {
+    ja: 'ファイル名(連番部分)を入力してください',
+    en: 'Enter the file name (sequence part)'
+  },
+  'track.exported': { ja: '移動経路を {name} に出力しました', en: 'Track exported to {name}' },
   'track.ariaStats': { ja: '移動経路の統計', en: 'Track statistics' },
   'track.statPoints': { ja: '地点数', en: 'Points' },
   'track.statDistance': { ja: '移動距離(km)', en: 'Distance (km)' },

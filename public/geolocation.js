@@ -48,6 +48,9 @@ let trackStartStyle = null;      // 開始点マーカーのスタイル(移動�
 let trackCurrentStyle = null;    // 現在地点マーカーのスタイル(移動記録現在地点)
 let lastTrackLatLng = null;
 let lastTrackTimeMs = 0;
+// 各記録点の記録時刻(ms)。trackPolyline の頂点と同順で保持し、GPX出力の
+// <time> 要素と、出力ファイル名の日付(記録開始の当日)の決定に使う。
+let trackPointTimes = [];
 
 export function setTrackStyle(style) {
   trackStyle = style;
@@ -185,6 +188,17 @@ export function getTrackStats() {
   return { pointCount, distanceM };
 }
 
+// 記録済みの移動経路の点列({lat, lng, timeMs})を返す(GPX出力に使用)。
+// 軌跡が消去(clearTrack)される前に呼ぶこと。
+export function getTrackPoints() {
+  if (!trackPolyline) return [];
+  return trackPolyline.getLatLngs().map((ll, i) => ({
+    lat: ll.lat,
+    lng: ll.lng,
+    timeMs: trackPointTimes[i] ?? null
+  }));
+}
+
 // 移動記録の表示(線・開始点・現在地点)を全削除する。
 // 「移動経路をクリア」ボタンからのみ呼び出す(トグル OFF では消さない)。
 export function clearTrack() {
@@ -204,6 +218,7 @@ export function clearTrack() {
   }
   lastTrackLatLng = null;
   lastTrackTimeMs = 0;
+  trackPointTimes = [];
 }
 
 // 記録点追加時の通知先(app.js がパネル内の統計表の更新に使用)
@@ -234,6 +249,7 @@ function appendTrackPoint(latlng) {
   // 現在地点マーカー(三角)の位置・向きは呼び出し側(記録中はライブ現在地)で更新する。
   lastTrackLatLng = [lat, lng];
   lastTrackTimeMs = Date.now();
+  trackPointTimes.push(lastTrackTimeMs);
   onTrackPointAppended?.();
 }
 

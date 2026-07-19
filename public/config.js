@@ -10,6 +10,9 @@ export const STARTUP_UPDATE_CHECK_KEY = 'minoh-hiking.startup-update-check';
 // 表示言語(「言語/Language」ドロップダウン)。'ja'(日本語・既定) / 'en'(English)。
 // 読み書きと文言の切替は i18n.js(getLang/setLang/t/applyStaticTranslations)が担う。
 export const LANGUAGE_KEY = 'minoh-hiking.language';
+// 移動経路のGPX出力で使った連番。{ date: 'yyyymmdd', seq: n } の JSON で保存し、
+// 同日の次回出力ではデフォルトの連番を +1 して提示する(日付が変われば 01 に戻る)。
+export const TRACK_EXPORT_SEQ_KEY = 'minoh-hiking.track-export-seq';
 
 // ===== sessionStorage キー =====
 // MapGPS から ?closure=true 付きで起動されたことをタブ単位で保持する。
