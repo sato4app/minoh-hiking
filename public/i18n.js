@@ -42,7 +42,8 @@ const DICT = {
   'home.showMap': { ja: 'ハイキングマップ表示', en: 'Show Hiking Map' },
   'home.download': { ja: '地図のダウンロード（オフライン用）', en: 'Download Maps (Offline)' },
   'home.versionInfo': { ja: 'バージョン情報', en: 'Version Info' },
-  'home.settings': { ja: '設定', en: 'Settings' },
+  // 「設定/Settings」(起動画面のボタン・設定モーダルの見出し)は日英併記の固定文言のため
+  // 翻訳キーを持たない(index.html に直接記述し、言語切替でも変えない)
 
   // ----- マップ画面 -----
   'map.ariaMap': { ja: '箕面エリア地理院地図', en: 'GSI map of the Minoh area' },

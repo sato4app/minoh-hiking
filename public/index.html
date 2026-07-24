@@ -280,14 +280,16 @@
     </div>
   </div>
 
-  <!-- 設定モーダル(起動画面の「設定」から表示)。
+  <!-- 設定モーダル(起動画面の「設定/Settings」から表示)。
        時刻を表示・メッセージ履歴・このアプリについて(旧バージョン情報等から移動)と、
        マーカーの設定・言語/Language をまとめる。 -->
   <div class="modal" id="appSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="appSettingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="appSettingsTitle" data-i18n="home.settings">設定</h2>
+        <!-- 見出しは起動画面の「設定/Settings」ボタンと対応させるため日英併記とし、
+             翻訳対象外(言語切替で不変)にする -->
+        <h2 id="appSettingsTitle">設定/Settings</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
       </header>
       <div class="modal-body">

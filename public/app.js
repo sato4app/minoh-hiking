@@ -72,7 +72,7 @@ const el = {
   // 通行止め・通行困難地点のバージョン表示欄(バージョン情報内)
   versionClosures: document.getElementById('versionClosures'),
 
-  // 設定モーダル(起動画面の「設定」から表示)
+  // 設定モーダル(起動画面の「設定/Settings」から表示)
   appSettingsModal: document.getElementById('appSettingsModal'),
   languageSelect: document.getElementById('languageSelect'),
   toggleInfoMessages: document.getElementById('toggleInfoMessages'),
@@ -192,7 +192,7 @@ function bindEvents() {
   el.btnOpenDownload.addEventListener('click', openDownloadModal);
   // 起動画面の「バージョン情報」ボタンはバージョン情報モーダルを表示
   el.btnOpenSettingsInfo.addEventListener('click', openSettingsInfoModal);
-  // 起動画面の「設定」ボタンは設定モーダルを表示
+  // 起動画面の「設定/Settings」ボタンは設定モーダルを表示
   el.btnOpenAppSettings.addEventListener('click', openAppSettingsModal);
 
   // 言語/Language(設定モーダル): 現在の設定値を表示し、変更時は保存して
@@ -437,7 +437,7 @@ async function openSettingsInfoModal() {
   checkUpdatesFromInfoModal();
 }
 
-// 設定モーダル(起動画面の「設定」から表示)。
+// 設定モーダル(起動画面の「設定/Settings」から表示)。
 // 時刻を表示・メッセージ履歴・このアプリについて・マーカーの設定・言語/Language をまとめる。
 // 時刻表示トグルは現在の表示状態を保持したまま表示する。
 function openAppSettingsModal() {
