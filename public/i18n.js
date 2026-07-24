@@ -83,6 +83,10 @@ const DICT = {
   'track.nothingToClear': { ja: 'クリアする移動経路がありません', en: 'No recorded track to clear' },
   'track.clearConfirm': { ja: '記録した移動経路をクリアします。よろしいですか?', en: 'Clear the recorded track?' },
   'track.cleared': { ja: '移動経路をクリアしました', en: 'Track cleared' },
+  'track.wakeLockUnavailable': {
+    ja: 'この端末では記録中の画面消灯を止められません。画面が消えると記録が途切れることがあります',
+    en: 'This device cannot keep the screen on while recording. Recording may pause when the screen turns off'
+  },
 
   // ----- 位置情報 -----
   'geo.notSupported': { ja: 'この端末は位置情報に対応していません', en: 'This device does not support geolocation' },

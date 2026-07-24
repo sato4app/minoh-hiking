@@ -21,6 +21,18 @@ body {
   overflow: hidden;
 }
 
+/* フォーム部品の文字サイズは 16px(1rem)未満にしないこと。
+   iOS Safari は 16px 未満の入力欄・ドロップダウンにフォーカスすると
+   ページを自動でズームインし、入力を終えてもズームが戻らない。
+   マップ画面はメニューボタン(≡)や時刻を画面の隅に絶対配置しているため、
+   ズームしたままだと表示領域の外に出て「消えた」ように見えてしまう。
+   個別ルールで上書きする場合も 1rem 以上を維持する。 */
+input,
+select,
+textarea {
+  font-size: 1rem;
+}
+
 /* ===== マニフェスト更新バナー(全ビュー共通) ===== */
 .update-banner {
   display: flex;
@@ -418,6 +430,8 @@ body.view-state-nav .leaflet-control-container {
   min-width: 0;
   padding: 0.3rem 0.4rem;
   font: inherit;
+  /* font: inherit で親の 0.9rem を継承してしまうため 1rem に戻す(iOS の自動ズーム防止) */
+  font-size: 1rem;
   border: 1px solid #9ca3af;
   border-radius: 6px;
 }
@@ -819,20 +833,19 @@ body.view-state-nav .leaflet-control-container {
   background: transparent;
 }
 
+/* 形状・サイズは入力部品のため 1rem を維持する(iOS の自動ズーム防止) */
 .marker-shape {
-  padding: 0.25rem 0.4rem;
+  padding: 0.25rem 0.3rem;
   border: 1px solid #d1d5db;
   border-radius: 4px;
-  font-size: 0.85rem;
   background: #fff;
 }
 
 .marker-size {
-  width: 56px;
-  padding: 0.25rem 0.4rem;
+  width: 3.6rem;
+  padding: 0.25rem 0.3rem;
   border: 1px solid #d1d5db;
   border-radius: 4px;
-  font-size: 0.85rem;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
@@ -1025,10 +1038,10 @@ body.view-state-nav .leaflet-control-container {
   color: #222;
 }
 
+/* font-size は基底ルールの 1rem のまま(iOS の自動ズーム防止) */
 .language-select {
   min-height: 36px;
   padding: 0.25rem 0.5rem;
-  font-size: 0.95rem;
   border: 1px solid #ccc;
   border-radius: 6px;
   background: #fff;
@@ -1195,6 +1208,8 @@ body.view-state-nav .leaflet-control-container {
   width: 5.5em;
   padding: 0.3rem 0.4rem;
   font: inherit;
+  /* font: inherit で親の 0.95rem を継承してしまうため 1rem に戻す(iOS の自動ズーム防止) */
+  font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 6px;
 }

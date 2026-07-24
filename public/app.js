@@ -23,14 +23,15 @@ import {
   setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
   startTrackRecording, stopTrackRecording, getTrackStats, getTrackPoints, clearTrack,
-  setOnTrackPointAppended
+  setOnTrackPointAppended, setOnTrackNotice
 } from './geolocation.js';
 import {
   initClosures, applyClosureFlag, loadClosures,
   getClosureVersion, getClosureCount, autoCancelOnLeaveMap
 } from './closures.js';
 import {
-  EMERGENCY_URL, HIKING_ROUTES_URL, TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY
+  EMERGENCY_URL, HIKING_ROUTES_URL, TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY,
+  TOAST_DURATION_SEC
 } from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
@@ -224,11 +225,16 @@ function bindEvents() {
     elem.addEventListener('click', () => {
       const modal = elem.closest('.modal');
       if (modal) modal.hidden = true;
+      // 入力欄にフォーカスが残っているとモバイルではキーボードが開いたままになり、
+      // 表示領域がずれたままになるため明示的に外す
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
       // 設定モーダルを閉じた後、現在のビュー状態(マップ画面の戻る/メニュー
       // ボタン等)を正規化して表示崩れを防ぐ
       if (modal && modal.id === 'settingsModal' && currentView === 'map') {
         showView('map');
       }
+      // どのモーダルを閉じた場合も、マップ画面の操作要素を確実に表示状態へ戻す
+      if (currentView === 'map') normalizeMapChrome();
     });
   }
 
@@ -285,6 +291,14 @@ function bindEvents() {
 
   // 記録点が追加されるたびにパネル内の統計表を最新化する
   setOnTrackPointAppended(updateTrackStatsDisplay);
+
+  // 移動記録からの通知(画面スリープ防止が使えない場合など)。
+  // 記録開始と同時に届くため、「移動記録を開始しました」のトーストを
+  // 上書きしないよう、そのトーストが消えてから表示する。
+  setOnTrackNotice((msg) => {
+    logHistory(msg, 'error');
+    setTimeout(() => showToast(msg), (TOAST_DURATION_SEC + 0.5) * 1000);
+  });
 
   // クリア: 記録した移動経路(線・開始点・現在地点)を消去
   el.btnTrackClear.addEventListener('click', () => {
@@ -358,6 +372,32 @@ function updateFeatureCounts() {
   el.countClosures.textContent = closures == null ? '-' : String(closures);
 }
 
+// マップ画面の操作要素(メニューボタン ≡・時刻)を確実に表示状態へ戻す。
+// これらは #map(position: fixed で常に画面全体)の上に絶対配置しているため、
+// 何らかの理由でページがスクロールすると地図はそのままでボタンだけが
+// 表示領域の外(主に上)へ出てしまい「消えた」ように見える。
+// モーダルを閉じたときとマップ画面に入るときに呼び、位置と表示状態を正常化する。
+function normalizeMapChrome() {
+  // アプリ全体は body { overflow: hidden } でスクロールしない前提。
+  // 入力欄へのフォーカス等でスクロールしていたら原点に戻す
+  const scroller = document.scrollingElement || document.documentElement;
+  if (scroller.scrollTop !== 0 || scroller.scrollLeft !== 0) {
+    scroller.scrollTop = 0;
+    scroller.scrollLeft = 0;
+  }
+  const mapView = el.views.map;
+  if (mapView && (mapView.scrollTop !== 0 || mapView.scrollLeft !== 0)) {
+    mapView.scrollTop = 0;
+    mapView.scrollLeft = 0;
+  }
+
+  // 表示状態も明示的に復帰(hidden / display の取り残し対策)
+  el.btnMapLayers.hidden = false;
+  el.btnMapLayers.style.display = '';
+  // 時刻は「時刻を表示」トグルの状態に従う
+  setClockVisible(el.toggleClock.checked);
+}
+
 // ===== ビュー切替 =====
 function showView(name) {
   if (!el.views[name]) return;
@@ -373,9 +413,8 @@ function showView(name) {
   document.body.classList.add(`view-state-${name}`);
 
   if (name === 'map') {
-    // マップビュー: メニューボタンを確実に表示(モーダル閉じ後等の表示崩れ対策)
-    el.btnMapLayers.hidden = false;
-    el.btnMapLayers.style.display = '';
+    // マップビュー: メニューボタン等を確実に表示(モーダル閉じ後等の表示崩れ対策)
+    normalizeMapChrome();
 
     // マップビュー: 緊急ポイント・ハイキングルート・通行止め等を常に表示
     setEmergencyPointsVisible(true);
@@ -395,8 +434,7 @@ function showView(name) {
     setFollowCurrentLocation(el.toggleCenterCurrent.checked);
     // 移動経路を記録トグルの状態に応じて操作ボタン群(記録開始/写真撮影/記録停止)の表示を更新
     updateTrackButtonState(el.toggleTrackRecording.checked);
-    // 時刻表示トグルの状態に従って時刻を表示
-    setClockVisible(el.toggleClock.checked);
+    // 時刻表示は normalizeMapChrome() でトグルの状態に従って反映済み
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'home' || name === 'nav') {
     // 通行止め・通行困難地点の編集中にマップ画面を離れたら自動キャンセルする
@@ -405,9 +443,11 @@ function showView(name) {
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);
     setClosuresVisible(false);
-    // 軌跡が消去される前に終了処理(統計の出力)を行ってから現在地監視を停止
-    finishTrackRecording();
+    // 移動記録中はマップ画面を離れても記録を続ける(記録は「記録停止」ボタンか
+    // 「移動経路を記録」トグル OFF でのみ終了する)。geolocation.js 側も、記録中は
+    // ビューに関わらず現在地監視を継続する。
     setLocationActiveForMapView(false);
+    // 記録操作ボタン群はマップ画面のUIなので隠す(記録状態自体は保持する)
     updateTrackButtonState(false);
     // マップ以外では時刻表示を停止・非表示(トグル状態は保持)
     setClockVisible(false);
@@ -496,10 +536,10 @@ function updateTrackButtonState(enabled) {
   if (el.mapTrackActions) el.mapTrackActions.hidden = !enabled;
   // ON のときはパネルを左にずらし、操作ボタン群のアイコンが見えるようにする
   if (el.mapLayerPanel) el.mapLayerPanel.classList.toggle('track-active', enabled);
-  if (!enabled) {
-    // OFF に戻したら記録状態も初期化(記録開始を操作可能・記録停止を無効に)
-    setTrackRecordingActive(false);
-  }
+  // ボタンの見た目(開始▶/停止■)は実際の記録状態に合わせる。
+  // 起動時画面へ移動しても記録は続くため、ここで一律に停止状態へは戻さない
+  // (トグル OFF の場合は呼び出し元が先に finishTrackRecording している)。
+  setTrackRecordingActive(isTrackRecording);
 }
 
 // 記録中フラグに応じてトグルボタンのアイコン(開始▶/停止■)とラベルを切り替える

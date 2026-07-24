@@ -2,10 +2,13 @@
 // Geolocation API による現在地マーカー + 精度円(現在地点を中心とする円)。
 // 精度円は常時表示せず、マップ表示への切替時・「現在地点をマーカー表示」ON 時に
 // 3秒間だけ表示する(requestCurrentCircleFlash / showTemporaryCircle)。
-// 監視(watchPosition)は、マップビュー表示中で「現在地点をマーカー表示」「現在地点は
-// 中央に表示」「移動経路の記録」のいずれかが有効なときに動く(refreshLocationWatch が制御)。
+// 監視(watchPosition)は、記録中は常に、それ以外はマップビュー表示中で
+// 「現在地点をマーカー表示」「現在地点は中央に表示」のいずれかが有効なときに動く
+// (refreshLocationWatch が制御)。記録中に起動時画面へ移動しても記録は継続する。
 // マーカー表示は showCurrentMarker、地図追従は followCurrentLocation で個別に切り替える。
 // 記録中(startTrackRecording 後)は、位置更新ごとに軌跡(ポリライン + 通過点マーカー)を追加する。
+// 記録中は画面スリープを防止し(Screen Wake Lock API)、他アプリへの切替などで
+// ページが非表示になった場合は、復帰時に監視の張り直しと現在地の取得を行う。
 // 地図インスタンスは map.js の getMap() を通じて共有する。
 import * as L from 'leaflet';
 import { getMap, buildMarkerIcon } from './map.js';
@@ -134,6 +137,8 @@ export function startTrackRecording() {
   const map = getMap();
   if (!map) return;
   isRecordingTrack = true;
+  // 記録中は画面を消灯させない(消灯するとページが停止し記録が途切れるため)
+  requestWakeLock();
   // マーカー表示・追従が両方 OFF でも、記録のため現在地監視を確実に開始する。
   refreshLocationWatch();
   if (!trackPolyline) {
@@ -165,6 +170,8 @@ function shouldRecordTrackPoint(latlng, nowMs) {
 
 export function stopTrackRecording() {
   isRecordingTrack = false;
+  // 記録が終わったら画面スリープ防止を解除する(電池消費を元に戻す)
+  releaseWakeLock();
   // 三角(現在地点)を最終記録点へスナップして固定する。
   updateTrackCurrentMarker();
   // 記録停止後、マーカー表示 ON なら現在地(青丸)を再表示する。
@@ -204,6 +211,7 @@ export function getTrackPoints() {
 export function clearTrack() {
   const map = getMap();
   isRecordingTrack = false;
+  releaseWakeLock();
   if (trackPolyline) {
     map.removeLayer(trackPolyline);
     trackPolyline = null;
@@ -253,11 +261,91 @@ function appendTrackPoint(latlng) {
   onTrackPointAppended?.();
 }
 
+// ===== 画面スリープの防止(Screen Wake Lock API) =====
+// 移動記録中は画面を消灯させない。消灯するとブラウザがページの実行を止めてしまい、
+// 位置の監視(watchPosition)が動かず中間点が記録されないため。
+// 非対応の端末・ブラウザ(iOS 16.3 以前など)や、省電力モード等で取得できない場合は
+// 記録自体はそのまま続け、その旨を通知する(notifyTrack)。
+let wakeLockSentinel = null;
+// スリープ防止を取得できなかったことを一度だけ通知するためのフラグ(記録ごとにリセット)
+let wakeLockNotified = false;
+
+async function requestWakeLock() {
+  if (wakeLockSentinel) return;
+  if (!('wakeLock' in navigator)) {
+    notifyWakeLockUnavailable();
+    return;
+  }
+  try {
+    wakeLockSentinel = await navigator.wakeLock.request('screen');
+    // 非表示になる等で OS 側が解除したときは保持を破棄する
+    // (復帰時に visibilitychange で取り直す)
+    wakeLockSentinel.addEventListener('release', () => { wakeLockSentinel = null; });
+  } catch {
+    wakeLockSentinel = null;
+    notifyWakeLockUnavailable();
+  }
+}
+
+function notifyWakeLockUnavailable() {
+  if (wakeLockNotified) return;
+  wakeLockNotified = true;
+  notifyTrack(t('track.wakeLockUnavailable'));
+}
+
+function releaseWakeLock() {
+  const sentinel = wakeLockSentinel;
+  wakeLockSentinel = null;
+  wakeLockNotified = false;
+  if (sentinel) sentinel.release().catch(() => { /* 既に解除済み */ });
+}
+
+// ===== バックグラウンド復帰時の処理 =====
+// 他アプリへの切替や画面消灯でページが非表示になると、ブラウザは位置の監視を
+// 停止・間引きする(Web の仕様上、完全なバックグラウンド測位はできない)。
+// 復帰したら「スリープ防止の取り直し」「監視の張り直し」「現在地の即時取得」を行い、
+// 非表示だった区間の記録の途切れをできるだけ短くする。
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') return;
+  if (!isRecordingTrack) return;
+  requestWakeLock();
+  restartGeoWatch();
+  captureCurrentPositionForTrack();
+});
+
+// 監視を張り直す(非表示中に OS/ブラウザ側で止められている場合への対処)。
+// stopGeoWatch と違いマーカーは消さず、初回フラグもそのままにする。
+function restartGeoWatch() {
+  if (geoWatchId != null) {
+    navigator.geolocation.clearWatch(geoWatchId);
+    geoWatchId = null;
+  }
+  refreshLocationWatch();
+}
+
+// 復帰直後の現在地を1点だけ取得して記録に反映する(watchPosition の初回通知を待たない)。
+// 記録条件(20m 以上 or 1分以上)は onGeoSuccess 側の判定をそのまま使う。
+function captureCurrentPositionForTrack() {
+  if (!('geolocation' in navigator)) return;
+  navigator.geolocation.getCurrentPosition(
+    onGeoSuccess,
+    () => { /* 失敗しても watchPosition 側で通知されるためここでは何もしない */ },
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+  );
+}
+
+// 移動記録に関する通知先(app.js が履歴・トーストへの出力に使用)
+let onTrackNotice = null;
+export function setOnTrackNotice(fn) { onTrackNotice = fn; }
+function notifyTrack(msg) { onTrackNotice && onTrackNotice(msg); }
+
 // ===== 現在地監視の制御 =====
-// 監視(watchPosition)が必要か: マップビュー表示中で、現在地マーカー表示・
-// 現在地追従・移動記録のいずれかが要求しているとき。
+// 監視(watchPosition)が必要か:
+// - 移動記録中: 画面(ビュー)に関わらず常に必要。起動時画面へ移動しても記録を続けるため。
+// - それ以外: マップビュー表示中で、現在地マーカー表示・現在地追従のいずれかが要求しているとき。
 function needLocationWatch() {
-  return onMapView && (showCurrentMarker || followCurrentLocation || isRecordingTrack);
+  if (isRecordingTrack) return true;
+  return onMapView && (showCurrentMarker || followCurrentLocation);
 }
 
 // 必要に応じて監視を開始/停止する。各トグル・記録状態・ビュー切替の後に呼ぶ。
@@ -338,8 +426,9 @@ function onGeoSuccess(pos) {
     updateTrackCurrentMarker(latlng);
   }
 
-  // 「現在地点は中央に表示」ON のとき、現在地が画面中央に来るよう地図を追従させる
-  if (followCurrentLocation) {
+  // 「現在地点は中央に表示」ON のとき、現在地が画面中央に来るよう地図を追従させる。
+  // 記録中は起動時画面でも監視が続くため、マップ表示中に限って地図を動かす。
+  if (followCurrentLocation && onMapView) {
     if (isFirstFix) map.setView(latlng, map.getZoom());
     else map.panTo(latlng);
   }
