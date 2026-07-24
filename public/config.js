@@ -25,6 +25,11 @@ export const CLOSURE_FLAG_KEY = 'minoh-hiking.closure-flag';
 // sessionStorage なのでタブを閉じるまで有効(次回の本当の起動では再度確認する)。
 export const APP_UPDATED_FLAG_KEY = 'minoh-hiking.app-updated';
 
+// 「言語の設定/Language Settings」の変更による再読み込み直後であることを示すフラグ。
+// 言語切替はリロード方式のため、そのままでは起動画面に戻ってしまう。再読み込み前に
+// セットし、起動時に読み取って設定モーダルを開き直す(読んだら即削除する)。
+export const REOPEN_APP_SETTINGS_KEY = 'minoh-hiking.reopen-app-settings';
+
 // 「マップに反映」で適用した通行止め・通行困難地点データ(geojson の JSON 文字列)。
 // 保存があれば公開API の配信内容より優先して読み込む(この端末のみに反映される)。
 export const CLOSURE_DATA_KEY = 'minoh-hiking.closure-data';

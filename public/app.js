@@ -29,7 +29,9 @@ import {
   initClosures, applyClosureFlag, loadClosures,
   getClosureVersion, getClosureCount, autoCancelOnLeaveMap
 } from './closures.js';
-import { EMERGENCY_URL, HIKING_ROUTES_URL, TRACK_EXPORT_SEQ_KEY } from './config.js';
+import {
+  EMERGENCY_URL, HIKING_ROUTES_URL, TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY
+} from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
 import {
@@ -140,6 +142,8 @@ async function init() {
   initClosures({ showView, isMapView: () => currentView === 'map' });
   initMarkerSettings();
   renderMessageList();
+  // 言語変更によるリロード直後なら、設定モーダルを開いた状態に戻す
+  restoreAppSettingsModalAfterReload();
   await migrateLegacyPackages();
   await refreshStorageInfo();
   evaluateManifestVersion();
@@ -192,10 +196,13 @@ function bindEvents() {
   el.btnOpenAppSettings.addEventListener('click', openAppSettingsModal);
 
   // 言語/Language(設定モーダル): 現在の設定値を表示し、変更時は保存して
-  // リロードし、選択言語で全文言を再表示する
+  // リロードし、選択言語で全文言を再表示する。
+  // リロードすると起動画面に戻ってしまうため、フラグを立てて再読み込み後に
+  // 設定モーダルを開き直す(操作を続けられるようにする)
   el.languageSelect.value = getLang();
   el.languageSelect.addEventListener('change', (e) => {
     setLang(e.target.value);
+    try { sessionStorage.setItem(REOPEN_APP_SETTINGS_KEY, '1'); } catch { /* noop */ }
     location.reload();
   });
   // バージョン情報: 起動時の更新確認トグル(localStorage に保存)
@@ -444,6 +451,18 @@ function openAppSettingsModal() {
   renderMessageList();
 
   el.appSettingsModal.hidden = false;
+}
+
+// 「言語の設定/Language Settings」の変更でリロードした直後だけ、設定モーダルを
+// 開き直す。フラグは一度きりの復元用なので、読み取ったら必ず削除する
+// (以降の通常起動では起動画面のまま)。
+function restoreAppSettingsModalAfterReload() {
+  let shouldReopen = false;
+  try {
+    shouldReopen = sessionStorage.getItem(REOPEN_APP_SETTINGS_KEY) === '1';
+    sessionStorage.removeItem(REOPEN_APP_SETTINGS_KEY);
+  } catch { /* noop */ }
+  if (shouldReopen) openAppSettingsModal();
 }
 
 // バージョン情報モーダルを開いたときの更新チェック。

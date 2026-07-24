@@ -53,7 +53,9 @@
       <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
       <button type="button" class="home-btn" id="btnClosureEdit" hidden data-i18n="closure.title">通行止め・通行困難地点</button>
       <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-i18n="home.versionInfo">バージョン情報</button>
-      <button type="button" class="home-btn" id="btnOpenAppSettings" data-i18n="home.settings">設定</button>
+      <!-- 設定/Settings(設定モーダルを開く。設定中の言語が分からない人でもここから
+           言語を変更できると分かるよう、ボタン名は日英併記とし翻訳対象外(言語切替で不変) -->
+      <button type="button" class="home-btn" id="btnOpenAppSettings">設定/Settings</button>
     </nav>
   </section>
 
