@@ -14,7 +14,7 @@
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-07-24.3';
+const SHELL_CACHE = 'app-shell-2026-07-25.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 通行止め・通行困難地点: 公開のたびに変わるためシェルに含めず、
@@ -186,6 +186,19 @@ async function handleTileRequest(req) {
   }
 }
 
+// iOS/WebKit はナビゲーションに redirected フラグ付き Response を使えない
+// (エラー: "Response served by service worker has redirections")。
+// Vercel の cleanUrls により /index.html は / へ 308 リダイレクトされるため、
+// キャッシュ済みシェル等を返す際は素の Response に作り直して redirected を消す。
+function stripRedirect(response) {
+  if (!response || !response.redirected) return response;
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers
+  });
+}
+
 // アプリシェルの取得。
 // - swr=true(同一オリジンのシェル): stale-while-revalidate。
 //   キャッシュを即返して高速・弱電波に強く、裏でネット取得して次回用に更新する。
@@ -209,16 +222,17 @@ async function handleShellRequest(event, { swr = false } = {}) {
       .catch(() => null);
     event.waitUntil(networkUpdate);
     // キャッシュがあれば即返す。無ければネット取得を待つ。
-    if (cached) return cached;
-    return (await networkUpdate) || new Response('', { status: 504 });
+    if (cached) return stripRedirect(cached);
+    const net = await networkUpdate;
+    return net ? stripRedirect(net) : new Response('', { status: 504 });
   }
 
   // cache-first
-  if (cached) return cached;
+  if (cached) return stripRedirect(cached);
   try {
     const res = await fetch(req);
     if (res.ok) cache.put(req, res.clone()).catch(() => { });
-    return res;
+    return stripRedirect(res);
   } catch (err) {
     return new Response('', { status: 504 });
   }

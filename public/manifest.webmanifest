@@ -2,7 +2,7 @@
   "name": "箕面ハイキング - オフライン地図",
   "short_name": "箕面ハイキング",
   "description": "箕面エリアの地理院地図をオフラインで閲覧できるPWA",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
