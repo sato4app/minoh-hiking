@@ -40,7 +40,7 @@ const DICT = {
   // ----- ホーム画面 -----
   'home.ariaMainMenu': { ja: 'メインメニュー', en: 'Main menu' },
   'home.showMap': { ja: 'ハイキングマップ表示', en: 'Show Hiking Map' },
-  'home.download': { ja: '地図のダウンロード（オフライン用）', en: 'Download Maps (Offline)' },
+  'home.download': { ja: '地図のダウンロード', en: 'Download Maps' },
   'home.versionInfo': { ja: 'バージョン情報', en: 'Version Info' },
   // 「設定/Settings」(起動画面のボタン・設定モーダルの見出し)は日英併記の固定文言のため
   // 翻訳キーを持たない(index.html に直接記述し、言語切替でも変えない)
@@ -102,6 +102,7 @@ const DICT = {
   'banner.ariaClose': { ja: 'バナーを閉じる', en: 'Close banner' },
 
   // ----- 地図のダウンロード(モーダル + tiles.js) -----
+  'download.subtitle': { ja: 'オフライン時の地図表示用地図タイル', en: 'Map tiles for offline map display' },
   'download.savedVersion': { ja: 'ダウンロード済み地図バージョン:', en: 'Downloaded map version:' },
   'download.fileSize': { ja: 'ファイルサイズ(MB):', en: 'File size (MB):' },
   'download.includeDetail': { ja: '詳細地図(z=18)を含む', en: 'Include detailed map (z=18)' },

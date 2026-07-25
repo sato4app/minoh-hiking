@@ -49,7 +49,7 @@
     <img class="home-image" src="icons/Startup-512x918.png" alt="" aria-hidden="true" />
     <nav class="home-menu" aria-label="メインメニュー" data-i18n-aria="home.ariaMainMenu">
       <button type="button" class="home-btn" data-view="map" data-i18n="home.showMap">ハイキングマップ表示</button>
-      <button type="button" class="home-btn" id="btnOpenDownload" data-i18n="home.download">地図のダウンロード（オフライン用）</button>
+      <button type="button" class="home-btn" id="btnOpenDownload" data-i18n="home.download">地図のダウンロード</button>
       <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
       <button type="button" class="home-btn" id="btnClosureEdit" hidden data-i18n="closure.title">通行止め・通行困難地点</button>
       <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-i18n="home.versionInfo">バージョン情報</button>
@@ -178,10 +178,12 @@
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="downloadTitle" data-i18n="home.download">地図のダウンロード（オフライン用）</h2>
+        <h2 id="downloadTitle" data-i18n="home.download">地図のダウンロード</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
       </header>
       <div class="modal-body">
+        <!-- ヘッダー直下の補足: ダウンロード対象の説明 -->
+        <p class="modal-subtitle" data-i18n="download.subtitle">オフライン時の地図表示用地図タイル</p>
         <div class="storage-info">
           <div class="info-row">
             <span class="info-label" data-i18n="download.savedVersion">ダウンロード済み地図バージョン:</span>

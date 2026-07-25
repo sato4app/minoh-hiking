@@ -775,6 +775,15 @@ body.view-state-nav .leaflet-control-container {
   padding: 0.5rem 0;
 }
 
+/* モーダル見出し直下の補足テキスト(例: ダウンロード画面の対象説明)。
+   横位置は .storage-info など本文セクション(padding 左右 1rem)に合わせる */
+.modal-subtitle {
+  margin: 0;
+  padding: 0.25rem 1rem 0.5rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
 /* ===== 設定モーダル: セクション ===== */
 .settings-section {
   padding: 0.5rem 1rem 1rem;
