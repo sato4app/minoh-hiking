@@ -102,7 +102,10 @@ const DICT = {
   'banner.ariaClose': { ja: 'バナーを閉じる', en: 'Close banner' },
 
   // ----- 地図のダウンロード(モーダル + tiles.js) -----
-  'download.subtitle': { ja: 'オフライン時の地図表示用地図タイル', en: 'Map tiles for offline map display' },
+  'download.subtitle': {
+    ja: '電波が届かない場所でも地図を表示できるよう、地図データを端末に保存します（オフライン対応）',
+    en: 'Saves map data on your device so the map works where there is no signal (offline support)'
+  },
   'download.savedVersion': { ja: 'ダウンロード済み地図バージョン:', en: 'Downloaded map version:' },
   'download.fileSize': { ja: 'ファイルサイズ(MB):', en: 'File size (MB):' },
   'download.includeDetail': { ja: '詳細地図(z=18)を含む', en: 'Include detailed map (z=18)' },
