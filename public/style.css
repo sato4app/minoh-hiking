@@ -979,7 +979,8 @@ body.view-state-nav .leaflet-control-container {
 }
 
 #infoSettingsModal .info-label {
-  padding-left: 1.5rem;
+  /* 段下げ(左インデント)は付けず、見出し「バージョン情報」と左端を揃える。
+     ラベルが長い場合の途中改行は許容する。 */
   margin-right: 1.5rem;
   flex-shrink: 0;
 }
@@ -988,8 +989,6 @@ body.view-state-nav .leaflet-control-container {
 #infoSettingsModal .info-sublabel {
   display: block;
   margin-left: 0;
-  /* 補足(2行目)は親ラベルの nowrap を打ち消し、長ければ折り返してよい */
-  white-space: normal;
 }
 
 /* アプリ名等の各項目の値を右寄せ(ラベルの左余白と同程度の右余白を設ける)
