@@ -61,7 +61,6 @@ const DICT = {
   // ----- 移動記録 -----
   'track.start': { ja: '記録開始', en: 'Start recording' },
   'track.stop': { ja: '記録停止', en: 'Stop recording' },
-  'track.photo': { ja: '写真撮影', en: 'Take photo' },
   'track.export': { ja: '出力', en: 'Export' },
   'track.exportTitle': { ja: '移動経路の出力(GPX)', en: 'Export Track (GPX)' },
   'track.exportFilename': { ja: 'ファイル名', en: 'File name' },
@@ -75,8 +74,8 @@ const DICT = {
   'track.statPoints': { ja: '地点数', en: 'Points' },
   'track.statDistance': { ja: '移動距離', en: 'Distance' },
   'track.summary': {
-    ja: '記録地点 {points} 点 / 写真 {photos} 枚 / 移動距離 {km} km',
-    en: 'Points {points} / Photos {photos} / Distance {km} km'
+    ja: '記録地点 {points} 点 / 移動距離 {km} km',
+    en: 'Points {points} / Distance {km} km'
   },
   'track.started': { ja: '移動記録を開始しました', en: 'Track recording started' },
   'track.finished': { ja: '移動記録を終了しました({summary})', en: 'Track recording finished ({summary})' },

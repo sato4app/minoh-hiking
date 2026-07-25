@@ -97,10 +97,8 @@ const el = {
   toggleCurrentMarker: document.getElementById('toggleCurrentMarker'),
   toggleCenterCurrent: document.getElementById('toggleCenterCurrent'),
   toggleTrackRecording: document.getElementById('toggleTrackRecording'),
-  // 移動経路を記録 ON のとき表示する操作ボタン群(記録開始・停止トグル/写真撮影)
-  mapTrackActions: document.getElementById('mapTrackActions'),
+  // 「移動経路を記録」ON のとき表示する記録開始・停止トグル(メニューボタンの左)
   btnTrackToggle: document.getElementById('btnTrackToggle'),
-  btnTrackPhoto: document.getElementById('btnTrackPhoto'),
   // レイヤーパネル内: 移動経路の統計表(地点数・移動距離)・出力・クリア
   trackStatPoints: document.getElementById('trackStatPoints'),
   trackStatDistance: document.getElementById('trackStatDistance'),
@@ -264,7 +262,7 @@ function bindEvents() {
       // OFF: 軌跡が消去される前に終了処理(統計の出力)を行う
       finishTrackRecording();
     }
-    // 記録操作ボタン群(記録開始/停止・写真撮影)の表示を切替。
+    // 記録開始・停止ボタンの表示を切替。
     // 現在地の監視は「現在地点をマーカー表示」等のトグルが管理するため、ここでは触らない。
     updateTrackButtonState(on);
   });
@@ -275,14 +273,9 @@ function bindEvents() {
     // ボタンが表示されている(=移動経路を記録 ON で現在地表示が有効)ときのみ動作。
     // checked の値に依存すると、位置情報エラーで checked が戻されたとき無言で
     // 効かなくなるため、ボタン自身の表示状態で判定する。
-    if (el.mapTrackActions.hidden) return;
+    if (el.btnTrackToggle.hidden) return;
     if (isTrackRecording) finishTrackRecording();
     else beginTrackRecording();
-  });
-  // 写真撮影ボタン(端末のカメラ/写真選択を起動)
-  el.btnTrackPhoto.addEventListener('click', () => {
-    if (el.mapTrackActions.hidden) return;
-    capturePhoto();
   });
 
   // 出力: 記録済みの移動経路を GPX 形式でファイルに出力する
@@ -311,7 +304,6 @@ function bindEvents() {
     clearTrack();
     isTrackRecording = false;
     setTrackRecordingActive(false);
-    trackPhotoCount = 0;
     updateTrackStatsDisplay();
     logHistory(t('track.cleared'), '');
     showToast(t('track.cleared'));
@@ -432,7 +424,7 @@ function showView(name) {
     });
     setCurrentMarkerVisible(el.toggleCurrentMarker.checked);
     setFollowCurrentLocation(el.toggleCenterCurrent.checked);
-    // 移動経路を記録トグルの状態に応じて操作ボタン群(記録開始/写真撮影/記録停止)の表示を更新
+    // 移動経路を記録トグルの状態に応じて記録開始/停止ボタンの表示を更新
     updateTrackButtonState(el.toggleTrackRecording.checked);
     // 時刻表示は normalizeMapChrome() でトグルの状態に従って反映済み
     requestAnimationFrame(() => resizeMap());
@@ -531,11 +523,9 @@ function openMarkerSettingsModal() {
 }
 
 // ===== 移動記録の取りまとめ =====
-// 移動経路を記録トグルの状態に応じて、操作ボタン群(記録開始/写真撮影/記録停止)の表示を切替
+// 移動経路を記録トグルの状態に応じて、記録開始/停止ボタンの表示を切替
 function updateTrackButtonState(enabled) {
-  if (el.mapTrackActions) el.mapTrackActions.hidden = !enabled;
-  // ON のときはパネルを左にずらし、操作ボタン群のアイコンが見えるようにする
-  if (el.mapLayerPanel) el.mapLayerPanel.classList.toggle('track-active', enabled);
+  if (el.btnTrackToggle) el.btnTrackToggle.hidden = !enabled;
   // ボタンの見た目(開始▶/停止■)は実際の記録状態に合わせる。
   // 起動時画面へ移動しても記録は続くため、ここで一律に停止状態へは戻さない
   // (トグル OFF の場合は呼び出し元が先に finishTrackRecording している)。
@@ -552,14 +542,12 @@ function setTrackRecordingActive(active) {
 
 // 実際に移動記録中かどうか(開始ボタン押下〜停止まで)
 let isTrackRecording = false;
-// 今回の記録中に撮影した写真の枚数
-let trackPhotoCount = 0;
 
-// 記録地点数・写真枚数・移動距離の統計文言(記録終了時のメッセージに使用)。
+// 記録地点数・移動距離の統計文言(記録終了時のメッセージに使用)。
 // 移動距離は統計表と同じ小数点以下1位までの表記にそろえる。
 function formatTrackSummary(stats) {
   const km = (stats.distanceM / 1000).toFixed(1);
-  return t('track.summary', { points: stats.pointCount, photos: trackPhotoCount, km });
+  return t('track.summary', { points: stats.pointCount, km });
 }
 
 // レイヤーパネル内の統計表(地点数・移動距離)を現在の記録内容で更新する。
@@ -571,7 +559,7 @@ function updateTrackStatsDisplay() {
 }
 
 // 移動記録を開始(記録開始ボタン)。開始を履歴に残す。
-// 写真枚数や軌跡は「クリア」まで移動記録と共に保持するため、ここではリセットしない。
+// 軌跡は「クリア」まで移動記録と共に保持するため、ここではリセットしない。
 function beginTrackRecording() {
   startTrackRecording();
   setTrackRecordingActive(true);
@@ -581,7 +569,7 @@ function beginTrackRecording() {
 }
 
 // 移動記録を終了(記録停止/トグルOFF/画面遷移)。記録中だったときのみ、
-// 記録地点数・撮影写真枚数・合計移動距離を履歴(メッセージ)に出力する。
+// 記録地点数・合計移動距離を履歴(メッセージ)に出力する。
 // 軌跡が消去される前に統計を取得する必要がある点に注意。
 function finishTrackRecording() {
   const wasRecording = isTrackRecording;
@@ -594,7 +582,7 @@ function finishTrackRecording() {
     logHistory(summary, 'success');
     showToast(summary);
   }
-  // 写真枚数・軌跡は「クリア」まで保持するため、ここではリセットしない。
+  // 軌跡は「クリア」まで保持するため、ここではリセットしない。
 }
 
 // ===== 移動経路の出力(GPX) =====
@@ -692,24 +680,6 @@ function exportTrackGpx() {
   el.trackExportModal.hidden = true;
   logHistory(t('track.exported', { name: fileName }), 'success');
   showToast(t('track.exported', { name: fileName }));
-}
-
-// 写真撮影: 端末のカメラ/写真選択ダイアログを起動(取得後の保存処理は今後実装)
-function capturePhoto() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.capture = 'environment';
-  input.addEventListener('change', () => {
-    const file = input.files && input.files[0];
-    // TODO: 撮影した写真の保存・記録への紐付けは今後実装
-    if (file) {
-      // 記録中の撮影枚数をカウント(終了時の統計メッセージに使用)
-      if (isTrackRecording) trackPhotoCount++;
-      console.log('写真を取得:', file.name);
-    }
-  });
-  input.click();
 }
 
 // ===== 起動時のバージョン確認(履歴記録) =====

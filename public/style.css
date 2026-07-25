@@ -271,10 +271,10 @@ textarea {
 
 /* マップ/ナビビューの操作要素(浮きボタン・パネル・記録ボタン群)はクリック可能に。
    .view-map は pointer-events: none のため、操作要素ごとに auto を明示する必要がある。
-   .map-track-actions は孫要素(div>button)なので div 自体を auto にする。 */
+   .map-top-actions は孫要素(div>button)なので div 自体を auto にする。 */
 .view-map > .btn-float,
 .view-map > .map-layer-panel,
-.view-map > .map-track-actions,
+.view-map > .map-top-actions,
 .view-map > .closure-edit-panel,
 .view-nav > .btn-float,
 .view-nav > .nav-pending {
@@ -322,11 +322,9 @@ textarea {
   right: 0.75rem;
 }
 
-/* 時刻表示: メニューボタン(≡)の左に配置。メニューボタンと縦位置・高さを揃える */
+/* 時刻表示: 上部操作群(.map-top-actions)内に配置。位置はコンテナが制御するため
+   ここでは絶対配置しない。メニューボタンと高さ(44px)を揃える */
 .map-clock {
-  position: absolute;
-  top: 0.75rem;
-  right: calc(0.75rem + 44px + 0.5rem);
   height: 44px;
   display: inline-flex;
   align-items: center;
@@ -341,7 +339,6 @@ textarea {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  z-index: 500;
 }
 
 .map-clock[hidden] {
@@ -482,13 +479,6 @@ body.view-state-nav .leaflet-control-container {
   display: none;
 }
 
-/* 移動経路を記録 ON 時: 操作ボタン群(記録開始/写真撮影/記録停止)が
-   メニューボタンの下に表示されパネルと重なるため、パネルをメニューボタンの
-   横幅ぶん左にずらしてボタンのアイコンを見えるようにする */
-.map-layer-panel.track-active {
-  right: calc(0.75rem + 44px + 0.5rem);
-}
-
 .map-layer-panel .panel-divider {
   border: 0;
   border-top: 1px solid rgba(0, 0, 0, 0.12);
@@ -607,22 +597,26 @@ body.view-state-nav .leaflet-control-container {
   color: #1742c4;
 }
 
-/* 移動経路を記録 ON 時の操作ボタン群(メニューボタンの下に縦並び) */
-.map-track-actions {
+/* メニューボタン(≡)の左に並ぶ上部操作群(時刻表示・記録開始/停止トグル)。
+   右端をメニューボタンの左 0.5rem に固定し、内容は右詰めの横並び。
+   表示中の要素だけが右詰めでメニューに隣接し、非表示分の隙間はできない。 */
+.map-top-actions {
   position: absolute;
-  top: 4rem;
-  right: 0.75rem;
+  top: 0.75rem;
+  right: calc(0.75rem + 44px + 0.5rem);
   z-index: 500;
   display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.map-track-actions[hidden] {
+/* 記録トグルは btn-float(display:inline-flex)のため、hidden 属性より
+   display 指定が強い。明示的に非表示にする */
+#btnTrackToggle[hidden] {
   display: none;
 }
 
-/* 記録開始・停止/写真撮影のアイコンボタン(btn-float ベースだが静的配置) */
+/* 記録開始・停止トグルのアイコンボタン(btn-float ベースだが静的配置) */
 .btn-track-action {
   position: static;
   color: #1f7a4d;
