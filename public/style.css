@@ -929,26 +929,18 @@ body.view-state-nav .leaflet-control-container {
   border-bottom: 1px solid #eee;
 }
 
-.toggle-label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.toggle-title {
-  font-weight: 600;
-}
-
-.toggle-detail {
-  font-size: 0.8rem;
-  color: #666;
-}
-
 /* ===== ストレージ情報 ===== */
 .storage-info {
   background: #fafafa;
   padding: 0.5rem 1rem;
   border-bottom: 1px solid #eee;
+}
+
+/* 地図のダウンロード: ダウンロード済み地図バージョン/ファイルサイズは、
+   直上の補足文(modal-subtitle)より一段下げて明細であることを示す。
+   値は右端揃えのままにするため、左側だけインデントする。 */
+#downloadModal .storage-info {
+  padding-left: 2rem;
 }
 
 .info-row {

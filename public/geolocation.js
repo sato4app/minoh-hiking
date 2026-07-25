@@ -7,6 +7,8 @@
 // (refreshLocationWatch が制御)。記録中に起動時画面へ移動しても記録は継続する。
 // マーカー表示は showCurrentMarker、地図追従は followCurrentLocation で個別に切り替える。
 // 記録中(startTrackRecording 後)は、位置更新ごとに軌跡(ポリライン + 通過点マーカー)を追加する。
+// 記録点は「20m 以上移動」または「60秒以上経過」で追加するため、その間は経路の先端が
+// 現在地に届かない。そこで最終記録地点から現在地点までを同じスタイルの線でつなぐ。
 // 記録中は画面スリープを防止し(Screen Wake Lock API)、他アプリへの切替などで
 // ページが非表示になった場合は、復帰時に監視の張り直しと現在地の取得を行う。
 // 地図インスタンスは map.js の getMap() を通じて共有する。
@@ -44,6 +46,10 @@ const TRACK_MIN_DISTANCE_M = 20;
 const TRACK_MIN_INTERVAL_MS = 60 * 1000;
 let isRecordingTrack = false;
 let trackPolyline = null;        // 記録点を順に結ぶ線(移動記録経路)
+// 最終記録地点と現在地点(ライブ)を結ぶ線。記録条件(20m/60秒)を満たすまでは
+// 記録点が増えないため、この線が無いと経路が現在地まで届かず途切れて見える。
+// 移動記録経路と同じスタイルで描き、記録停止・クリア時は消す。
+let trackLeadLine = null;
 let trackStartMarker = null;     // 開始地点マーカー(移動記録開始点)
 let trackCurrentMarker = null;   // 最終記録地点マーカー(移動記録現在地点・進行方向)
 let trackStyle = null;           // 線のスタイル(移動記録経路)
@@ -55,14 +61,20 @@ let lastTrackTimeMs = 0;
 // <time> 要素と、出力ファイル名の日付(記録開始の当日)の決定に使う。
 let trackPointTimes = [];
 
+// 移動記録経路(線)の描画オプション。経路本体と、現在地点までを結ぶ線で共用する。
+function trackLineOptions() {
+  return {
+    color: trackStyle?.color || '#000080',
+    weight: trackStyle?.size || 4,
+    opacity: 0.85
+  };
+}
+
 export function setTrackStyle(style) {
   trackStyle = style;
-  if (trackPolyline) {
-    trackPolyline.setStyle({
-      color: style?.color || '#000080',
-      weight: style?.size || 4
-    });
-  }
+  const { color, weight } = trackLineOptions();
+  if (trackPolyline) trackPolyline.setStyle({ color, weight });
+  if (trackLeadLine) trackLeadLine.setStyle({ color, weight });
 }
 
 // 移動記録開始点マーカーのスタイル。既存マーカーがあれば即時反映。
@@ -118,6 +130,7 @@ function computeHeading(latlngs, current) {
 
 // 現在地点マーカー(三角)を配置し、進行方向に回転させる。
 // liveLatLng を与えると現在地(ライブ)へ、無ければ最終記録点へ配置する。
+// あわせて、最終記録地点から現在地点までを結ぶ線を更新する。
 function updateTrackCurrentMarker(liveLatLng) {
   const map = getMap();
   if (!trackPolyline || !map) return;
@@ -131,6 +144,36 @@ function updateTrackCurrentMarker(liveLatLng) {
     trackCurrentMarker.setLatLng(pos);
     trackCurrentMarker.setIcon(icon);
   }
+  updateTrackLeadLine(liveLatLng ? pos : null);
+}
+
+// 最終記録地点 → 現在地点(ライブ)を結ぶ線を更新する。
+// live が null(記録停止時など)のとき、また現在地が最終記録地点とほぼ同じ位置の
+// ときは線を消す(長さ 0 の線が点として残るのを避けるため)。
+function updateTrackLeadLine(live) {
+  const map = getMap();
+  const latlngs = trackPolyline ? trackPolyline.getLatLngs() : [];
+  if (!map || !live || latlngs.length === 0) {
+    removeTrackLeadLine();
+    return;
+  }
+  const last = latlngs[latlngs.length - 1];
+  if (last.distanceTo(live) < 0.5) {
+    removeTrackLeadLine();
+    return;
+  }
+  if (!trackLeadLine) {
+    trackLeadLine = L.polyline([last, live], trackLineOptions()).addTo(map);
+  } else {
+    trackLeadLine.setLatLngs([last, live]);
+  }
+}
+
+function removeTrackLeadLine() {
+  if (trackLeadLine) {
+    getMap()?.removeLayer(trackLeadLine);
+    trackLeadLine = null;
+  }
 }
 
 export function startTrackRecording() {
@@ -142,11 +185,7 @@ export function startTrackRecording() {
   // マーカー表示・追従が両方 OFF でも、記録のため現在地監視を確実に開始する。
   refreshLocationWatch();
   if (!trackPolyline) {
-    trackPolyline = L.polyline([], {
-      color: trackStyle?.color || '#000080',
-      weight: trackStyle?.size || 4,
-      opacity: 0.85
-    }).addTo(map);
+    trackPolyline = L.polyline([], trackLineOptions()).addTo(map);
   }
   // 既に現在地が取得済なら、最初の点として打つ(待たずに描画開始する)。
   // このとき現在地マーカーを青丸から三角(移動記録現在地点)へ切り替える。
@@ -224,6 +263,7 @@ export function clearTrack() {
     map.removeLayer(trackCurrentMarker);
     trackCurrentMarker = null;
   }
+  removeTrackLeadLine();
   lastTrackLatLng = null;
   lastTrackTimeMs = 0;
   trackPointTimes = [];
