@@ -131,6 +131,59 @@ textarea {
   transform: translateX(-50%) translateY(0);
 }
 
+/* ===== 処理中のブロックオーバーレイ(アプリ更新版のダウンロード中) ===== */
+/* 全画面を覆って他の操作を受け付けないようにする。モーダル(1000)・
+   トースト(1100)より前面に出し、タップ・スクロールは自身で受け止める。 */
+.blocking-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  touch-action: none;
+}
+
+.blocking-overlay[hidden] {
+  display: none;
+}
+
+.blocking-overlay-panel {
+  width: min(320px, calc(100% - 2.5rem));
+  padding: 1.4rem 1.2rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.blocking-spinner {
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 0.9rem;
+  border: 3px solid #d7e6da;
+  border-top-color: #2c7a3d;
+  border-radius: 50%;
+  animation: blocking-spin 0.9s linear infinite;
+}
+
+@keyframes blocking-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 視差効果を抑える設定の端末では回転をゆるやかにする */
+@media (prefers-reduced-motion: reduce) {
+  .blocking-spinner { animation-duration: 2.4s; }
+}
+
+.blocking-overlay-text {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #333;
+}
+
 /* ===== ビュー切替 ===== */
 .view {
   flex: 1;

@@ -203,6 +203,11 @@ const DICT = {
         'The update includes revised hiking routes.\n' +
         'Downloaded map tiles will not be affected.'
   },
+  // 更新版のダウンロード中に全画面オーバーレイへ表示する文言
+  'update.downloading': {
+    ja: 'アプリの更新版をダウンロードしています。完了までお待ちください。',
+    en: 'Downloading the app update. Please wait until it finishes.'
+  },
   'update.mapTilesNotice': {
     ja: 'ダウンロード対象の地図タイルが拡張されました。\n現在: {saved}\n最新: {latest}\n\n' +
         '地図のダウンロードから、ダウンロードしてください。\n' +

@@ -66,6 +66,15 @@ export const CONCURRENCY = 4;      // タイル取得の同時実行数
 export const MAX_RETRIES = 3;      // 取得失敗時のリトライ回数
 export const AVG_TILE_KB = 12;     // 実測不能時のサイズ推定用(平均タイルサイズ)
 
+// ===== アプリ更新制御(update.js) =====
+// アプリの更新版(アプリシェル一式)のダウンロード完了を待つ上限(ミリ秒)。
+// ダウンロード中は全画面オーバーレイで操作を受け付けないため、通信が極端に遅い・
+// 途切れた場合に待ち続けないよう上限を設ける(超えたら待たずに再読み込みする。
+// 未取得分はオンライン時に自動で取得される)。
+export const APP_UPDATE_DOWNLOAD_TIMEOUT_MS = 90000;
+// 更新要求後に新しい Service Worker(ダウンロードの実行役)が現れるのを待つ上限。
+export const APP_UPDATE_WORKER_WAIT_MS = 5000;
+
 // ===== メッセージ履歴 =====
 export const MESSAGE_LOG_MAX = 100;
 

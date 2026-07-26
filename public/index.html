@@ -373,6 +373,17 @@
     </div>
   </div>
 
+  <!-- アプリ更新中のブロックオーバーレイ(update.js が表示・非表示を制御)。
+       更新版のダウンロード中に全画面を覆い、他の操作を受け付けないようにする。
+       ダウンロード完了後は自動で再読み込みするため、閉じる手段は持たない。 -->
+  <div class="blocking-overlay" id="appUpdateOverlay" hidden role="alertdialog" aria-modal="true"
+       aria-labelledby="appUpdateOverlayText" aria-busy="true">
+    <div class="blocking-overlay-panel" role="document">
+      <div class="blocking-spinner" aria-hidden="true"></div>
+      <p class="blocking-overlay-text" id="appUpdateOverlayText" data-i18n="update.downloading">アプリの更新版をダウンロードしています。完了までお待ちください。</p>
+    </div>
+  </div>
+
   <script type="module" src="app.js"></script>
 </body>
 </html>
