@@ -62,6 +62,31 @@ const DICT = {
   'track.start': { ja: '記録開始', en: 'Start recording' },
   'track.stop': { ja: '記録停止', en: 'Stop recording' },
   'track.export': { ja: '出力', en: 'Export' },
+  'track.import': { ja: '読み込み', en: 'Import' },
+  'track.importWhileRecording': {
+    ja: '記録中は読み込みできません。記録を停止してください',
+    en: 'Cannot import while recording. Stop recording first.'
+  },
+  'track.importReplaceConfirm': {
+    ja: '表示中の移動経路を、読み込む経路で置き換えます。よろしいですか?',
+    en: 'Replace the current track with the imported one?'
+  },
+  'track.importNoPoints': {
+    ja: '移動経路が見つかりませんでした(GPXに trkpt がありません)',
+    en: 'No track points (trkpt) found in the GPX file'
+  },
+  'track.importInvalidXml': {
+    ja: 'GPXファイルとして解析できません',
+    en: 'The file could not be parsed as GPX'
+  },
+  'track.imported': {
+    ja: '{name} を読み込みました({count}地点)',
+    en: 'Imported {name} ({count} points)'
+  },
+  'track.importFailed': {
+    ja: '読み込みに失敗しました: {message}',
+    en: 'Import failed: {message}'
+  },
   'track.exportTitle': { ja: '移動経路の出力(GPX)', en: 'Export Track (GPX)' },
   'track.exportFilename': { ja: 'ファイル名', en: 'File name' },
   'track.nothingToExport': { ja: '出力する移動経路がありません', en: 'No recorded track to export' },

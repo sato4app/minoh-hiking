@@ -110,25 +110,25 @@
         <span class="toggle-slider" aria-hidden="true"></span>
         <span class="toggle-text" data-i18n="map.toggleTrackRecording">移動経路を記録</span>
       </label>
-      <!-- 移動経路: 統計表(地点数・移動距離)と出力・クリア -->
+      <!-- 移動経路: 統計(地点数・移動距離)と、その次の行に読み込み・出力・クリア -->
+      <!-- 統計: ラベルと値を横に並べて1行で表示(地点数・移動距離) -->
+      <div class="track-stats" role="group" aria-label="移動経路の統計" data-i18n-aria="track.ariaStats">
+        <span class="track-stat">
+          <span class="track-stat-label" data-i18n="track.statPoints">地点数</span>
+          <span class="track-stat-value" id="trackStatPoints">0</span>
+        </span>
+        <span class="track-stat">
+          <span class="track-stat-label" data-i18n="track.statDistance">移動距離</span>
+          <span class="track-stat-value" id="trackStatDistance">0.0 (km)</span>
+        </span>
+      </div>
       <div class="track-inline-actions">
-        <table class="track-stats-table" aria-label="移動経路の統計" data-i18n-aria="track.ariaStats">
-          <thead>
-            <tr>
-              <th data-i18n="track.statPoints">地点数</th>
-              <th data-i18n="track.statDistance">移動距離</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td id="trackStatPoints">0</td>
-              <td id="trackStatDistance">0.0 (km)</td>
-            </tr>
-          </tbody>
-        </table>
+        <button type="button" class="btn-track-mini" id="btnTrackImport" data-i18n="track.import">読み込み</button>
         <button type="button" class="btn-track-mini" id="btnTrackExport" data-i18n="track.export">出力</button>
         <button type="button" class="btn-track-mini" id="btnTrackClear" data-i18n="common.clear">クリア</button>
       </div>
+      <!-- 「読み込み」で開くファイル選択(GPX)。ボタンから click() して呼び出す -->
+      <input type="file" id="trackImportInput" accept=".gpx,application/gpx+xml" hidden />
       <hr class="panel-divider" />
       <button type="button" class="panel-btn" id="btnMapOpenMarkerSettings" data-i18n="markerSettings.title">マーカーの設定</button>
       <hr class="panel-divider" />

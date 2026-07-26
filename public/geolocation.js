@@ -245,6 +245,41 @@ export function getTrackPoints() {
   }));
 }
 
+// 外部から読み込んだ移動経路({lat, lng, timeMs})を、記録済みの経路として描画する。
+// 表示中の経路は破棄して置き換える(記録中は呼ばない。呼び出し側で抑止すること)。
+// 記録時刻はファイルの値をそのまま保持するため、読み込んだ経路をそのまま
+// 「出力」で再出力できる。描画できた地点数を返す。
+export function loadTrackPoints(points) {
+  const map = getMap();
+  if (!map) return 0;
+  const valid = (points || []).filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+  if (valid.length === 0) return 0;
+
+  clearTrack();
+  trackPolyline = L.polyline(valid.map((p) => [p.lat, p.lng]), trackLineOptions()).addTo(map);
+  trackPointTimes = valid.map((p) => (Number.isFinite(p.timeMs) ? p.timeMs : null));
+
+  const first = valid[0];
+  const last = valid[valid.length - 1];
+  trackStartMarker = L.marker([first.lat, first.lng], {
+    icon: buildShapeIcon(trackStartStyle, 'square')
+  }).addTo(map);
+  lastTrackLatLng = [last.lat, last.lng];
+  lastTrackTimeMs = trackPointTimes[trackPointTimes.length - 1] ?? Date.now();
+  // 現在地点マーカー(三角)は最終地点へ。ライブ現在地は渡さないので中間線も出ない。
+  updateTrackCurrentMarker();
+  onTrackPointAppended?.();
+  return valid.length;
+}
+
+// 表示中の移動経路の全体が収まるよう地図を合わせる(読み込み直後に使う)
+export function fitMapToTrack() {
+  const map = getMap();
+  if (!map || !trackPolyline) return;
+  const bounds = trackPolyline.getBounds();
+  if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30] });
+}
+
 // 移動記録の表示(線・開始点・現在地点)を全削除する。
 // 「移動経路をクリア」ボタンからのみ呼び出す(トグル OFF では消さない)。
 export function clearTrack() {

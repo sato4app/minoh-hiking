@@ -23,6 +23,7 @@ import {
   setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
   startTrackRecording, stopTrackRecording, getTrackStats, getTrackPoints, clearTrack,
+  loadTrackPoints, fitMapToTrack,
   setOnTrackPointAppended, setOnTrackNotice
 } from './geolocation.js';
 import {
@@ -103,8 +104,10 @@ const el = {
   // レイヤーパネル内: 移動経路の統計表(地点数・移動距離)・出力・クリア
   trackStatPoints: document.getElementById('trackStatPoints'),
   trackStatDistance: document.getElementById('trackStatDistance'),
+  btnTrackImport: document.getElementById('btnTrackImport'),
   btnTrackExport: document.getElementById('btnTrackExport'),
   btnTrackClear: document.getElementById('btnTrackClear'),
+  trackImportInput: document.getElementById('trackImportInput'),
   // 移動経路の出力(GPX)モーダル
   trackExportModal: document.getElementById('trackExportModal'),
   trackExportPrefix: document.getElementById('trackExportPrefix'),
@@ -283,6 +286,20 @@ function bindEvents() {
     if (isTrackRecording) finishTrackRecording();
     else beginTrackRecording();
   });
+
+  // 読み込み: GPX ファイルを選び、記録済みの移動経路として地図に表示する。
+  // 記録中は経路が入れ替わると記録が壊れるため受け付けない。
+  el.btnTrackImport.addEventListener('click', () => {
+    if (isTrackRecording) {
+      showToast(t('track.importWhileRecording'));
+      return;
+    }
+    if (getTrackStats().pointCount > 0 && !confirm(t('track.importReplaceConfirm'))) return;
+    // 同じファイルを続けて選べるよう、選択値を毎回クリアしてから開く
+    el.trackImportInput.value = '';
+    el.trackImportInput.click();
+  });
+  el.trackImportInput.addEventListener('change', importTrackGpx);
 
   // 出力: 記録済みの移動経路を GPX 形式でファイルに出力する
   el.btnTrackExport.addEventListener('click', openTrackExportModal);
@@ -686,6 +703,53 @@ function exportTrackGpx() {
   el.trackExportModal.hidden = true;
   logHistory(t('track.exported', { name: fileName }), 'success');
   showToast(t('track.exported', { name: fileName }));
+}
+
+// ===== 移動経路の読み込み(GPX) =====
+// GPX 文字列から移動経路の点列を取り出す。トラック・セグメントの区別はせず、
+// 文書順の trkpt を1本の経路として連結する(<time> は任意)。
+function parseTrackGpx(text) {
+  const doc = new DOMParser().parseFromString(text, 'application/xml');
+  if (doc.getElementsByTagName('parsererror').length > 0) throw new Error(t('track.importInvalidXml'));
+  return [...doc.getElementsByTagName('trkpt')]
+    .map((node) => {
+      const timeText = node.getElementsByTagName('time')[0]?.textContent;
+      const ms = timeText ? Date.parse(timeText) : NaN;
+      return {
+        lat: parseFloat(node.getAttribute('lat')),
+        lng: parseFloat(node.getAttribute('lon')),
+        timeMs: Number.isFinite(ms) ? ms : null
+      };
+    })
+    .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+}
+
+// ファイル選択後: GPX を解析して移動経路として表示し、統計と地図表示を合わせる
+async function importTrackGpx(ev) {
+  const file = ev.target.files?.[0];
+  if (!file) return;
+  try {
+    const points = parseTrackGpx(await file.text());
+    if (points.length === 0) {
+      showToast(t('track.importNoPoints'));
+      return;
+    }
+    const count = loadTrackPoints(points);
+    // 読み込んだ経路は記録済みの状態として扱う(記録開始ボタンは停止表示に戻す)
+    isTrackRecording = false;
+    setTrackRecordingActive(false);
+    updateTrackStatsDisplay();
+    // 読み込んだ経路が見えるよう、メニューを閉じて全体を表示する
+    el.mapLayerPanel.hidden = true;
+    fitMapToTrack();
+    const msg = t('track.imported', { name: file.name, count });
+    logHistory(msg, 'success');
+    showToast(msg);
+  } catch (err) {
+    const msg = t('track.importFailed', { message: err.message });
+    logHistory(msg, 'error');
+    showToast(msg);
+  }
 }
 
 // ===== 起動時のバージョン確認(履歴記録) =====
