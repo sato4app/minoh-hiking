@@ -436,6 +436,11 @@ textarea {
   text-align: center;
 }
 
+/* 「ズームレベルを表示」トグル OFF のとき */
+.leaflet-right .zoom-display[hidden] {
+  display: none;
+}
+
 body.view-state-map .leaflet-control-container,
 body.view-state-nav .leaflet-control-container {
   display: block;

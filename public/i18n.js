@@ -167,6 +167,7 @@ const DICT = {
 
   // ----- バージョン情報等モーダル -----
   'info.showClock': { ja: '時刻を表示', en: 'Show clock' },
+  'info.showZoomLevel': { ja: 'ズームレベルを表示', en: 'Show zoom level' },
   'info.startupUpdateCheck': { ja: '起動時にアプリの更新版を確認', en: 'Check for app updates at startup' },
   'info.versionInfo': { ja: 'バージョン情報', en: 'Version information' },
   'info.mapVersion': { ja: '地図バージョン：', en: 'Map version:' },

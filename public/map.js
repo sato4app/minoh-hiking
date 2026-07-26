@@ -67,15 +67,24 @@ export function getMap() {
 }
 
 // ===== 現在のズームレベル表示(ズームボタンの左に配置) =====
+// 表示/非表示は設定の「ズームレベルを表示」トグルで切り替える(既定は表示)。
+let zoomDisplayEl = null;
+
 const ZoomDisplayControl = L.Control.extend({
   onAdd(map) {
     const div = L.DomUtil.create('div', 'zoom-display');
     const update = () => { div.textContent = `z=${map.getZoom()}`; };
     update();
     map.on('zoomend', update);
+    zoomDisplayEl = div;
     return div;
   }
 });
+
+// ズームレベル表示の ON/OFF(設定モーダルの「ズームレベルを表示」から呼ぶ)
+export function setZoomDisplayVisible(on) {
+  if (zoomDisplayEl) zoomDisplayEl.hidden = !on;
+}
 
 // ビュー表示直後に呼んでサイズを再計算する(hidden→visible 切替で必須)
 export function resizeMap() {

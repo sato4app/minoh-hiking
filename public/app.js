@@ -17,7 +17,7 @@ import {
   loadEmergencyPointsLayer, setEmergencyPointsVisible,
   loadHikingRoutesLayer, setHikingRoutesVisible,
   setClosuresVisible, setClosureClosedStyle, setClosureDifficultStyle,
-  getFeatureCounts
+  setZoomDisplayVisible, getFeatureCounts
 } from './map.js';
 import {
   setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
@@ -88,6 +88,7 @@ const el = {
   mapLayerPanel: document.getElementById('mapLayerPanel'),
   mapClock: document.getElementById('mapClock'),
   toggleClock: document.getElementById('toggleClock'),
+  toggleZoomDisplay: document.getElementById('toggleZoomDisplay'),
   // データ件数表示(ポイント/ルート/スポット/通行止め)
   countPoints: document.getElementById('countPoints'),
   countRoutes: document.getElementById('countRoutes'),
@@ -155,6 +156,8 @@ async function init() {
 
   // 共有地図を初期化(箕面大滝中心 / z=15、ホーム/マップで共通)
   initMap('map');
+  // ズームレベル表示は「ズームレベルを表示」トグルの状態に従う
+  setZoomDisplayVisible(el.toggleZoomDisplay.checked);
   // 各オーバーレイはバックグラウンドで読込み、map ビュー時のみ表示。
   // マーカースタイルは保存済み設定(無ければ config.js の既定値)を初期描画に反映。
   const markerSettings = readMarkerSettings();
@@ -252,6 +255,9 @@ function bindEvents() {
   }
   // 時刻表示トグル(「バージョン情報等」内): ON でメニューボタンの左に現在時刻を表示
   el.toggleClock.addEventListener('change', (e) => setClockVisible(e.target.checked));
+  // ズームレベル表示トグル(設定モーダル内): ON で地図右下に現在のズームレベルを表示。
+  // 表示要素は地図コントロール内にあり、マップ・ナビ画面でのみ出るためビュー切替の反映は不要。
+  el.toggleZoomDisplay.addEventListener('change', (e) => setZoomDisplayVisible(e.target.checked));
   // 現在地点をマーカー表示: 現在地マーカー(青丸)・精度円の表示/非表示を切替
   el.toggleCurrentMarker.addEventListener('change', (e) => setCurrentMarkerVisible(e.target.checked));
   // 現在地点は中央に表示: 地図を現在地へ追従させるか切替
