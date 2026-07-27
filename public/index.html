@@ -111,17 +111,9 @@
         <span class="toggle-text" data-i18n="map.toggleTrackRecording">移動経路を記録</span>
       </label>
       <!-- 移動経路: 統計(地点数・移動距離)と、その次の行に読み込み・出力・クリア -->
-      <!-- 統計: ラベルと値を横に並べて1行で表示(地点数・移動距離) -->
-      <div class="track-stats" role="group" aria-label="移動経路の統計" data-i18n-aria="track.ariaStats">
-        <span class="track-stat">
-          <span class="track-stat-label" data-i18n="track.statPoints">地点数</span>
-          <span class="track-stat-value" id="trackStatPoints">0</span>
-        </span>
-        <span class="track-stat">
-          <span class="track-stat-label" data-i18n="track.statDistance">移動距離</span>
-          <span class="track-stat-value" id="trackStatDistance">0.0 (km)</span>
-        </span>
-      </div>
+      <!-- 統計: 経路1本につき1行。ラベルと値を横に並べて表示し、経路が複数あるときは
+           行の左に「経路 n」を添える。中身は app.js が経路の本数に応じて組み立てる -->
+      <div class="track-stats" id="trackStats" role="group" aria-label="移動経路の統計" data-i18n-aria="track.ariaStats"></div>
       <div class="track-inline-actions">
         <button type="button" class="btn-track-mini" id="btnTrackImport" data-i18n="track.import">読み込み</button>
         <button type="button" class="btn-track-mini" id="btnTrackExport" data-i18n="track.export">出力</button>
@@ -148,6 +140,27 @@
       <p class="placeholder-message" data-i18n="nav.pending">この機能は準備中です。</p>
     </div>
   </section>
+
+  <!-- 表示中の移動経路があるときに「クリア/追加/中止」を選ぶモーダル。
+       記録開始と読み込みで共用し、見出し・説明・ボタン文言は app.js が用途に応じて設定する。
+       閉じる(×・背景・キャンセル)は操作の中止で、経路には手を付けない -->
+  <div class="modal" id="trackExistingModal" hidden role="dialog" aria-modal="true" aria-labelledby="trackExistingTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="trackExistingTitle"></h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      </header>
+      <div class="modal-body">
+        <p class="modal-subtitle" id="trackExistingMessage"></p>
+        <div class="button-group">
+          <button type="button" id="btnTrackExistingClear" class="btn btn-primary"></button>
+          <button type="button" id="btnTrackExistingAppend" class="btn btn-primary"></button>
+          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.cancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- 移動経路の出力(GPX)モーダル: ファイル名は yyyymmdd-nn を既定とし、
        日付部分(yyyymmdd-)は固定表示、連番以降(nn…)のみ編集できる -->

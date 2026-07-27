@@ -67,10 +67,18 @@ const DICT = {
     ja: '記録中は読み込みできません。記録を停止してください',
     en: 'Cannot import while recording. Stop recording first.'
   },
-  'track.importReplaceConfirm': {
-    ja: '表示中の移動経路を、読み込む経路で置き換えます。よろしいですか?',
-    en: 'Replace the current track with the imported one?'
+  // 表示中の経路があるときに、記録開始・読み込みの前に出す選択モーダル
+  // (クリア / 追加 / 中止 の3択。見出しとボタン文言は用途で切り替える)
+  'track.existingTitleRecord': { ja: '移動記録の開始', en: 'Start Recording' },
+  'track.existingTitleImport': { ja: '移動経路の読み込み', en: 'Import Track' },
+  'track.existingMessage': {
+    ja: '表示中の移動経路が {routes} 本あります。表示中の経路をクリアするか、新しい経路として追加するかを選んでください。',
+    en: 'Routes currently on the map: {routes}. Choose whether to clear them, or keep them and add a new route.'
   },
+  'track.existingClearRecord': { ja: 'クリアして記録開始', en: 'Clear and start recording' },
+  'track.existingAppendRecord': { ja: '追加して記録開始', en: 'Add a route and start recording' },
+  'track.existingClearImport': { ja: 'クリアして読み込み', en: 'Clear and import' },
+  'track.existingAppendImport': { ja: '追加して読み込み', en: 'Add and import' },
   'track.importNoPoints': {
     ja: '移動経路が見つかりませんでした(GPXに trkpt がありません)',
     en: 'No track points (trkpt) found in the GPX file'
@@ -82,6 +90,10 @@ const DICT = {
   'track.imported': {
     ja: '{name} を読み込みました({count}地点)',
     en: 'Imported {name} ({count} points)'
+  },
+  'track.importedMulti': {
+    ja: '{name} を読み込みました({routes}経路 / {count}地点)',
+    en: 'Imported {name} ({routes} routes / {count} points)'
   },
   'track.importFailed': {
     ja: '読み込みに失敗しました: {message}',
@@ -98,6 +110,8 @@ const DICT = {
   'track.ariaStats': { ja: '移動経路の統計', en: 'Track statistics' },
   'track.statPoints': { ja: '地点数', en: 'Points' },
   'track.statDistance': { ja: '移動距離', en: 'Distance' },
+  // 経路が複数あるときだけ、統計行の左とサマリの先頭に付ける経路の番号
+  'track.routeIndex': { ja: '経路 {n}', en: 'Route {n}' },
   'track.summary': {
     ja: '記録地点 {points} 点 / 移動距離 {km} km',
     en: 'Points {points} / Distance {km} km'
@@ -105,7 +119,10 @@ const DICT = {
   'track.started': { ja: '移動記録を開始しました', en: 'Track recording started' },
   'track.finished': { ja: '移動記録を終了しました({summary})', en: 'Track recording finished ({summary})' },
   'track.nothingToClear': { ja: 'クリアする移動経路がありません', en: 'No recorded track to clear' },
-  'track.clearConfirm': { ja: '記録した移動経路をクリアします。よろしいですか?', en: 'Clear the recorded track?' },
+  'track.clearConfirm': {
+    ja: '表示中の移動経路をすべてクリアします。よろしいですか?',
+    en: 'Clear all tracks currently shown on the map?'
+  },
   'track.cleared': { ja: '移動経路をクリアしました', en: 'Track cleared' },
   'track.wakeLockUnavailable': {
     ja: 'この端末では記録中の画面消灯を止められません。画面が消えると記録が途切れることがあります',

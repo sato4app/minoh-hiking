@@ -588,17 +588,25 @@ body.view-state-nav .leaflet-control-container {
   margin: 0.6rem 0 0.1rem;
 }
 
-/* 移動経路の統計(地点数・移動距離): ボタン行の上に中央寄せで配置し、
-   ラベルと値を横に並べて1行にまとめる */
+/* 移動経路の統計(地点数・移動距離): ボタン行の上に中央寄せで配置する。
+   経路1本につき1行で、各行はラベル+値の組を横に並べる。グリッドにしているのは
+   経路が複数あるとき、行をまたいで「経路 n」「地点数」「移動距離」の列をそろえるため
+   (行ごとの数字の桁数が違っても左端が動かない) */
 .track-stats {
   margin: 0.3rem 0 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
   justify-content: center;
   align-items: baseline;
-  gap: 0.7rem;
+  gap: 0.15rem 0.7rem;
   font-size: 0.8rem;
   color: #222;
   white-space: nowrap;
+}
+
+/* 経路が複数あるときのみ、左端に「経路 n」の列が入る */
+.track-stats.has-index {
+  grid-template-columns: repeat(3, auto);
 }
 
 /* ラベル+値の1組(例: 「地点数 12」) */
@@ -610,6 +618,12 @@ body.view-state-nav .leaflet-control-container {
 
 .track-stat-label {
   color: #555;
+}
+
+/* 行の左に添える経路の番号(例: 「経路 2」) */
+.track-stat-index {
+  color: #555;
+  font-variant-numeric: tabular-nums;
 }
 
 .track-stat-value {

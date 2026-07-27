@@ -22,8 +22,8 @@ import {
 import {
   setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
-  startTrackRecording, stopTrackRecording, getTrackStats, getTrackPoints, clearTrack,
-  loadTrackPoints, fitMapToTrack,
+  startTrackRecording, stopTrackRecording, getTrackStats, getTrackStatsList,
+  getTrackSegments, clearTrack, loadTrackSegments, fitMapToTrack,
   setOnTrackPointAppended, setOnTrackNotice
 } from './geolocation.js';
 import {
@@ -101,13 +101,19 @@ const el = {
   toggleTrackRecording: document.getElementById('toggleTrackRecording'),
   // 「移動経路を記録」ON のとき表示する記録開始・停止トグル(メニューボタンの左)
   btnTrackToggle: document.getElementById('btnTrackToggle'),
-  // レイヤーパネル内: 移動経路の統計表(地点数・移動距離)・出力・クリア
-  trackStatPoints: document.getElementById('trackStatPoints'),
-  trackStatDistance: document.getElementById('trackStatDistance'),
+  // レイヤーパネル内: 移動経路の統計表(経路ごとの地点数・移動距離)・出力・クリア。
+  // 統計は経路の本数に応じて app.js が組み立てる
+  trackStats: document.getElementById('trackStats'),
   btnTrackImport: document.getElementById('btnTrackImport'),
   btnTrackExport: document.getElementById('btnTrackExport'),
   btnTrackClear: document.getElementById('btnTrackClear'),
   trackImportInput: document.getElementById('trackImportInput'),
+  // 表示中の経路があるときに「クリア/追加/中止」を選ぶモーダル(記録開始・読み込みで共用)
+  trackExistingModal: document.getElementById('trackExistingModal'),
+  trackExistingTitle: document.getElementById('trackExistingTitle'),
+  trackExistingMessage: document.getElementById('trackExistingMessage'),
+  btnTrackExistingClear: document.getElementById('btnTrackExistingClear'),
+  btnTrackExistingAppend: document.getElementById('btnTrackExistingAppend'),
   // 移動経路の出力(GPX)モーダル
   trackExportModal: document.getElementById('trackExportModal'),
   trackExportPrefix: document.getElementById('trackExportPrefix'),
@@ -183,6 +189,8 @@ async function init() {
   setTrackStyle(markerSettings.track);
   setTrackStartStyle(markerSettings.trackStart);
   setTrackCurrentStyle(markerSettings.trackCurrent);
+  // 統計表の中身は経路の本数に応じて組み立てるため、初期状態(0件の1行)を描画しておく
+  updateTrackStatsDisplay();
 
   // 初期表示はホーム(オーバーレイは非表示のまま)
   showView('home');
@@ -237,6 +245,8 @@ function bindEvents() {
       if (modal && modal.id === 'settingsModal' && currentView === 'map') {
         showView('map');
       }
+      // 「クリア/追加/中止」モーダルを閉じたのは操作の中止。保持した用途を捨てる
+      if (modal && modal.id === 'trackExistingModal') trackExistingMode = null;
       // どのモーダルを閉じた場合も、マップ画面の操作要素を確実に表示状態へ戻す
       if (currentView === 'map') normalizeMapChrome();
     });
@@ -289,17 +299,24 @@ function bindEvents() {
 
   // 読み込み: GPX ファイルを選び、記録済みの移動経路として地図に表示する。
   // 記録中は経路が入れ替わると記録が壊れるため受け付けない。
+  // 既存の経路があるときは、クリア/追加/中止をモーダルで選んでからファイル選択へ進む。
   el.btnTrackImport.addEventListener('click', () => {
     if (isTrackRecording) {
       showToast(t('track.importWhileRecording'));
       return;
     }
-    if (getTrackStats().pointCount > 0 && !confirm(t('track.importReplaceConfirm'))) return;
-    // 同じファイルを続けて選べるよう、選択値を毎回クリアしてから開く
-    el.trackImportInput.value = '';
-    el.trackImportInput.click();
+    if (getTrackStats().pointCount > 0) {
+      openTrackExistingModal('import');
+      return;
+    }
+    openTrackImportPicker(false);
   });
   el.trackImportInput.addEventListener('change', importTrackGpx);
+
+  // 「クリア/追加/中止」モーダルの2ボタン。中止(キャンセル・×・背景)は
+  // 共通の [data-close-modal] が閉じるだけで、経路には手を付けない。
+  el.btnTrackExistingClear.addEventListener('click', () => resolveTrackExisting(false));
+  el.btnTrackExistingAppend.addEventListener('click', () => resolveTrackExisting(true));
 
   // 出力: 記録済みの移動経路を GPX 形式でファイルに出力する
   el.btnTrackExport.addEventListener('click', openTrackExportModal);
@@ -568,43 +585,123 @@ let isTrackRecording = false;
 
 // 記録地点数・移動距離の統計文言(記録終了時のメッセージに使用)。
 // 移動距離は統計表と同じ小数点以下1位までの表記にそろえる。
-function formatTrackSummary(stats) {
+// 経路が複数あるときは、どの経路の統計かが分かるよう「経路 n:」を先頭に付ける。
+// 地点数0(位置が一度も取得できなかった記録)の経路は残らないため番号は付けない。
+function formatTrackSummary(stats, index, total) {
   const km = (stats.distanceM / 1000).toFixed(1);
-  return t('track.summary', { points: stats.pointCount, km });
+  const summary = t('track.summary', { points: stats.pointCount, km });
+  if (total <= 1 || stats.pointCount === 0) return summary;
+  return `${t('track.routeIndex', { n: index + 1 })}: ${summary}`;
 }
 
-// レイヤーパネル内の統計表(地点数・移動距離)を現在の記録内容で更新する。
+// レイヤーパネル内の統計表を現在の記録内容で更新する。経路1本につき1行を出し、
 // 移動距離は小数点以下1位までの km 表記(例: 0.2 (km))。
+// 経路が複数あるときのみ、行の左に「経路 n」を添える(1本以下では付けない)。
 function updateTrackStatsDisplay() {
-  const stats = getTrackStats();
-  el.trackStatPoints.textContent = String(stats.pointCount);
-  el.trackStatDistance.textContent = `${(stats.distanceM / 1000).toFixed(1)} (km)`;
+  const list = getTrackStatsList();
+  // 経路が無いときも 0 の行を1行出す(表の枠が消えて見えなくなるのを避ける)
+  const rows = list.length > 0 ? list : [{ pointCount: 0, distanceM: 0 }];
+  const showIndex = rows.length > 1;
+  el.trackStats.classList.toggle('has-index', showIndex);
+  el.trackStats.innerHTML = '';
+  rows.forEach((stats, i) => {
+    if (showIndex) {
+      el.trackStats.appendChild(
+        buildTrackStatCell('track-stat-index', t('track.routeIndex', { n: i + 1 }))
+      );
+    }
+    el.trackStats.appendChild(buildTrackStatPair(t('track.statPoints'), String(stats.pointCount)));
+    el.trackStats.appendChild(
+      buildTrackStatPair(t('track.statDistance'), `${(stats.distanceM / 1000).toFixed(1)} (km)`)
+    );
+  });
 }
 
-// 移動記録を開始(記録開始ボタン)。開始を履歴に残す。
-// 軌跡は「クリア」まで移動記録と共に保持するため、ここではリセットしない。
+// 統計表のセル(「経路 n」など、ラベル単体のもの)
+function buildTrackStatCell(className, text) {
+  const span = document.createElement('span');
+  span.className = className;
+  span.textContent = text;
+  return span;
+}
+
+// 統計表のセル(「地点数 12」のようなラベル+値の1組)
+function buildTrackStatPair(label, value) {
+  const wrap = document.createElement('span');
+  wrap.className = 'track-stat';
+  wrap.appendChild(buildTrackStatCell('track-stat-label', label));
+  wrap.appendChild(buildTrackStatCell('track-stat-value', value));
+  return wrap;
+}
+
+// ===== 表示中の経路があるときの選択(クリア/追加/中止) =====
+// 記録開始と読み込みで同じモーダルを共用する。中止(キャンセル・×・背景)を選べるよう
+// confirm ではなくモーダルにしており、閉じただけのときは何もしない。
+// どちらのボタンが押されたかを判断するため、開いた用途を保持する。
+let trackExistingMode = null;  // 'record' | 'import'
+
+function openTrackExistingModal(mode) {
+  trackExistingMode = mode;
+  const isRecord = mode === 'record';
+  el.trackExistingTitle.textContent = t(isRecord ? 'track.existingTitleRecord' : 'track.existingTitleImport');
+  el.trackExistingMessage.textContent = t('track.existingMessage', { routes: getTrackStatsList().length });
+  el.btnTrackExistingClear.textContent = t(isRecord ? 'track.existingClearRecord' : 'track.existingClearImport');
+  el.btnTrackExistingAppend.textContent = t(isRecord ? 'track.existingAppendRecord' : 'track.existingAppendImport');
+  el.trackExistingModal.hidden = false;
+}
+
+// クリア/追加のどちらかが選ばれたとき: モーダルを閉じて、開いた用途の操作を続行する。
+// ファイル選択(input.click())はこのクリック操作の延長で呼ぶ必要があるため同期的に進める。
+function resolveTrackExisting(append) {
+  const mode = trackExistingMode;
+  trackExistingMode = null;
+  el.trackExistingModal.hidden = true;
+  if (mode === 'record') startTrackRecordingNow(append);
+  else if (mode === 'import') openTrackImportPicker(append);
+}
+
+// 移動記録を開始(記録開始ボタン)。既存の経路が表示されている場合は、
+// クリア/追加/中止をモーダルで選んでから開始する(→ resolveTrackExisting)。
 function beginTrackRecording() {
-  startTrackRecording();
+  if (getTrackStats().pointCount > 0) {
+    openTrackExistingModal('record');
+    return;
+  }
+  startTrackRecordingNow(false);
+}
+
+// 実際に記録を開始する。開始を履歴に残す。
+// 軌跡は「クリア」まで移動記録と共に保持するため、追加時(append)はそのまま残す。
+function startTrackRecordingNow(append) {
+  startTrackRecording({ append });
   setTrackRecordingActive(true);
   isTrackRecording = true;
+  // クリアして開始した場合は統計表も 0 に戻す
+  updateTrackStatsDisplay();
   logHistory(t('track.started'), 'success');
   showToast(t('track.started'));
 }
 
 // 移動記録を終了(記録停止/トグルOFF/画面遷移)。記録中だったときのみ、
-// 記録地点数・合計移動距離を履歴(メッセージ)に出力する。
+// いま記録していた経路の地点数・移動距離を履歴(メッセージ)に出力する。
+// 記録中の経路は常に最後の経路なので、統計の末尾がその経路のもの。
 // 軌跡が消去される前に統計を取得する必要がある点に注意。
 function finishTrackRecording() {
   const wasRecording = isTrackRecording;
-  const stats = getTrackStats();
+  const list = getTrackStatsList();
+  const stats = list[list.length - 1] || { pointCount: 0, distanceM: 0 };
   stopTrackRecording();
   setTrackRecordingActive(false);
   isTrackRecording = false;
   if (wasRecording) {
-    const summary = t('track.finished', { summary: formatTrackSummary(stats) });
+    const summary = t('track.finished', {
+      summary: formatTrackSummary(stats, list.length - 1, list.length)
+    });
     logHistory(summary, 'success');
     showToast(summary);
   }
+  // 地点数0で終わった経路は破棄されるため、統計表を取り直す
+  updateTrackStatsDisplay();
   // 軌跡は「クリア」まで保持するため、ここではリセットしない。
 }
 
@@ -612,8 +709,8 @@ function finishTrackRecording() {
 // ファイル名の日付部分(yyyymmdd)。記録開始の当日=最初の記録点の記録日を使う
 // (記録点に時刻が無い場合のみ今日の日付で代替)。
 function getTrackDateStr() {
-  const points = getTrackPoints();
-  const firstMs = (points.length > 0 && points[0].timeMs) ? points[0].timeMs : Date.now();
+  const first = getTrackSegments()[0]?.[0];
+  const firstMs = first?.timeMs || Date.now();
   const d = new Date(firstMs);
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -655,29 +752,31 @@ function openTrackExportModal() {
   el.trackExportSuffix.select();
 }
 
-// GPX 1.1 文字列を生成(トラック1本・セグメント1本、各点に記録時刻を含む)
-function buildTrackGpx(points, name) {
+// GPX 1.1 文字列を生成(トラック1本・経路1本ごとに trkseg 1本、各点に記録時刻を含む)。
+// 経路を trkseg で分けるため、出力した GPX を読み込み直すと同じ経路構成に戻る。
+function buildTrackGpx(segments, name) {
   const esc = (s) => String(s)
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
-  const trkpts = points.map((p) => {
-    const time = p.timeMs ? `<time>${new Date(p.timeMs).toISOString()}</time>` : '';
-    return `      <trkpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}">${time}</trkpt>`;
+  const trksegs = segments.map((points) => {
+    const trkpts = points.map((p) => {
+      const time = p.timeMs ? `<time>${new Date(p.timeMs).toISOString()}</time>` : '';
+      return `      <trkpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}">${time}</trkpt>`;
+    }).join('\n');
+    return `    <trkseg>\n${trkpts}\n    </trkseg>`;
   }).join('\n');
   return '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<gpx version="1.1" creator="minoh-hiking" xmlns="http://www.topografix.com/GPX/1/1">\n' +
     '  <trk>\n' +
     `    <name>${esc(name)}</name>\n` +
-    '    <trkseg>\n' +
-    `${trkpts}\n` +
-    '    </trkseg>\n' +
+    `${trksegs}\n` +
     '  </trk>\n' +
     '</gpx>\n';
 }
 
 // 出力ボタン: GPX を生成してダウンロードし、連番を保存してモーダルを閉じる
 function exportTrackGpx() {
-  const points = getTrackPoints();
-  if (points.length === 0) {
+  const segments = getTrackSegments();
+  if (segments.length === 0) {
     showToast(t('track.nothingToExport'));
     el.trackExportModal.hidden = true;
     return;
@@ -691,7 +790,7 @@ function exportTrackGpx() {
   const dateStr = el.trackExportPrefix.textContent.replace(/-$/, '');
   const name = `${dateStr}-${suffix}`;
   const fileName = `${name}.gpx`;
-  const blob = new Blob([buildTrackGpx(points, name)], { type: 'application/gpx+xml' });
+  const blob = new Blob([buildTrackGpx(segments, name)], { type: 'application/gpx+xml' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -706,12 +805,25 @@ function exportTrackGpx() {
 }
 
 // ===== 移動経路の読み込み(GPX) =====
-// GPX 文字列から移動経路の点列を取り出す。トラック・セグメントの区別はせず、
-// 文書順の trkpt を1本の経路として連結する(<time> は任意)。
+// 既存の経路をクリアするか追加するかの選択。選択はファイル選択より前に行うため、
+// 結果をここで保持してファイル選択後の処理(importTrackGpx)へ引き継ぐ。
+let importAppend = false;
+
+// ファイル選択ダイアログを開く。append は選択後の反映方法として保持する。
+function openTrackImportPicker(append) {
+  importAppend = append;
+  // 同じファイルを続けて選べるよう、選択値を毎回クリアしてから開く
+  el.trackImportInput.value = '';
+  el.trackImportInput.click();
+}
+
+// GPX 文字列から移動経路を取り出し、経路ごとの点列の配列で返す(<time> は任意)。
+// trkseg 1本を1本の経路として扱うため、記録を分けて出力した GPX
+// (本アプリの複数経路出力を含む)をそのまま複数の経路として復元できる。
 function parseTrackGpx(text) {
   const doc = new DOMParser().parseFromString(text, 'application/xml');
   if (doc.getElementsByTagName('parsererror').length > 0) throw new Error(t('track.importInvalidXml'));
-  return [...doc.getElementsByTagName('trkpt')]
+  const toPoints = (nodes) => [...nodes]
     .map((node) => {
       const timeText = node.getElementsByTagName('time')[0]?.textContent;
       const ms = timeText ? Date.parse(timeText) : NaN;
@@ -722,6 +834,14 @@ function parseTrackGpx(text) {
       };
     })
     .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
+
+  const segments = [...doc.getElementsByTagName('trkseg')]
+    .map((seg) => toPoints(seg.getElementsByTagName('trkpt')))
+    .filter((points) => points.length > 0);
+  if (segments.length > 0) return segments;
+  // trkseg を持たない GPX への保険: 文書順の trkpt を1本の経路として扱う
+  const all = toPoints(doc.getElementsByTagName('trkpt'));
+  return all.length > 0 ? [all] : [];
 }
 
 // ファイル選択後: GPX を解析して移動経路として表示し、統計と地図表示を合わせる
@@ -729,12 +849,12 @@ async function importTrackGpx(ev) {
   const file = ev.target.files?.[0];
   if (!file) return;
   try {
-    const points = parseTrackGpx(await file.text());
-    if (points.length === 0) {
+    const segments = parseTrackGpx(await file.text());
+    if (segments.length === 0) {
       showToast(t('track.importNoPoints'));
       return;
     }
-    const count = loadTrackPoints(points);
+    const count = loadTrackSegments(segments, { append: importAppend });
     // 読み込んだ経路は記録済みの状態として扱う(記録開始ボタンは停止表示に戻す)
     isTrackRecording = false;
     setTrackRecordingActive(false);
@@ -742,7 +862,10 @@ async function importTrackGpx(ev) {
     // 読み込んだ経路が見えるよう、メニューを閉じて全体を表示する
     el.mapLayerPanel.hidden = true;
     fitMapToTrack();
-    const msg = t('track.imported', { name: file.name, count });
+    // 経路が複数含まれていた場合は経路数も添える
+    const msg = segments.length > 1
+      ? t('track.importedMulti', { name: file.name, routes: segments.length, count })
+      : t('track.imported', { name: file.name, count });
     logHistory(msg, 'success');
     showToast(msg);
   } catch (err) {

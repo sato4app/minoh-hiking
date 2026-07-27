@@ -9,6 +9,8 @@
 // 記録中(startTrackRecording 後)は、位置更新ごとに軌跡(ポリライン + 通過点マーカー)を追加する。
 // 記録点は「20m 以上移動」または「60秒以上経過」で追加するため、その間は経路の先端が
 // 現在地に届かない。そこで最終記録地点から現在地点までを同じスタイルの線でつなぐ。
+// 移動経路(経路)は複数保持できる。1回の記録、および読み込んだGPXの1セグメントが
+// それぞれ1本の経路になり、経路ごとに開始点・終了点のマーカーを持つ。
 // 記録中は画面スリープを防止し(Screen Wake Lock API)、他アプリへの切替などで
 // ページが非表示になった場合は、復帰時に監視の張り直しと現在地の取得を行う。
 // 地図インスタンスは map.js の getMap() を通じて共有する。
@@ -45,21 +47,28 @@ let locationErrorReported = false;
 const TRACK_MIN_DISTANCE_M = 20;
 const TRACK_MIN_INTERVAL_MS = 60 * 1000;
 let isRecordingTrack = false;
-let trackPolyline = null;        // 記録点を順に結ぶ線(移動記録経路)
+// 移動経路(経路)の一覧。1本 = 1回の記録、または読み込んだGPXの1セグメント。
+// 各要素は次の形: {
+//   polyline:    記録点を順に結ぶ線(移動記録経路)
+//   startMarker: 開始点マーカー(最初の記録点)
+//   endMarker:   終了点マーカー(最終記録点・進行方向つき。記録中はライブ現在地)
+//   times:       各記録点の記録時刻(ms)。polyline の頂点と同順で保持し、
+//                GPX出力の <time> と、出力ファイル名の日付の決定に使う
+// }
+let tracks = [];
+// 記録中の経路(常に tracks の末尾)。記録していないときは null。
+let recordingTrack = null;
 // 最終記録地点と現在地点(ライブ)を結ぶ線。記録条件(20m/60秒)を満たすまでは
 // 記録点が増えないため、この線が無いと経路が現在地まで届かず途切れて見える。
 // 移動記録経路と同じスタイルで描き、記録停止・クリア時は消す。
 let trackLeadLine = null;
-let trackStartMarker = null;     // 開始地点マーカー(移動記録開始点)
-let trackCurrentMarker = null;   // 最終記録地点マーカー(移動記録現在地点・進行方向)
 let trackStyle = null;           // 線のスタイル(移動記録経路)
 let trackStartStyle = null;      // 開始点マーカーのスタイル(移動記録開始点)
-let trackCurrentStyle = null;    // 現在地点マーカーのスタイル(移動記録現在地点)
+let trackCurrentStyle = null;    // 終了点マーカーのスタイル(移動記録現在地点)
+// 記録中の経路について、直近に記録した地点と時刻(記録条件の判定に使う)。
+// 経路を新しく作るたびにリセットし、新しい経路の1点目は必ず記録する。
 let lastTrackLatLng = null;
 let lastTrackTimeMs = 0;
-// 各記録点の記録時刻(ms)。trackPolyline の頂点と同順で保持し、GPX出力の
-// <time> 要素と、出力ファイル名の日付(記録開始の当日)の決定に使う。
-let trackPointTimes = [];
 
 // 移動記録経路(線)の描画オプション。経路本体と、現在地点までを結ぶ線で共用する。
 function trackLineOptions() {
@@ -73,22 +82,27 @@ function trackLineOptions() {
 export function setTrackStyle(style) {
   trackStyle = style;
   const { color, weight } = trackLineOptions();
-  if (trackPolyline) trackPolyline.setStyle({ color, weight });
+  for (const track of tracks) track.polyline.setStyle({ color, weight });
   if (trackLeadLine) trackLeadLine.setStyle({ color, weight });
 }
 
-// 移動記録開始点マーカーのスタイル。既存マーカーがあれば即時反映。
+// 移動記録開始点マーカーのスタイル。全経路の既存マーカーへ即時反映。
 export function setTrackStartStyle(style) {
   trackStartStyle = style;
-  if (trackStartMarker) {
-    trackStartMarker.setIcon(buildShapeIcon(trackStartStyle, 'square'));
+  const icon = buildShapeIcon(trackStartStyle, 'square');
+  for (const track of tracks) {
+    if (track.startMarker) track.startMarker.setIcon(icon);
   }
 }
 
-// 移動記録現在地点マーカーのスタイル。既存マーカーがあれば即時反映(進行方向を再計算)。
+// 移動記録現在地点(終了点)マーカーのスタイル。全経路の既存マーカーへ即時反映
+// (進行方向を再計算。記録中の経路はライブ現在地の位置を保つ)。
 export function setTrackCurrentStyle(style) {
   trackCurrentStyle = style;
-  if (trackCurrentMarker) updateTrackCurrentMarker();
+  for (const track of tracks) {
+    if (!track.endMarker) continue;
+    updateTrackEndMarker(track, track === recordingTrack ? lastKnownLatLng : null);
+  }
 }
 
 // 移動記録系マーカー用 divIcon を生成(map.js の共通関数に既定値を渡す薄いラッパー)
@@ -128,31 +142,36 @@ function computeHeading(latlngs, current) {
   return bearingDeg(avg, current);
 }
 
-// 現在地点マーカー(三角)を配置し、進行方向に回転させる。
+// 経路の終了点マーカー(三角)を配置し、進行方向に回転させる。
 // liveLatLng を与えると現在地(ライブ)へ、無ければ最終記録点へ配置する。
-// あわせて、最終記録地点から現在地点までを結ぶ線を更新する。
-function updateTrackCurrentMarker(liveLatLng) {
+function updateTrackEndMarker(track, liveLatLng) {
   const map = getMap();
-  if (!trackPolyline || !map) return;
-  const latlngs = trackPolyline.getLatLngs();
+  if (!track || !map) return;
+  const latlngs = track.polyline.getLatLngs();
   if (latlngs.length === 0) return;
   const pos = liveLatLng ? L.latLng(liveLatLng) : latlngs[latlngs.length - 1];
   const icon = buildShapeIcon(trackCurrentStyle, 'triangle', computeHeading(latlngs, pos));
-  if (!trackCurrentMarker) {
-    trackCurrentMarker = L.marker(pos, { icon }).addTo(map);
+  if (!track.endMarker) {
+    track.endMarker = L.marker(pos, { icon }).addTo(map);
   } else {
-    trackCurrentMarker.setLatLng(pos);
-    trackCurrentMarker.setIcon(icon);
+    track.endMarker.setLatLng(pos);
+    track.endMarker.setIcon(icon);
   }
-  updateTrackLeadLine(liveLatLng ? pos : null);
+}
+
+// 記録中の経路をライブ現在地へ追従させる(終了点マーカーと、最終記録点からの線)。
+function updateRecordingLive(latlng) {
+  if (!recordingTrack) return;
+  updateTrackEndMarker(recordingTrack, latlng);
+  updateTrackLeadLine(recordingTrack, latlng);
 }
 
 // 最終記録地点 → 現在地点(ライブ)を結ぶ線を更新する。
 // live が null(記録停止時など)のとき、また現在地が最終記録地点とほぼ同じ位置の
 // ときは線を消す(長さ 0 の線が点として残るのを避けるため)。
-function updateTrackLeadLine(live) {
+function updateTrackLeadLine(track, live) {
   const map = getMap();
-  const latlngs = trackPolyline ? trackPolyline.getLatLngs() : [];
+  const latlngs = track ? track.polyline.getLatLngs() : [];
   if (!map || !live || latlngs.length === 0) {
     removeTrackLeadLine();
     return;
@@ -176,26 +195,52 @@ function removeTrackLeadLine() {
   }
 }
 
-export function startTrackRecording() {
+// 移動記録を開始する。1回の記録が1本の経路になる。
+// append=false: 表示中の経路をすべてクリアしてから記録する
+// append=true : 表示中の経路を残し、新しい経路として追加で記録する
+export function startTrackRecording({ append = false } = {}) {
   const map = getMap();
   if (!map) return;
+  if (!append) clearTrack();
   isRecordingTrack = true;
   // 記録中は画面を消灯させない(消灯するとページが停止し記録が途切れるため)
   requestWakeLock();
   // マーカー表示・追従が両方 OFF でも、記録のため現在地監視を確実に開始する。
   refreshLocationWatch();
-  if (!trackPolyline) {
-    trackPolyline = L.polyline([], trackLineOptions()).addTo(map);
-  }
+  recordingTrack = createTrack();
   // 既に現在地が取得済なら、最初の点として打つ(待たずに描画開始する)。
   // このとき現在地マーカーを青丸から三角(移動記録現在地点)へ切り替える。
   if (currentLocationMarker) {
     const ll = currentLocationMarker.getLatLng();
-    appendTrackPoint([ll.lat, ll.lng]);
-    updateTrackCurrentMarker(ll);
+    appendTrackPoint(recordingTrack, [ll.lat, ll.lng]);
+    updateRecordingLive(ll);
     map.removeLayer(currentLocationMarker);
     currentLocationMarker = null;
   }
+}
+
+// 空の経路を1本作って一覧の末尾に追加する。
+// 記録条件の判定用の直近地点もリセットし、この経路の1点目を必ず記録させる。
+function createTrack() {
+  const track = {
+    polyline: L.polyline([], trackLineOptions()).addTo(getMap()),
+    startMarker: null,
+    endMarker: null,
+    times: []
+  };
+  tracks.push(track);
+  lastTrackLatLng = null;
+  lastTrackTimeMs = 0;
+  return track;
+}
+
+// 経路の表示物(線・開始点・終了点)を地図から取り除く
+function removeTrackLayers(track) {
+  const map = getMap();
+  if (!map || !track) return;
+  map.removeLayer(track.polyline);
+  if (track.startMarker) map.removeLayer(track.startMarker);
+  if (track.endMarker) map.removeLayer(track.endMarker);
 }
 
 // 移動判定: 直近の記録点から 20m 以上離れた、または 1 分以上経過していれば記録対象
@@ -211,128 +256,137 @@ export function stopTrackRecording() {
   isRecordingTrack = false;
   // 記録が終わったら画面スリープ防止を解除する(電池消費を元に戻す)
   releaseWakeLock();
-  // 三角(現在地点)を最終記録点へスナップして固定する。
-  updateTrackCurrentMarker();
+  if (recordingTrack) {
+    if (recordingTrack.polyline.getLatLngs().length === 0) {
+      // 位置が一度も取得できずに終わった経路は、地点数0の経路として残さず破棄する
+      removeTrackLayers(recordingTrack);
+      tracks = tracks.filter((tr) => tr !== recordingTrack);
+    } else {
+      // 三角(終了点)を最終記録点へスナップして固定する。
+      updateTrackEndMarker(recordingTrack);
+    }
+  }
+  removeTrackLeadLine();
+  recordingTrack = null;
   // 記録停止後、マーカー表示 ON なら現在地(青丸)を再表示する。
   if (showCurrentMarker && lastKnownLatLng) showOrUpdateCurrentMarker(lastKnownLatLng);
   // 記録が監視を要求しなくなった場合に備えて監視状態を見直す。
   refreshLocationWatch();
 }
 
-// 現在の移動経路の統計(記録地点数・合計移動距離[m])を返す。
+// 1本の経路の統計(記録地点数・移動距離[m])
+function statsOfTrack(track) {
+  const latlngs = track.polyline.getLatLngs();
+  let distanceM = 0;
+  for (let i = 1; i < latlngs.length; i++) {
+    distanceM += latlngs[i - 1].distanceTo(latlngs[i]);
+  }
+  return { pointCount: latlngs.length, distanceM };
+}
+
+// 経路ごとの統計を、表示順(記録・読み込みの順)で返す。
+// 軌跡が消去(clearTrack)される前に呼ぶこと。
+export function getTrackStatsList() {
+  return tracks.map(statsOfTrack);
+}
+
+// 全経路を合わせた統計(記録地点数・合計移動距離[m])を返す。
 // 軌跡が消去(clearTrack)される前に呼ぶこと。
 export function getTrackStats() {
-  let pointCount = 0;
-  let distanceM = 0;
-  if (trackPolyline) {
-    const latlngs = trackPolyline.getLatLngs();
-    pointCount = latlngs.length;
-    for (let i = 1; i < latlngs.length; i++) {
-      distanceM += latlngs[i - 1].distanceTo(latlngs[i]);
-    }
-  }
-  return { pointCount, distanceM };
+  return getTrackStatsList().reduce(
+    (acc, s) => ({ pointCount: acc.pointCount + s.pointCount, distanceM: acc.distanceM + s.distanceM }),
+    { pointCount: 0, distanceM: 0 }
+  );
 }
 
-// 記録済みの移動経路の点列({lat, lng, timeMs})を返す(GPX出力に使用)。
+// 記録済みの移動経路を、経路ごとの点列({lat, lng, timeMs})の配列で返す(GPX出力に使用)。
 // 軌跡が消去(clearTrack)される前に呼ぶこと。
-export function getTrackPoints() {
-  if (!trackPolyline) return [];
-  return trackPolyline.getLatLngs().map((ll, i) => ({
+export function getTrackSegments() {
+  return tracks.map((track) => track.polyline.getLatLngs().map((ll, i) => ({
     lat: ll.lat,
     lng: ll.lng,
-    timeMs: trackPointTimes[i] ?? null
-  }));
+    timeMs: track.times[i] ?? null
+  })));
 }
 
-// 外部から読み込んだ移動経路({lat, lng, timeMs})を、記録済みの経路として描画する。
-// 表示中の経路は破棄して置き換える(記録中は呼ばない。呼び出し側で抑止すること)。
+// 外部から読み込んだ移動経路を、記録済みの経路として描画する。
+// segments は経路ごとの点列({lat, lng, timeMs})の配列で、1セグメントが1本の経路になる。
+// append=false: 表示中の経路をすべてクリアして置き換える
+// append=true : 表示中の経路を残し、続きの経路として追加する
+// (いずれも記録中は呼ばない。呼び出し側で抑止すること)
 // 記録時刻はファイルの値をそのまま保持するため、読み込んだ経路をそのまま
-// 「出力」で再出力できる。描画できた地点数を返す。
-export function loadTrackPoints(points) {
+// 「出力」で再出力できる。描画できた地点数の合計を返す。
+export function loadTrackSegments(segments, { append = false } = {}) {
   const map = getMap();
   if (!map) return 0;
-  const valid = (points || []).filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
-  if (valid.length === 0) return 0;
+  const validSegments = (segments || [])
+    .map((seg) => (seg || []).filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng)))
+    .filter((seg) => seg.length > 0);
+  if (validSegments.length === 0) return 0;
 
-  clearTrack();
-  trackPolyline = L.polyline(valid.map((p) => [p.lat, p.lng]), trackLineOptions()).addTo(map);
-  trackPointTimes = valid.map((p) => (Number.isFinite(p.timeMs) ? p.timeMs : null));
+  if (!append) clearTrack();
 
-  const first = valid[0];
-  const last = valid[valid.length - 1];
-  trackStartMarker = L.marker([first.lat, first.lng], {
-    icon: buildShapeIcon(trackStartStyle, 'square')
-  }).addTo(map);
-  lastTrackLatLng = [last.lat, last.lng];
-  lastTrackTimeMs = trackPointTimes[trackPointTimes.length - 1] ?? Date.now();
-  // 現在地点マーカー(三角)は最終地点へ。ライブ現在地は渡さないので中間線も出ない。
-  updateTrackCurrentMarker();
+  let loaded = 0;
+  for (const seg of validSegments) {
+    const track = createTrack();
+    track.polyline.setLatLngs(seg.map((p) => [p.lat, p.lng]));
+    track.times = seg.map((p) => (Number.isFinite(p.timeMs) ? p.timeMs : null));
+    track.startMarker = L.marker([seg[0].lat, seg[0].lng], {
+      icon: buildShapeIcon(trackStartStyle, 'square')
+    }).addTo(map);
+    // 終了点マーカー(三角)は最終地点へ。ライブ現在地は渡さないので中間線も出ない。
+    updateTrackEndMarker(track);
+    loaded += seg.length;
+  }
   onTrackPointAppended?.();
-  return valid.length;
+  return loaded;
 }
 
-// 表示中の移動経路の全体が収まるよう地図を合わせる(読み込み直後に使う)
+// 表示中の移動経路(全経路)の全体が収まるよう地図を合わせる(読み込み直後に使う)
 export function fitMapToTrack() {
   const map = getMap();
-  if (!map || !trackPolyline) return;
-  const bounds = trackPolyline.getBounds();
+  if (!map || tracks.length === 0) return;
+  const bounds = tracks.reduce((acc, track) => acc.extend(track.polyline.getBounds()), L.latLngBounds([]));
   if (bounds.isValid()) map.fitBounds(bounds, { padding: [30, 30] });
 }
 
-// 移動記録の表示(線・開始点・現在地点)を全削除する。
-// 「移動経路をクリア」ボタンからのみ呼び出す(トグル OFF では消さない)。
+// 移動記録の表示(全経路の線・開始点・終了点)を全削除する。
+// 「移動経路をクリア」ボタンと、記録・読み込みでの置き換え時に呼び出す
+// (トグル OFF では消さない)。
 export function clearTrack() {
-  const map = getMap();
   isRecordingTrack = false;
   releaseWakeLock();
-  if (trackPolyline) {
-    map.removeLayer(trackPolyline);
-    trackPolyline = null;
-  }
-  if (trackStartMarker) {
-    map.removeLayer(trackStartMarker);
-    trackStartMarker = null;
-  }
-  if (trackCurrentMarker) {
-    map.removeLayer(trackCurrentMarker);
-    trackCurrentMarker = null;
-  }
+  for (const track of tracks) removeTrackLayers(track);
+  tracks = [];
+  recordingTrack = null;
   removeTrackLeadLine();
   lastTrackLatLng = null;
   lastTrackTimeMs = 0;
-  trackPointTimes = [];
 }
 
 // 記録点追加時の通知先(app.js がパネル内の統計表の更新に使用)
 let onTrackPointAppended = null;
 export function setOnTrackPointAppended(fn) { onTrackPointAppended = fn; }
 
-// 記録点を追加: 線に頂点を足し、最初の点なら開始点マーカー、
-// 毎回 現在地点マーカー(進行方向つき)を最終点へ更新する。
-function appendTrackPoint(latlng) {
-  if (!trackPolyline) return;
-  const map = getMap();
-  const wasEmpty = trackPolyline.getLatLngs().length === 0;
-  trackPolyline.addLatLng(latlng);
+// 記録点を追加: 経路の線に頂点を足し、最初の点なら開始点マーカーを置く。
+function appendTrackPoint(track, latlng) {
+  if (!track) return;
+  const wasEmpty = track.polyline.getLatLngs().length === 0;
+  track.polyline.addLatLng(latlng);
   const lat = Array.isArray(latlng) ? latlng[0] : latlng.lat;
   const lng = Array.isArray(latlng) ? latlng[1] : latlng.lng;
 
-  // 開始地点マーカー(最初の記録点のみ)
+  // 開始地点マーカー(この経路の最初の記録点のみ)
   if (wasEmpty) {
-    if (trackStartMarker) {
-      map.removeLayer(trackStartMarker);
-      trackStartMarker = null;
-    }
-    trackStartMarker = L.marker([lat, lng], {
+    track.startMarker = L.marker([lat, lng], {
       icon: buildShapeIcon(trackStartStyle, 'square')
-    }).addTo(map);
+    }).addTo(getMap());
   }
 
-  // 現在地点マーカー(三角)の位置・向きは呼び出し側(記録中はライブ現在地)で更新する。
+  // 終了点マーカー(三角)の位置・向きは呼び出し側(記録中はライブ現在地)で更新する。
   lastTrackLatLng = [lat, lng];
   lastTrackTimeMs = Date.now();
-  trackPointTimes.push(lastTrackTimeMs);
+  track.times.push(lastTrackTimeMs);
   onTrackPointAppended?.();
 }
 
@@ -496,9 +550,9 @@ function onGeoSuccess(pos) {
   }
 
   // 記録中: 条件を満たせば記録点を追加し、三角をライブ現在地へ追従(進行方向つき)
-  if (isRecordingTrack) {
-    if (shouldRecordTrackPoint(latlng, Date.now())) appendTrackPoint(latlng);
-    updateTrackCurrentMarker(latlng);
+  if (isRecordingTrack && recordingTrack) {
+    if (shouldRecordTrackPoint(latlng, Date.now())) appendTrackPoint(recordingTrack, latlng);
+    updateRecordingLive(latlng);
   }
 
   // 「現在地点は中央に表示」ON のとき、現在地が画面中央に来るよう地図を追従させる。
