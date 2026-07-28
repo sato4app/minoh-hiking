@@ -1,7 +1,7 @@
 // 通行止め・通行困難地点(closures)の公開API(Vercel Function)
 //
 // ⚠ POST は外部の運用アプリ(別リポジトリ)から呼ばれている。検証・レスポンスを変えるときは
-//   設計書 docs-closures/closures-design-202607.md §5 の契約バージョンを更新し、
+//   機能仕様書 docs/funcspec-202607.md §10.2 の契約バージョンを更新し、
 //   呼び出し側にも反映すること。(本アプリ minoh-hiking は表示専用で GET しか使わない)
 //
 // - GET  /api/closures: 公開ストア(Vercel Blob)の最新 geojson を返す(認証不要)。
@@ -14,7 +14,7 @@
 // - 環境変数 CLOSURES_PUBLISH_TOKEN に公開トークンを設定(コミット禁止)
 //
 // GitHub Pages 版アプリ・運用アプリからもクロスオリジンで参照するため、CORS を許可する。
-// 設計書: docs-closures/closures-design-202607.md §5(公開API・契約バージョン 1.0)
+// 仕様: docs/funcspec-202607.md §10.2(公開API・契約バージョン 1.0)
 
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { head, put } from '@vercel/blob';
@@ -97,7 +97,7 @@ async function handlePost(req, res) {
     return;
   }
 
-  // 更新日時はサーバー側で付与する(設計書 §5.4)
+  // 更新日時はサーバー側で付与する(機能仕様書 §10.2)
   data.updatedAt = new Date().toISOString();
   const json = JSON.stringify(data, null, 2);
 
@@ -142,9 +142,9 @@ function tokenEquals(a, b) {
   return timingSafeEqual(ha, hb);
 }
 
-// 入力検証: 問題なければ null、あればエラーメッセージを返す(設計書 §5.4)。
-// アプリ側 validateClosureGeoJSON と同等の確認に加え、version 必須・
-// id 重複・座標範囲をサーバー側でも検証する
+// 入力検証: 問題なければ null、あればエラーメッセージを返す(機能仕様書 §10.2)。
+// 形式の確認に加え、version 必須・id 重複・座標範囲をここで検証する
+// (呼び出し側には同じルールを持たせない。二重管理はズレるため)
 function validateClosureGeoJSON(data) {
   if (!data || typeof data !== 'object' || data.type !== 'FeatureCollection' || !Array.isArray(data.features)) {
     return 'FeatureCollection 形式の geojson ではありません';
