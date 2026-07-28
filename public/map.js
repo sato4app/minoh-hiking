@@ -228,7 +228,7 @@ export function setEmergencyPointsVisible(visible) {
 }
 
 // ===== 通行止め・通行困難地点(closures) =====
-// データの取得(同梱ファイル / localStorage / 読み込みファイル)は closures.js 側が行い、
+// データの取得(公開API `/api/closures`)は closures.js 側が行い、
 // ここでは渡された GeoJSON の描画のみを担う。
 // kind でスタイルを分ける: closed(通行止め)=赤✖ / difficult(通行困難)=橙三角(既定)。
 // スタイルはマーカー設定で変更可能(setClosureClosedStyle / setClosureDifficultStyle)。

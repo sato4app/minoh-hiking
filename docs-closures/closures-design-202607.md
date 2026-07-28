@@ -1,26 +1,18 @@
-# 通行止め・通行困難地点 表示・公開機能 設計書（実装済み版）
+# 通行止め・通行困難地点 表示機能・公開API 設計書（実装済み版）
 
-**バージョン:** 0.3
-**最終更新日:** 2026年7月18日
-**ステータス:** 実装済み（**P2: Vercel Function + Vercel Blob**）
-**関連:** [運用手順 `closures-operations-202607.md`](closures-operations-202607.md) / [セキュリティレビュー `closures-security-review-202607.md`](closures-security-review-202607.md) / [機能仕様書 `funcspec-202607.md`](funcspec-202607.md)
+**バージョン:** 0.4
+**最終更新日:** 2026年7月28日
+**ステータス:** 実装済み（**表示専用** + 公開API: Vercel Function + Vercel Blob）
+**公開API 契約バージョン:** **1.0**（→ [5章](#5-公開apiapiclosuresjs契約バージョン-10)）
+**関連:** [セキュリティレビュー `closures-security-review-202607.md`](closures-security-review-202607.md) / [テスト計画 `closures-test-plan-202607.md`](closures-test-plan-202607.md) / [機能仕様書 `funcspec-202607.md`](../docs/funcspec-202607.md)
 
----
-
-## 0. 本書について（202606 からの主な変更）
-
-本書は、検討ドラフト（202606）を**実装済みの内容（as-built）に更新**したものである。
-ドラフトからの主な確定・変更点は次のとおり。
-
-| 項目 | ドラフト（202606） | 実装（本書 202607） |
-|------|--------------------|---------------------|
-| 公開方式 | P2（API+Blob）を提案 | **P2 を採用・実装**（P1 の git 公開スクリプトは安全性の観点から**廃止・削除**） |
-| 運用者UI | `?preview=closures` の preview モード | **`?closure=true` の編集パネル**（preview モードは未実装・不採用） |
-| 公開/非公開の区別 | 各地点の `status`（draft/published） | **`status` は廃止。** トップレベル `version` によるファイル**全置換**で公開 |
-| 端末反映と公開 | 取り込み→検証→公開 | **「マップに反映」（端末のみ）** と **「公開」（ユーザー）** の2段構え |
-| マーカー | `MARKER_TYPES` に追加（色変更可） | **`MARKER_TYPES` に追加**（既定: closed=赤✖ 10px / difficult=橙三角 16px。マーカー設定で変更可。当初は固定スタイルだったが 2026-07-18 に設定対象化） |
-| 表示トグル | 「通行止めを表示」トグル（既定ON） | 専用トグルは設けず、**マップ表示時は常時表示** |
-| 履歴 | 対象外 | **公開時に Blob へ履歴スナップショットを保存** |
+> **本アプリ（minoh-hiking）は表示専用である。** 通行止め・通行困難地点の位置指定・
+> 属性編集・公開は行わず、公開されたデータを取得して描画するだけである。
+>
+> **公開API（`api/closures.js`）は本リポジトリが提供する。** `POST`（公開）は
+> **外部の運用アプリ**（別リポジトリ）から呼ばれるため、
+> [5章](#5-公開apiapiclosuresjs契約バージョン-10)が**外部向け契約の正本**である。
+> 検証・レスポンスを変えるときは契約バージョンを更新し、呼び出し側にも反映すること。
 
 ---
 
@@ -34,23 +26,22 @@
 ### 1.2 背景・前提
 - 通行止め／通行困難は**一時的・頻繁に変化し、解除（削除）も必要**な情報である。
   既存の geojson（緊急ポイント・ルート/スポット）と異なり、即時の反映・解除が求められる。
-- 地点データの**作成は別アプリ（MapGPS → MapEditor）**で行う。本アプリでは作成せず、
-  読み込み・確認・公開のみ行う。Firebase は使用しない。
-- 登録・公開は**運用担当者**が行い、開発担当の作業（git commit / deploy 等）を介在させない。
-  **git・PC を不要にし、スマートフォン／タブレットのブラウザだけで公開を完結**させる（本要件が P2 採用の決め手）。
+- 地点データの**作成・公開は外部の運用アプリ**が行う。本アプリでは作成も公開もせず、
+  **公開されたデータの表示のみ**を行う。Firebase は使用しない。
+- 登録・公開は**運用担当者**が行い、開発担当の作業（git commit / deploy 等）を介在させない
+  （本要件が P2 採用の決め手）。
 
 ### 1.3 スコープ
-- 本書は、実装済みの**表示機能**と**「公開 API（P2）」による配信・公開方式**を対象とする。
-- 地点データを作成する別アプリ（MapGPS 系）側は本書の対象外。
-- 具体的な運用手順（担当者向け）は [運用手順書](closures-operations-202607.md) に分冊。
+- 本書は、本アプリの**表示機能**と、本リポジトリが提供する**公開API（P2）**を対象とする。
+- 地点データを作成・公開する運用アプリ側の仕様は本書の対象外
+  （ただし [5章](#5-公開apiapiclosuresjs契約バージョン-10)は呼び出し側向けの**契約の正本**）。
 
 ### 1.4 用語
 | 用語 | 意味 |
 |------|------|
 | closures | 本機能で扱う通行止め・通行困難地点の総称 |
 | 公開ストア | ユーザーの端末が取得しに行く共有の保存先（**Vercel Blob**） |
-| マップに反映 | 読み込んだ geojson を**この端末のみ**に反映（localStorage 保存） |
-| 公開 | 反映済みデータを公開 API へ送信し、**ユーザー**へ配信（Blob 全置換） |
+| 公開 | 運用アプリから公開 API へ送信し、**ユーザー**へ配信すること（Blob 全置換） |
 | version | データのバージョン（トップレベル・必須）。更新のたびに変える |
 
 ---
@@ -85,28 +76,23 @@
 ## 3. アーキテクチャ全体像
 
 ```
-[別アプリ MapGPS → MapEditor]
-    │ 通行止め地点の geojson を作成（version 付き・各地点は Point）
-    ▼
-[運用担当者の端末ブラウザ：本PWA を ?closure=true で起動]
-    │ ① ホーム「通行止め・通行困難地点」→ マップ画面＋編集パネル
-    │ ② ファイル読み込み（プレビュー表示・未反映）
-    │ ③ バージョン変更 →「マップに反映」（localStorage・この端末のみ）
-    │ ④「公開」ボタン
-    ▼ POST /api/closures（x-publish-token 認証）
-[Vercel Function（api/closures.js）]
+[外部の運用アプリ（別リポジトリ）]              ← 本書の対象外
+    │ 地点の位置指定・属性編集
+    │ version を付けて公開
+    ▼ POST /api/closures（x-publish-token 認証・クロスオリジン）
+[Vercel Function（api/closures.js）]           ← 本リポジトリ
     │ 検証 → Blob へ全置換保存（+ 履歴スナップショット）
     ▼
 [公開ストア：Vercel Blob]  closures/minoh-hiking-closure.geojson
     ▲ GET /api/closures（認証不要・no-store・CORS *）
     │   Blob 未作成・取得失敗時は空の FeatureCollection を返す
-[一般ユーザーの端末：本PWA]
+[一般ユーザーの端末：本PWA]                     ← 本リポジトリ（表示専用）
     └ 起動時に取得して全地点を地図に描画
        （オフライン時は SW の closures-cache = 最終取得を表示）
 ```
 
 - 一般ユーザーには**公開された全地点をそのまま表示**する（`status` による絞り込みは行わない）。
-- 「マップに反映」は**その端末だけ**、「公開」で**ユーザー**、という2段構え。
+- 本アプリは公開APIを **GET でしか呼ばない**。公開（POST）の経路は本アプリに存在しない。
 
 ---
 
@@ -179,9 +165,35 @@ geometry: `{ "type": "Point", "coordinates": [経度, 緯度(, 標高)] }`
 
 ---
 
-## 5. 公開API（実装: `api/closures.js`）
+## 5. 公開API（`api/closures.js`）＝契約バージョン 1.0
 
 Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に依存）。
+
+> **本章は、公開（POST）を行う外部の運用アプリ向けの契約の正本である。**
+> 呼び出し側のドキュメントに API 仕様を書き写さず、本章を参照するだけとする
+> （書き写すと必ずズレるため）。
+> 検証ルール・レスポンスを変えたときは、**破壊的変更なら契約バージョンを上げ**、
+> 呼び出し側にも反映すること（`api/closures.js` の先頭コメントにも同じ注意書きがある）。
+
+### 5.0 契約サマリ（外部から実装するために必要な項目）
+
+| 項目 | 内容 |
+|------|------|
+| 契約バージョン | **1.0** |
+| エンドポイント | `POST https://minoh-hiking.vercel.app/api/closures` |
+| 認証 | `x-publish-token` ヘッダ（値は Vercel 環境変数 `CLOSURES_PUBLISH_TOKEN` と同一） |
+| CORS | 全オリジン許可・`OPTIONS` 対応済み（**呼び出し側の追加実装は不要**） |
+| リクエスト | `Content-Type: application/json`、ボディは `version` を持つ FeatureCollection |
+| サーバーが上書きするもの | トップレベル `updatedAt`（POST 時にサーバーが付与） |
+| 成功応答 | `200 {ok, version, count, updatedAt}` |
+| 失敗応答 | `400`（検証エラー・`error` に日本語説明）/ `401`（トークン不正）/ `503`（サーバー側トークン未設定）/ `500`（公開ストア保存失敗） |
+| エラーコード対応 | E01=401 / E02=503 / E03=400 / E04=500 / E05=通信不能（**呼び出し側が表示するときの呼び名**） |
+| 保存の意味 | **全置換**（0件送信で全消去）＋履歴スナップショット |
+| 現在公開中の version の取得 | `GET /api/closures`（認証不要）のトップレベル `version` |
+
+- **失敗時のエラー文言はサーバーが日本語で返す**（`{ error: "..." }`）。呼び出し側は
+  検証ルールを再実装せず、受け取ったメッセージをそのまま運用担当者へ表示すればよい。
+  これにより検証ルールが変わっても説明がそのまま届き、二重管理が発生しない。
 
 ### 5.1 エンドポイント
 | メソッド | パス | 認証 | 説明 |
@@ -224,8 +236,11 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 - 各 Feature が `Feature` かつ `geometry.type === "Point"` で `coordinates` が配列であること。
 - 座標が箕面エリアの範囲内: **経度 135.2〜135.8 / 緯度 34.6〜35.1**（範囲外は入力ミスとして 400）。
 - `id` を付ける場合は**全地点で一意**（重複は 400）。
-- 認証を検証より前に実施（未認証者に検証詳細を返さない）。クライアント側（app.js）でも
-  同等の一次検証を行う（二重チェック）。
+- 認証を検証より前に実施（未認証者に検証詳細を返さない）。
+- **この検証はサーバー側にのみ持つ。** 呼び出し側には
+  「JSON として読めるか／`FeatureCollection` か／`Point` が1つ以上あるか」程度の
+  最小限の一次検証だけを置き、座標範囲・`id` 一意・`version` 必須の判定は本 API に任せる。
+  同じルールを両側に実装すると必ずズレるため、意図的にサーバーへ一本化している。
 
 ---
 
@@ -238,44 +253,18 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 - SW は `/api/closures` を**オリジンに依らずパス判定**で処理する（GitHub Pages 版が
   Vercel 本番の絶対 URL を叩くケースに対応）。
 - activate 時は `closures-cache` と `gsi-*` を保持（旧 `app-shell-*` のみ掃除）。
-- アプリ側は取得できた配信データと localStorage の「マップに反映」データを **version で突合**し、
-  一致すれば localStorage を削除する**自己修復**を行う（公開完了後に素直に配信版へ戻す）。
+- 取得元は公開API（＋SW キャッシュ）のみで、localStorage は一切使わない。
 
 ---
 
-## 7. 運用担当者向けフロー（`?closure=true` 編集パネル）
+## 7. 公開と本アプリの関係
 
-> preview モード（`?preview=closures`）は**実装せず**、`?closure=true` の編集パネル方式を採用した。
-> 詳細な操作手順は [運用手順書](closures-operations-202607.md) を参照。
-
-### 7.1 編集機能の有効化
-- URL `?closure=true` で起動すると、sessionStorage フラグ `minoh-hiking.closure-flag` を立てる
-  （同一タブ内のリロードでは維持。タブを閉じれば消えるため、直接アクセスでは有効にならない）。
-- フラグがあるとき**のみ**、ホームに「通行止め・通行困難地点」ボタンを表示する。
-
-### 7.2 編集パネル（マップ画面右上）
-ボタン押下で map ビューへ移動し、右上に編集パネルを開く。項目は次のとおり。
-
-| 要素 | 動作 |
-|------|------|
-| バージョン入力 | 新しい version を入力する欄（現在値と異なる値にすると「マップに反映」が押せる） |
-| ファイル読み込み | geojson を選択し、地図に**プレビュー表示**（未反映。JSON/形式を一次検証） |
-| マップに反映 | 入力 version を付与して **localStorage（`minoh-hiking.closure-data`）に保存**。この端末のみに反映 |
-| 公開 | 反映済みデータを `POST /api/closures` でユーザーへ公開 |
-| キャンセル | 未反映の読み込みを破棄し、反映済み表示に戻す（マップ画面を離れると自動キャンセル） |
-
-- **「マップに反映」の活性条件**: ファイル読み込み済み、かつ version が現在値から変更されている。
-- **「公開」**: 反映済みデータが必要。0 件公開時は「全地点が消える」旨の**警告付き確認**を表示。
-  公開トークンは初回に `prompt` で入力して localStorage（`minoh-hiking.closure-publish-token`）に保存し、
-  `401`（トークン誤り）時は削除して再入力を促す。
-- **公開失敗時**: 失敗メッセージは**エラーコード（E01〜E05）付き**で表示し、運用担当者が
-  開発担当者へコードを伝えるだけで切り分けできる（分類は運用手順書 §9）。あわせて編集内容を
-  **端末にバックアップ保存**でき（`minoh-hiking-closure.geojson`）、やり直し・開発担当者への連携に使える。
-
-### 7.3 端末反映と公開の関係
-- ファイル読み込み＝プレビュー（未反映）、マップに反映＝この端末のみ、公開＝ユーザー、の3段階。
-- 「公開」は反映済みデータ（`version` 付き）に対して行う。バージョンは各端末の
-  「新しいデータが来た」判定に使うため、更新のたびに必ず変える。
+- **公開の操作は本アプリに存在しない。** 位置指定・属性編集・公開は
+  外部の運用アプリが行い、本アプリは公開されたデータを取得して描画するだけである。
+- 本アプリの役割は**公開後の確認先**である。公開前の実機プレビューは持たないため、
+  運用は **公開 → 本アプリで確認 → 必要なら直して再公開** となる
+  （全置換＋履歴スナップショットがあるため復旧可能）。
+- 公開内容が各端末に届くのは、**次にマップを開いたとき**である（→ [6章](#6-キャッシュオフラインservice-worker)）。
 
 ---
 
@@ -314,13 +303,19 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
 
 | ファイル | 実装内容 |
 |----------|----------|
-| `api/closures.js`（新規） | GET/POST。トークン認証（timing-safe）・スキーマ検証・Blob 全置換保存・履歴スナップショット |
-| `public/config.js` | closures 用キー（`CLOSURE_FLAG_KEY`/`CLOSURE_DATA_KEY`/`CLOSURE_TOKEN_KEY`）、`CLOSURE_FILE_NAME`（バックアップ保存のファイル名）、`CLOSURE_API_URL`（GitHub Pages 時は Vercel 絶対 URL、他は相対） |
+| `api/closures.js` | GET/POST。トークン認証（timing-safe）・スキーマ検証・Blob 全置換保存・履歴スナップショット。**POST を呼ぶのは外部の運用アプリのみ**（先頭コメントに注意書きあり） |
+| `public/config.js` | `CLOSURE_API_URL`（GitHub Pages 時は Vercel 絶対 URL、他は相対）、`MARKER_TYPES` の `closureClosed`/`closureDifficult` |
 | `public/map.js` | `setClosureGeoJSON`/`setClosuresVisible`/`buildClosureLayer`、`setClosureClosedStyle`/`setClosureDifficultStyle`（マーカー設定連動、既定は `CLOSURE_FALLBACK_STYLES`）、ポップアップ（escapeHtml） |
-| `public/closures.js`（app.js から分離） | `?closure=true` 検出、編集パネル（読み込み/反映/公開/キャンセル）、`loadClosures`（API→静的→localStorage フォールバック＋自己修復）、公開 POST（失敗時 E01〜E05 案内・バックアップ保存） |
+| `public/closures.js` | `loadClosures()`（`GET /api/closures` のみ）、`getClosureVersion()`、`getClosureCount()` の3関数だけ（約50行） |
 | `public/service-worker.js` | `/api/closures` を network-first + `closures-cache`（パス判定・`no-cache`） |
-| `public/index.html` | ホームの「通行止め・通行困難地点」ボタン（既定 hidden）、編集パネル、「バージョン情報等」モーダルのバージョン・件数表示欄 |
+| `public/i18n.js` | ポップアップ用の4キーのみ（`closure.kindClosed`/`kindDifficult`/`popupReason`/`popupUpdated`） |
+| `public/index.html` | 「バージョン情報」モーダルのバージョン・件数表示欄 |
 | Vercel 設定 | Blob ストア接続（`BLOB_READ_WRITE_TOKEN` 自動）、環境変数 `CLOSURES_PUBLISH_TOKEN` |
+
+> **後始末（一時コード）:** かつて運用端末に保存していた公開トークン
+> （`minoh-hiking.closure-publish-token`）と反映データ（`minoh-hiking.closure-data`）を、
+> `closures.js` の冒頭で `localStorage.removeItem()` して消している。
+> **この4行は次のリリースで取り除くこと。**
 
 ---
 
@@ -332,10 +327,12 @@ Vercel Function（ESM。`package.json` の `type: module`、`@vercel/blob` に�
   **十分長いランダム値＋定期ローテーション**を推奨（最優先対策）。POST パスへのレート制限
   （Vercel Firewall）も推奨。
 - トークン照合は**タイミングセーフ比較**（SHA-256 + `timingSafeEqual`）。未設定時は `503` で fail-closed。
-- 公開は**全置換**のため、0 件送信で全消去になる。**0 件公開時の警告付き確認**を実装済み。
-  誤操作・改ざんに備え、**履歴スナップショット**で事後復旧の余地を確保。
-- ポップアップは `escapeHtml` で XSS 対策。トークンを localStorage に保存するため、運用端末の限定
-  （共用環境で公開しない）を運用ルールとする。
+- 公開は**全置換**のため、0 件送信で全消去になる。0 件公開時の警告付き確認は
+  **呼び出し側**の責務。誤操作・改ざんに備え、**履歴スナップショット**で
+  事後復旧の余地を確保している。
+- ポップアップは `escapeHtml` で XSS 対策。
+- 公開トークンは**本アプリでは扱わない**（呼び出し側の端末にのみ保存される）。
+  運用端末の限定（共用環境で公開しない）は引き続き運用ルールとする。
 
 ---
 
@@ -345,13 +342,13 @@ P2 では **「コード」と「実データ」で GitHub の扱いが正反対
 
 | 種類 | 中身 | 置き場所 | git/GitHub |
 |------|------|----------|------------|
-| コード | Function・`map.js`・`app.js`・`config.js`・`service-worker.js`・`index.html`・本設計書・`vercel.json` | リポジトリ | ○ git 管理 → push → Vercel 自動デプロイ |
+| コード | Function・`map.js`・`app.js`・`config.js`・`closures.js`・`service-worker.js`・`index.html`・本設計書・`vercel.json` | リポジトリ | ○ git 管理 → push → Vercel 自動デプロイ |
 | closures 実データ | 公開された通行止め・通行困難地点の geojson | 公開ストア（Vercel Blob） | ✕ git 非経由（API で直接更新） |
 | 秘密情報 | 公開トークン（`CLOSURES_PUBLISH_TOKEN`） | Vercel 環境変数 | ✕ コミットしない |
 
 **2つのフローの分離**
 - ① 機能の開発・修正（開発担当・git 経由）: コード変更 → commit → push → 自動デプロイ。
-- ② データの公開（運用担当・git 非経由）: 編集パネルで読み込み → 反映 → 「公開」→ POST → Blob。
+- ② データの公開（運用担当・git 非経由）: 運用アプリで地点を編集 → 公開 → POST → Blob。
 
 **運用上の注意**
 - **再デプロイで実データは消えない**（実データはリポジトリ外の Blob にあるため）。
@@ -362,7 +359,7 @@ P2 では **「コード」と「実データ」で GitHub の扱いが正反対
 
 ## 13. 対象外（当面）
 
-- 別アプリ（MapGPS 系）側の改修。
+- 地点データを作成・公開する外部アプリ側の実装。
 - ルート単位の「迂回案内」「自動う回ルート計算」等のナビ連携。
 - 本人特定つき監査ログ・複数運用者の同時編集制御（セキュリティレビュー §6 の残留リスク）。
 
@@ -375,3 +372,4 @@ P2 では **「コード」と「実データ」で GitHub の扱いが正反対
 | 2026-06-20 | 0.1（ドラフト） | 設計検討ドラフト（P2 提案・preview モード・`status` フラグ案）。※本ドラフト文書は廃止（内容は git 履歴に保存） |
 | 2026-07-16 | 0.2 | 実装済み（as-built）版に更新。P2（Vercel Function + Blob）採用、`?closure=true` 編集パネル、`version` ベース全置換（`status` 廃止）、固定マーカースタイル、常時表示、履歴スナップショット、timing-safe 認証、GitHub Pages 絶対 URL を反映 |
 | 2026-07-18 | 0.3 | 旧 P1 スクリプト（publish-closures.bat/ps1）を安全性の観点から廃止・削除。同梱静的ファイルと静的フォールバック（API・アプリ・SW）を廃止し、配信を公開APIに一本化（GET は Blob 未取得時に空 FeatureCollection）。公開失敗メッセージをエラーコード（E01〜E05）付きに刷新し、失敗時のバックアップ保存に改称。呼称を「ユーザー」「開発担当者」に統一 |
+| 2026-07-28 | 0.4 | **表示専用化**。編集・公開機能（`?closure=true` 編集パネル・ファイル読み込み・マップに反映・公開 POST・公開トークン保存）を削除。§5 を**公開API の契約の正本**として整備し**契約バージョン 1.0** を明記、§7 を公開と本アプリの関係に置換、§10 as-built を表示専用構成に更新 |

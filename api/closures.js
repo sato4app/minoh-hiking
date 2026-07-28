@@ -1,5 +1,9 @@
 // 通行止め・通行困難地点(closures)の公開API(Vercel Function)
 //
+// ⚠ POST は外部の運用アプリ(別リポジトリ)から呼ばれている。検証・レスポンスを変えるときは
+//   設計書 docs-closures/closures-design-202607.md §5 の契約バージョンを更新し、
+//   呼び出し側にも反映すること。(本アプリ minoh-hiking は表示専用で GET しか使わない)
+//
 // - GET  /api/closures: 公開ストア(Vercel Blob)の最新 geojson を返す(認証不要)。
 //   Blob 未作成・取得失敗時は空の FeatureCollection を返す(アプリ表示を止めない)。
 // - POST /api/closures: 公開トークン(x-publish-token ヘッダ)を検証し、
@@ -9,8 +13,8 @@
 // - Blob ストアをプロジェクトに接続(BLOB_READ_WRITE_TOKEN が自動設定される)
 // - 環境変数 CLOSURES_PUBLISH_TOKEN に公開トークンを設定(コミット禁止)
 //
-// GitHub Pages 版アプリからもクロスオリジンで参照するため、CORS を許可する。
-// 設計書: docs/closures-design-202606.md(P2 案)
+// GitHub Pages 版アプリ・運用アプリからもクロスオリジンで参照するため、CORS を許可する。
+// 設計書: docs-closures/closures-design-202607.md §5(公開API・契約バージョン 1.0)
 
 import { createHash, timingSafeEqual } from 'node:crypto';
 import { head, put } from '@vercel/blob';

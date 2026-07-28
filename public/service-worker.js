@@ -14,7 +14,7 @@
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-07-27.2';
+const SHELL_CACHE = 'app-shell-2026-07-28.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 通行止め・通行困難地点: 公開のたびに変わるためシェルに含めず、
@@ -208,7 +208,7 @@ function stripRedirect(response) {
 async function handleShellRequest(event, { swr = false } = {}) {
   const req = event.request;
   const cache = await caches.open(SHELL_CACHE);
-  // ignoreSearch: ?closure=true 等のクエリ付きで起動されても
+  // ignoreSearch: クエリ付きの URL で起動されても
   // キャッシュ済みシェル(クエリなしで保存)に一致させる
   const cached = await cache.match(req, { ignoreSearch: true });
 

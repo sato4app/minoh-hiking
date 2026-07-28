@@ -10,7 +10,7 @@
 //   marker-settings.js… マーカーの色・形状・サイズ設定
 //   map.js            … Leaflet 地図・オーバーレイ
 //   geolocation.js    … 現在地表示・移動経路の記録
-//   closures.js       … 通行止め・通行困難地点の表示・編集・公開
+//   closures.js       … 通行止め・通行困難地点の表示(公開API から取得)
 
 import {
   initMap, resizeMap,
@@ -26,10 +26,7 @@ import {
   getTrackSegments, clearTrack, loadTrackSegments, fitMapToTrack,
   setOnTrackPointAppended, setOnTrackNotice
 } from './geolocation.js';
-import {
-  initClosures, applyClosureFlag, loadClosures,
-  getClosureVersion, getClosureCount, autoCancelOnLeaveMap
-} from './closures.js';
+import { loadClosures, getClosureVersion, getClosureCount } from './closures.js';
 import {
   EMERGENCY_URL, HIKING_ROUTES_URL, TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY,
   TOAST_DURATION_SEC
@@ -132,8 +129,6 @@ async function init() {
   // 選択言語が英語のとき、静的なHTML文言(data-i18n属性)を一括置換する。
   // 以降の confirm・トースト等の動的文言より必ず先に適用する
   applyStaticTranslations();
-  // MapGPS からの起動フラグはネットワークに依存しないため最初に反映する
-  applyClosureFlag();
   await loadManifest();
 
   // SW 登録 + 更新検知
@@ -148,7 +143,6 @@ async function init() {
 
   bindEvents();
   initTilesEvents();
-  initClosures({ showView, isMapView: () => currentView === 'map' });
   initMarkerSettings();
   renderMessageList();
   // 言語変更によるリロード直後なら、設定モーダルを開いた状態に戻す
@@ -469,8 +463,6 @@ function showView(name) {
     // 時刻表示は normalizeMapChrome() でトグルの状態に従って反映済み
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'home' || name === 'nav') {
-    // 通行止め・通行困難地点の編集中にマップ画面を離れたら自動キャンセルする
-    autoCancelOnLeaveMap();
     // ホーム/ナビ: 全オーバーレイを非表示にして地理院地図のみ表示
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);

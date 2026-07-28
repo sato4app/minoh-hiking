@@ -50,8 +50,6 @@
     <nav class="home-menu" aria-label="メインメニュー" data-i18n-aria="home.ariaMainMenu">
       <button type="button" class="home-btn" data-view="map" data-i18n="home.showMap">ハイキングマップ表示</button>
       <button type="button" class="home-btn" id="btnOpenDownload" data-i18n="home.download">地図のダウンロード</button>
-      <!-- MapGPS から ?closure=true 付きで起動された場合のみ表示 -->
-      <button type="button" class="home-btn" id="btnClosureEdit" hidden data-i18n="closure.title">通行止め・通行困難地点</button>
       <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-i18n="home.versionInfo">バージョン情報</button>
       <!-- 設定/Settings(設定モーダルを開く。設定中の言語が分からない人でもここから
            言語を変更できると分かるよう、ボタン名は日英併記とし翻訳対象外(言語切替で不変) -->
@@ -79,20 +77,6 @@
           <rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/>
         </svg>
       </button>
-    </div>
-    <!-- 通行止め・通行困難地点の編集パネル(ホームの「通行止め・通行困難地点」ボタンから表示)。
-         メニューボタン(≡)や時刻表示を隠さないよう、その下の右上に配置する。 -->
-    <div class="closure-edit-panel" id="closureEditPanel" hidden>
-      <div class="closure-edit-title" data-i18n="closure.title">通行止め・通行困難地点</div>
-      <label class="closure-version-row">
-        <span class="closure-version-label" data-i18n="closure.versionLabel">バージョン:</span>
-        <input type="text" id="closureVersionInput" class="closure-version-input" autocomplete="off" />
-      </label>
-      <button type="button" class="closure-edit-btn" id="btnClosureLoadFile" data-i18n="closure.loadFile">ファイル読み込み</button>
-      <button type="button" class="closure-edit-btn" id="btnClosureApply" disabled data-i18n="closure.apply">マップに反映</button>
-      <button type="button" class="closure-edit-btn" id="btnClosurePublish" data-i18n="closure.publish">公開</button>
-      <button type="button" class="closure-edit-btn closure-edit-btn-cancel" id="btnClosureCancel" data-i18n="common.cancel">キャンセル</button>
-      <input type="file" id="closureFileInput" accept=".geojson,.json" hidden />
     </div>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
       <label class="toggle toggle-switch">
