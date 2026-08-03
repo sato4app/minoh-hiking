@@ -102,9 +102,9 @@ const DICT = {
   'track.exportTitle': { ja: '移動経路の出力(GPX)', en: 'Export Track (GPX)' },
   'track.exportFilename': { ja: 'ファイル名', en: 'File name' },
   'track.nothingToExport': { ja: '出力する移動経路がありません', en: 'No recorded track to export' },
-  'track.exportNeedSuffix': {
-    ja: 'ファイル名(連番部分)を入力してください',
-    en: 'Enter the file name (sequence part)'
+  'track.exportNeedName': {
+    ja: 'ファイル名を入力してください',
+    en: 'Enter the file name'
   },
   'track.exported': { ja: '移動経路を {name} に出力しました', en: 'Track exported to {name}' },
   'track.ariaStats': { ja: '移動経路の統計', en: 'Track statistics' },

@@ -1178,7 +1178,7 @@ body.view-state-nav .leaflet-control-container {
 }
 
 /* ===== 移動経路の出力(GPX)モーダル ===== */
-/* ファイル名: 日付部分(yyyymmdd-)は固定表示、連番以降のみ入力欄で編集可能 */
+/* ファイル名: 入力欄で全体を編集可能。拡張子(.gpx)は編集対象外のため表示しない */
 .track-export-row {
   display: flex;
   align-items: center;
@@ -1192,17 +1192,13 @@ body.view-state-nav .leaflet-control-container {
   white-space: nowrap;
 }
 
-.track-export-filename {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.1rem;
-  font-variant-numeric: tabular-nums;
-}
-
-#trackExportSuffix {
-  width: 5.5em;
+#trackExportName {
+  /* 既定値(yyyymmdd-nn)が収まる幅を基準に、画面が狭いときだけ縮める */
+  flex: 0 1 11em;
+  min-width: 0;
   padding: 0.3rem 0.4rem;
   font: inherit;
+  font-variant-numeric: tabular-nums;
   /* font: inherit で親の 0.95rem を継承してしまうため 1rem に戻す(iOS の自動ズーム防止) */
   font-size: 1rem;
   border: 1px solid #ccc;

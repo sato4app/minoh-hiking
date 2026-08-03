@@ -113,8 +113,7 @@ const el = {
   btnTrackExistingAppend: document.getElementById('btnTrackExistingAppend'),
   // 移動経路の出力(GPX)モーダル
   trackExportModal: document.getElementById('trackExportModal'),
-  trackExportPrefix: document.getElementById('trackExportPrefix'),
-  trackExportSuffix: document.getElementById('trackExportSuffix'),
+  trackExportName: document.getElementById('trackExportName'),
   btnTrackExportSave: document.getElementById('btnTrackExportSave'),
 
   // マーカーの設定モーダル
@@ -719,17 +718,20 @@ function readNextExportSeq(dateStr) {
   return 1;
 }
 
-// 出力に使った連番を保存する(次回デフォルトの決定用)。
-// 連番部分が数値でない自由入力のときは保存しない(連番の並びに影響させない)。
-function writeExportSeq(dateStr, suffix) {
-  if (!/^\d+$/.test(suffix)) return;
+// 出力に使ったファイル名から日付と連番を取り出して保存する(次回デフォルトの決定用)。
+// 既定の書式(yyyymmdd-連番)から外れた自由入力のときは保存しない(連番の並びに影響させない)。
+// 日付部分も編集できるため、記録日と違う日付で出力した場合はその日付で保存する
+// (次回は記録日で照合するため既定は 01 に戻る)。
+function writeExportSeq(name) {
+  const m = /^(\d{8})-(\d+)$/.exec(name);
+  if (!m) return;
   try {
-    localStorage.setItem(TRACK_EXPORT_SEQ_KEY, JSON.stringify({ date: dateStr, seq: parseInt(suffix, 10) }));
+    localStorage.setItem(TRACK_EXPORT_SEQ_KEY, JSON.stringify({ date: m[1], seq: parseInt(m[2], 10) }));
   } catch { /* noop */ }
 }
 
-// 出力モーダルを開く。ファイル名は yyyymmdd-nn を既定とし、
-// 日付部分は固定表示、連番以降(nn…)のみ編集できる。
+// 出力モーダルを開く。ファイル名は yyyymmdd-nn を既定とし、拡張子(.gpx)を除く全体を編集できる。
+// 開いた直後は未選択(全選択しない)にして、編集位置(キャレット)を末尾に置く。
 function openTrackExportModal() {
   const stats = getTrackStats();
   if (stats.pointCount === 0) {
@@ -737,11 +739,12 @@ function openTrackExportModal() {
     return;
   }
   const dateStr = getTrackDateStr();
-  el.trackExportPrefix.textContent = `${dateStr}-`;
-  el.trackExportSuffix.value = String(readNextExportSeq(dateStr)).padStart(2, '0');
+  const name = `${dateStr}-${String(readNextExportSeq(dateStr)).padStart(2, '0')}`;
+  el.trackExportName.value = name;
   el.trackExportModal.hidden = false;
-  el.trackExportSuffix.focus();
-  el.trackExportSuffix.select();
+  el.trackExportName.focus();
+  // focus() 時の選択状態はブラウザ依存のため、明示的に選択なし・キャレット末尾にする
+  el.trackExportName.setSelectionRange(name.length, name.length);
 }
 
 // GPX 1.1 文字列を生成(トラック1本・経路1本ごとに trkseg 1本、各点に記録時刻を含む)。
@@ -773,14 +776,17 @@ function exportTrackGpx() {
     el.trackExportModal.hidden = true;
     return;
   }
-  // 連番以降(編集可能部分): ファイル名に使えない文字は除去して検証する
-  const suffix = el.trackExportSuffix.value.trim().replace(/[\\/:*?"<>|]/g, '');
-  if (!suffix) {
-    showToast(t('track.exportNeedSuffix'));
+  // ファイル名に使えない文字は除去し、拡張子まで入力された場合は二重に付かないよう落とす。
+  // 末尾に空白があると .gpx を末尾と判定できないため、除去 → trim → 拡張子落とし の順に行う
+  const name = el.trackExportName.value
+    .replace(/[\\/:*?"<>|]/g, '')
+    .trim()
+    .replace(/\.gpx$/i, '')
+    .trim();
+  if (!name) {
+    showToast(t('track.exportNeedName'));
     return;
   }
-  const dateStr = el.trackExportPrefix.textContent.replace(/-$/, '');
-  const name = `${dateStr}-${suffix}`;
   const fileName = `${name}.gpx`;
   const blob = new Blob([buildTrackGpx(segments, name)], { type: 'application/gpx+xml' });
   const url = URL.createObjectURL(blob);
@@ -790,7 +796,7 @@ function exportTrackGpx() {
   a.click();
   // click 直後の revoke はダウンロード開始前に無効化される場合があるため遅延させる
   setTimeout(() => URL.revokeObjectURL(url), 10000);
-  writeExportSeq(dateStr, suffix);
+  writeExportSeq(name);
   el.trackExportModal.hidden = true;
   logHistory(t('track.exported', { name: fileName }), 'success');
   showToast(t('track.exported', { name: fileName }));
