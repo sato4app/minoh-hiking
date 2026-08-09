@@ -140,7 +140,7 @@ minoh-hiking/
 | レイヤー | データ | 表示形式 | 既定トグル |
 |----------|--------|----------|-----------|
 | 緊急ポイント | minoh-emergency-points.geojson | ポイントマーカー（id・名称ポップアップ） | 常時表示（トグルなし） |
-| ハイキングルート | minoh-hiking-routes-spots.geojson の route | 線（LineString、start→end をポップアップ） | 常時表示（トグルなし） |
+| ハイキングルート | minoh-hiking-routes-spots.geojson の route | 線（LineString、ポップアップなし） | 常時表示（トグルなし） |
 | スポット | minoh-hiking-routes-spots.geojson の spot | ポイントマーカー（id・名称ポップアップ） | 常時表示（トグルなし） |
 | 通行止め・通行困難地点 | 公開API（オフライン時は SW キャッシュ） | ポイントマーカー（種別・理由・更新日ポップアップ） | 常時表示 |
 | 現在地・移動記録 | Geolocation API | 現在地マーカー・精度円・移動経路・各種マーカー | 「現在地点をマーカー表示」「現在地点は中央に表示」トグル連動（既定 ON）／移動経路は「移動経路を記録」連動 |

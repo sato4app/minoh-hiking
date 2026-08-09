@@ -369,18 +369,13 @@ function buildHikingLayer() {
       opacity: 0.85
     }),
     pointToLayer: (feature, latlng) => createPointMarker(latlng, hikingSpotStyle),
+    // ポップアップはスポットのみ。ルート(線・中間点)は表示しない。
     onEachFeature: (feature, layer) => {
       const p = feature.properties || {};
-      if (p.type === 'spot') {
-        const id = p.id ?? '';
-        const name = p.name ?? '';
-        layer.bindPopup(`<strong>${escapeHtml(id)}</strong><br>${escapeHtml(name)}`);
-      } else if (p.type === 'route') {
-        const id = p.id ?? '';
-        const sp = p.startPoint ?? '';
-        const ep = p.endPoint ?? '';
-        layer.bindPopup(`<strong>${escapeHtml(id)}</strong><br>${escapeHtml(sp)} → ${escapeHtml(ep)}`);
-      }
+      if (p.type !== 'spot') return;
+      const id = p.id ?? '';
+      const name = p.name ?? '';
+      layer.bindPopup(`<strong>${escapeHtml(id)}</strong><br>${escapeHtml(name)}`);
     }
   });
 }
