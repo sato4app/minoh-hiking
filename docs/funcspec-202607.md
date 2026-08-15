@@ -439,7 +439,7 @@ minoh-hiking/
 - 不一致なら更新バナーを表示（初回ユーザーは保存済み version が無いため対象外）。
 
 ### 6.2 アプリ（アプリシェル）バージョン
-- アプリシェルのキャッシュ名は `app-shell-<version>`（`SHELL_CACHE`。現行 `app-shell-2026-07-25.8`）。
+- アプリシェルのキャッシュ名は `app-shell-<version>`（`SHELL_CACHE`。現行 `app-shell-2026-08-15.2`）。
 - キャッシュ済みシェル version と、サイトの `service-worker.js` 内 `SHELL_CACHE` の version を比較。
 - **起動時:** 「起動時にアプリの更新版を確認」設定が ON のとき、不一致なら confirm を表示。
   OK でアプリシェルキャッシュ（`app-shell-*`）を破棄し、SW を更新して再読み込み（タイル
@@ -507,7 +507,7 @@ minoh-hiking/
 | キャッシュ名 | 内容 | 戦略 |
 |-------------|------|------|
 | `gsi-{version}` | 地理院標準地図タイル | キャッシュ優先（明示DLでのみ書込、自動書込なし）。全 `gsi-*` を横断検索 |
-| `app-shell-<version>` | アプリシェル（HTML/CSS/JS、CDN、GeoJSON、tile_manifest.json） | 同一オリジン: stale-while-revalidate / CDN: cache-first |
+| `app-shell-<version>` | アプリシェル（HTML/CSS/JS、CDN、アイコン・起動画像、GeoJSON、tile_manifest.json） | 同一オリジン: stale-while-revalidate / CDN: cache-first |
 | `closures-cache` | 通行止め地点（公開API応答） | network-first（オンライン時に最新取得しキャッシュ更新、オフライン時はキャッシュ） |
 
 - タイルは version 変更後も旧キャッシュを保持し、引き続き利用可能。

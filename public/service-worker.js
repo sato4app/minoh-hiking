@@ -14,7 +14,7 @@
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-08-15.1';
+const SHELL_CACHE = 'app-shell-2026-08-15.2';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 通行止め・通行困難地点: 公開のたびに変わるためシェルに含めず、
@@ -43,6 +43,9 @@ const SHELL_LOCAL_PATHS = [
   './icons/icon-192-v2.png',
   './icons/icon-512-v2.png',
   './icons/icon-180.png',
+  // 起動画面の中央に出す画像。シェルに含めないと、端末のHTTPキャッシュが
+  // 失われたとき弱電波下で取得に十数秒かかり、初期表示が空白のままになる
+  './icons/Startup-512x918.webp',
   './data/tile_manifest.json',
   './data/minoh-emergency-points.geojson',
   './data/minoh-hiking-routes-spots.geojson'
