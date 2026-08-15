@@ -747,11 +747,16 @@ geometry: `{ "type": "Point", "coordinates": [経度, 緯度(, 標高)] }`
 > `/index.html` は `/` へ 308 リダイレクトされ、iOS の PWA 起動でエラーになるため。
 
 ### 12.3 アイコン
-| サイズ | ファイル |
-|--------|----------|
-| 180x180 | icons/icon-180.png（apple-touch-icon） |
-| 192x192 | icons/icon-192.png |
-| 512x512 | icons/icon-512.png |
+| サイズ | ファイル | purpose |
+|--------|----------|---------|
+| 180x180 | icons/icon-180.png（apple-touch-icon、manifest 外） | - |
+| 192x192 | icons/icon-192-v2.png | any maskable |
+| 512x512 | icons/icon-512-v2.png | any maskable |
+
+> manifest のアイコンは `any maskable` を指定する。`any` のみだと Android が
+> 白い円形枠の中にアイコンを縮小配置してしまい、iOS の見た目と揃わないため。
+> `maskable` 指定により Android は全面に敷き詰めてマスクで切り抜く（端は切れる）。
+> ファイル名の `-v2` はアイコン差し替え時のキャッシュ回避用。
 
 ---
 

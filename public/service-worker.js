@@ -14,7 +14,7 @@
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-08-10.1';
+const SHELL_CACHE = 'app-shell-2026-08-15.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // 通行止め・通行困難地点: 公開のたびに変わるためシェルに含めず、
@@ -40,8 +40,8 @@ const SHELL_LOCAL_PATHS = [
   './tiles.js',
   './marker-settings.js',
   './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
+  './icons/icon-192-v2.png',
+  './icons/icon-512-v2.png',
   './icons/icon-180.png',
   './data/tile_manifest.json',
   './data/minoh-emergency-points.geojson',
