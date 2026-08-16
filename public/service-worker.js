@@ -50,6 +50,11 @@ const SHELL_LOCAL_PATHS = [
   './data/minoh-emergency-points.geojson',
   './data/minoh-hiking-routes-spots.geojson'
 ];
+// 注: icons/Startup-512x918.png(WebP 化前の起動画像)は、この一覧に無くても
+// public/icons/ から削除しないこと。シェルは stale-while-revalidate のため、
+// 端末には .png を参照する旧 index.html がキャッシュされたまま残ることがあり、
+// ファイルを消すと 404 になって起動画面から画像が消える。
+// 全端末がアプリ更新(SHELL_CACHE 比較 → confirm)を通した後に削除する。
 
 // 外部CDN(完全URL一致で判定)
 const SHELL_CDN_URLS = [
