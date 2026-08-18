@@ -953,7 +953,7 @@ body.view-state-nav .leaflet-control-container {
   color: #666;
 }
 
-/* メインラベルに添える内部用語の補足表示(例: 「地図バージョン (タイルマニフェスト)」) */
+/* メインラベルに添える補足表示(例: 「国土地理院地図タイル（ダウンロード対象の地図指定）」) */
 .info-sublabel {
   color: #999;
   font-size: 0.8em;

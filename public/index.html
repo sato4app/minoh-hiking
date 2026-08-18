@@ -228,25 +228,23 @@
           <!-- バージョン情報(トグルなしの常時表示) -->
           <h3 class="info-section-title" data-i18n="info.versionInfo">バージョン情報</h3>
           <div class="info-collapse" id="infoVersionBody">
+            <!-- アプリシェルのバージョン(補足なし) -->
             <div class="info-row">
-              <span class="info-label">
-                <span data-i18n="info.mapVersion">地図バージョン：</span>
-                <span class="info-sublabel" data-i18n="info.mapVersionNote">（ダウンロード対象の地図タイル）</span>
-              </span>
-              <span class="info-value" id="versionManifest">-</span>
+              <span class="info-label" data-i18n="info.appVersion">アプリバージョン：</span>
+              <span class="info-value" id="versionAppShell">-</span>
             </div>
             <div class="info-row">
               <span class="info-label">
-                <span data-i18n="info.appVersion">アプリバージョン：</span>
-                <span class="info-sublabel" data-i18n="info.appVersionNote">（画面・機能の版）</span>
+                <span data-i18n="info.mapVersion">国土地理院地図タイル：</span>
+                <span class="info-sublabel" data-i18n="info.mapVersionNote">（ダウンロード対象の地図指定）</span>
               </span>
-              <span class="info-value" id="versionAppShell">-</span>
+              <span class="info-value" id="versionManifest">-</span>
             </div>
             <!-- 公開データのバージョン(公開API から取得した値) -->
             <div class="info-row">
               <span class="info-label">
-                <span data-i18n="info.mapdataVersion">地図データ：</span>
-                <span class="info-sublabel" data-i18n="info.mapdataVersionNote">（ポイント・ルート・スポット）</span>
+                <span data-i18n="info.mapdataVersion">ハイキングマップ：</span>
+                <span class="info-sublabel" data-i18n="info.mapdataVersionNote">（緊急ポイント等を含む）</span>
               </span>
               <span class="info-value" id="versionMapdata">-</span>
             </div>

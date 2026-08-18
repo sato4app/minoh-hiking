@@ -18,7 +18,7 @@
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-08-18.1';
+const SHELL_CACHE = 'app-shell-2026-08-18.2';
 const TILE_CACHE_PREFIX = 'gsi-';
 
 // アプリが自分で作る公開データのキャッシュ(published-data.js が put する)。
