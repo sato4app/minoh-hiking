@@ -238,11 +238,18 @@
             <div class="info-row">
               <span class="info-label">
                 <span data-i18n="info.appVersion">アプリバージョン：</span>
-                <span class="info-sublabel" data-i18n="info.appVersionNote">（ハイキングルート等を含む）</span>
+                <span class="info-sublabel" data-i18n="info.appVersionNote">（画面・機能の版）</span>
               </span>
               <span class="info-value" id="versionAppShell">-</span>
             </div>
-            <!-- 通行止め・通行困難地点のバージョン(「マップに反映」で入力された値) -->
+            <!-- 公開データのバージョン(公開API から取得した値) -->
+            <div class="info-row">
+              <span class="info-label">
+                <span data-i18n="info.mapdataVersion">地図データ：</span>
+                <span class="info-sublabel" data-i18n="info.mapdataVersionNote">（ポイント・ルート・スポット）</span>
+              </span>
+              <span class="info-value" id="versionMapdata">-</span>
+            </div>
             <div class="info-row">
               <span class="info-label" data-i18n="info.closuresVersion">通行止め・通行困難地点：</span>
               <span class="info-value" id="versionClosures">-</span>

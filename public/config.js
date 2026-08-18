@@ -28,18 +28,29 @@ export const REOPEN_APP_SETTINGS_KEY = 'minoh-hiking.reopen-app-settings';
 
 // ===== データファイルURL =====
 export const MANIFEST_URL = 'data/tile_manifest.json';
-export const EMERGENCY_URL = 'data/minoh-emergency-points.geojson';
-export const HIKING_ROUTES_URL = 'data/minoh-hiking-routes-spots.geojson';
 
-// 通行止め・通行困難地点の公開API(Vercel Function + Blob)。本アプリは表示専用のため
-// GET のみ利用する。
+// ===== 公開API(Vercel Function + Blob) =====
+// 地図データ(ポイント・ルート・スポット)と通行止め・通行困難地点は、外部の運用アプリ
+// MapPublisher が公開したものを配信で受け取る。本アプリは表示専用のため GET のみ利用する。
+// 契約は docs/publish-api-202608.md(契約バージョン 2.0)。
 // 公開ストアは Vercel 側にあるため、GitHub Pages 版アプリからは Vercel 本番の
 // 絶対 URL を参照して同じデータソースに一本化する(API 側で CORS 許可済み)。
 // Vercel・ローカル(vercel dev)では同一オリジンの相対パスで良い。
-const CLOSURE_API_ORIGIN = 'https://minoh-hiking.vercel.app';
-export const CLOSURE_API_URL = location.hostname.endsWith('github.io')
-  ? `${CLOSURE_API_ORIGIN}/api/closures`
-  : '/api/closures';
+const PUBLISH_API_ORIGIN = 'https://minoh-hiking.vercel.app';
+const PUBLISH_API_BASE = location.hostname.endsWith('github.io')
+  ? `${PUBLISH_API_ORIGIN}/api`
+  : '/api';
+// 起動時にまず読む version 一覧(数百バイト)。相違があるときだけ本体を取りに行く
+export const PUBLISH_MANIFEST_URL = `${PUBLISH_API_BASE}/manifest`;
+export const MAPDATA_API_URL = `${PUBLISH_API_BASE}/mapdata`;
+export const CLOSURE_API_URL = `${PUBLISH_API_BASE}/closures`;
+
+// 公開データの保存先(Cache API)と、表示済み version の保存キー(localStorage)。
+// キャッシュは Service Worker ではなくアプリ側(published-data.js)が管理する。
+export const MAPDATA_CACHE = 'mapdata-cache';
+export const CLOSURE_CACHE = 'closures-cache';
+export const MAPDATA_VERSION_KEY = 'minoh-hiking.mapdata-version';
+export const CLOSURES_VERSION_KEY = 'minoh-hiking.closures-version';
 
 // ===== 地理院タイル =====
 // タイルキャッシュ名は `gsi-{version}` 形式(version は tile_manifest.json から)。

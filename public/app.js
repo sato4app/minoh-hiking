@@ -10,12 +10,12 @@
 //   marker-settings.js… マーカーの色・形状・サイズ設定
 //   map.js            … Leaflet 地図・オーバーレイ
 //   geolocation.js    … 現在地表示・移動経路の記録
-//   closures.js       … 通行止め・通行困難地点の表示(公開API から取得)
+//   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
 
 import {
   initMap, resizeMap,
-  loadEmergencyPointsLayer, setEmergencyPointsVisible,
-  loadHikingRoutesLayer, setHikingRoutesVisible,
+  setEmergencyPointsVisible, setEmergencyStyle,
+  setHikingRoutesVisible, setHikingRouteStyle, setHikingSpotStyle,
   setClosuresVisible, setClosureClosedStyle, setClosureDifficultStyle,
   setZoomDisplayVisible, getFeatureCounts
 } from './map.js';
@@ -26,10 +26,11 @@ import {
   getTrackSegments, clearTrack, loadTrackSegments, fitMapToTrack,
   setOnTrackPointAppended, setOnTrackNotice
 } from './geolocation.js';
-import { loadClosures, getClosureVersion, getClosureCount } from './closures.js';
 import {
-  EMERGENCY_URL, HIKING_ROUTES_URL, TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY,
-  TOAST_DURATION_SEC
+  loadPublishedData, getMapdataVersion, getClosureVersion, getClosureCount
+} from './published-data.js';
+import {
+  TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC
 } from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
@@ -68,7 +69,8 @@ const el = {
   toggleStartupUpdateCheck: document.getElementById('toggleStartupUpdateCheck'),
   versionManifest: document.getElementById('versionManifest'),
   versionAppShell: document.getElementById('versionAppShell'),
-  // 通行止め・通行困難地点のバージョン表示欄(バージョン情報内)
+  // 公開データのバージョン表示欄(バージョン情報内)
+  versionMapdata: document.getElementById('versionMapdata'),
   versionClosures: document.getElementById('versionClosures'),
 
   // 設定モーダル(起動画面の「設定/Settings」から表示)
@@ -160,24 +162,25 @@ async function init() {
   initMap('map');
   // ズームレベル表示は「ズームレベルを表示」トグルの状態に従う
   setZoomDisplayVisible(el.toggleZoomDisplay.checked);
-  // 各オーバーレイはバックグラウンドで読込み、map ビュー時のみ表示。
-  // マーカースタイルは保存済み設定(無ければ config.js の既定値)を初期描画に反映。
+  // 各マーカースタイルは公開データの読込前に設定しておく
+  // (レイヤー構築時に反映される)。保存済み設定が無ければ config.js の既定値。
   const markerSettings = readMarkerSettings();
-  loadEmergencyPointsLayer(EMERGENCY_URL, markerSettings.emergency).then(() => {
-    if (currentView === 'map') setEmergencyPointsVisible(true);
-    updateFeatureCounts();
-  });
-  loadHikingRoutesLayer(HIKING_ROUTES_URL, markerSettings.hikingRoute, markerSettings.spot).then(() => {
-    if (currentView === 'map') setHikingRoutesVisible(true);
-    updateFeatureCounts();
-  });
-  // 通行止め・通行困難地点のマーカースタイルは読込前に設定しておく
-  // (setClosureGeoJSON でのレイヤー構築時に反映される)
+  setEmergencyStyle(markerSettings.emergency);
+  setHikingRouteStyle(markerSettings.hikingRoute);
+  setHikingSpotStyle(markerSettings.spot);
   setClosureClosedStyle(markerSettings.closureClosed);
   setClosureDifficultStyle(markerSettings.closureDifficult);
-  loadClosures().then(() => {
-    if (currentView === 'map') setClosuresVisible(true);
-    updateFeatureCounts();
+  // 公開API から配信データ(地図データ・通行止め)を取得。キャッシュからの初期描画と、
+  // 更新があったときの再描画で onApplied が呼ばれるため、そのつど表示状態と件数を合わせる。
+  loadPublishedData({
+    onApplied: () => {
+      if (currentView === 'map') {
+        setEmergencyPointsVisible(true);
+        setHikingRoutesVisible(true);
+        setClosuresVisible(true);
+      }
+      updateFeatureCounts();
+    }
   });
   setTrackStyle(markerSettings.track);
   setTrackStartStyle(markerSettings.trackStart);
@@ -489,7 +492,8 @@ async function openSettingsInfoModal() {
   el.versionManifest.textContent = getManifestVersion() || t('common.unknown');
   const shell = (await getCachedAppShellVersion()) || t('common.unknown');
   el.versionAppShell.textContent = shell;
-  // 通行止め・通行困難地点: 現在反映されているデータのバージョン
+  // 公開データ: 現在反映されているデータのバージョン
+  el.versionMapdata.textContent = getMapdataVersion() || '-';
   el.versionClosures.textContent = getClosureVersion() || '-';
   // データ件数(ポイント/ルート/スポット/通行止め)を開いた時点の最新値で反映
   updateFeatureCounts();

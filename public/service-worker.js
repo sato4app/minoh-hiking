@@ -2,7 +2,11 @@
 // - gsi-{version}: 地理院標準地図タイル(明示ダウンロードでのみ書込)
 //   {version} は data/tile_manifest.json の version を埋め込む。
 //   旧 version のキャッシュは自動削除しない(ユーザーがDL済みのタイル資産を保持)。
-// - app-shell-vN: アプリシェル(HTML/CSS/JS、CDN、GeoJSON、tile_manifest.json)。
+// - app-shell-vN: アプリシェル(HTML/CSS/JS、CDN、アイコン、tile_manifest.json)。
+//
+// 公開API(/api/*)は横取りしない。地図データ・通行止めの取得とキャッシュは
+// アプリ側(published-data.js)が version を見て制御する。SW はアプリシェルと
+// 地理院タイルのみを担当する。
 //
 // タイルはキャッシュ優先(あれば返す、無ければネット取得・自動キャッシュしない)。
 // 全 gsi-* キャッシュを横断検索するため、version 変更後も旧タイルは引き続き利用可能。
@@ -14,14 +18,13 @@
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 
-const SHELL_CACHE = 'app-shell-2026-08-15.2';
+const SHELL_CACHE = 'app-shell-2026-08-18.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 
-// 通行止め・通行困難地点: 公開のたびに変わるためシェルに含めず、
-// network-first + 専用キャッシュで配信する(オフライン時は最終取得を返す)。
-// 取得元は公開API(/api/closures、Vercel Function + Blob)のみ。
-const CLOSURE_CACHE = 'closures-cache';
-const CLOSURE_API_PATH = '/api/closures';
+// アプリが自分で作る公開データのキャッシュ(published-data.js が put する)。
+// SW は読み書きしないが、activate の掃除で消さないよう名前を知っておく必要がある。
+// 消すとオフライン起動時に地図データが出なくなる(オンラインでは気づけない)。
+const APP_MANAGED_CACHES = ['mapdata-cache', 'closures-cache'];
 
 // 同一オリジンの相対パス
 const SHELL_LOCAL_PATHS = [
@@ -31,7 +34,7 @@ const SHELL_LOCAL_PATHS = [
   './app.js',
   './map.js',
   './geolocation.js',
-  './closures.js',
+  './published-data.js',
   './db.js',
   './config.js',
   './i18n.js',
@@ -46,15 +49,16 @@ const SHELL_LOCAL_PATHS = [
   // 起動画面の中央に出す画像。シェルに含めないと、端末のHTTPキャッシュが
   // 失われたとき弱電波下で取得に十数秒かかり、初期表示が空白のままになる
   './icons/Startup-512x918.webp',
-  './data/tile_manifest.json',
-  './data/minoh-emergency-points.geojson',
-  './data/minoh-hiking-routes-spots.geojson'
+  './data/tile_manifest.json'
 ];
-// 注: icons/Startup-512x918.png(WebP 化前の起動画像)は、この一覧に無くても
-// public/icons/ から削除しないこと。シェルは stale-while-revalidate のため、
-// 端末には .png を参照する旧 index.html がキャッシュされたまま残ることがあり、
-// ファイルを消すと 404 になって起動画面から画像が消える。
+// 注: 以下のファイルは、この一覧に無くても public/ から削除しないこと。
+// シェルは stale-while-revalidate のため、端末にはそれらを参照する旧 index.html /
+// 旧 app.js がキャッシュされたまま残ることがあり、消すと 404 になる。
 // 全端末がアプリ更新(SHELL_CACHE 比較 → confirm)を通した後に削除する。
+//   - icons/Startup-512x918.png … WebP 化前の起動画像
+//   - closures.js                … 公開データ取得を published-data.js に統合する前の版
+//   - data/minoh-emergency-points.geojson / data/minoh-hiking-routes-spots.geojson
+//     … 公開API 配信に移行する前の同梱データ
 
 // 外部CDN(完全URL一致で判定)
 const SHELL_CDN_URLS = [
@@ -92,14 +96,15 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// アクティベート: 旧シェルキャッシュのみ掃除。タイル(gsi-*)と closures は保持。
+// アクティベート: 旧シェルキャッシュのみ掃除。
+// タイル(gsi-*)とアプリ管理のキャッシュ(公開データ)は保持する。
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((k) => k !== SHELL_CACHE && k !== CLOSURE_CACHE && !k.startsWith(TILE_CACHE_PREFIX))
+          .filter((k) => k !== SHELL_CACHE && !APP_MANAGED_CACHES.includes(k) && !k.startsWith(TILE_CACHE_PREFIX))
           .map((k) => caches.delete(k))
       );
       await self.clients.claim();
@@ -129,13 +134,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 通行止め・通行困難地点の公開API: 公開後すぐ反映されるよう network-first。
-  // GitHub Pages 版からは Vercel へのクロスオリジン URL になるため、
-  // origin を問わずパスで判定する(API 側で CORS 許可済み)
-  if (url.pathname === CLOSURE_API_PATH) {
-    event.respondWith(handleClosureRequest(req));
-    return;
-  }
+  // 公開API(/api/*)は横取りしない。version を見た取得とキャッシュはアプリ側が行う
+  // (SW が network-first で挟むと、version ゲートと二重に取得しに行くことになる)。
 
   // 同一オリジンのアプリシェル: パス末尾で判定
   if (url.origin === self.location.origin) {
@@ -155,26 +155,6 @@ self.addEventListener('fetch', (event) => {
     }
   }
 });
-
-// 通行止め・通行困難地点の取得: network-first + 専用キャッシュ。
-// オンライン時は常に最新を取得して closures-cache を更新し、
-// 取得できないとき(オフライン等)は最後に取得した内容を返す。
-// cache: 'no-cache' でブラウザHTTPキャッシュを再検証させる(ヒューリスティック
-// キャッシュ等で公開後も古い内容が返り続けるのを防ぐ)。
-async function handleClosureRequest(req) {
-  const cache = await caches.open(CLOSURE_CACHE);
-  try {
-    const res = await fetch(req.url, { cache: 'no-cache' });
-    if (res.ok) {
-      cache.put(req, res.clone()).catch(() => { });
-      return res;
-    }
-    return (await cache.match(req)) || res;
-  } catch {
-    const cached = await cache.match(req);
-    return cached || new Response('', { status: 504 });
-  }
-}
 
 async function handleTileRequest(req) {
   // 全 gsi-* キャッシュを横断検索(version 変更前にDLしたタイルも活用)

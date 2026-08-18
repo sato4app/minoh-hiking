@@ -1,6 +1,7 @@
 // Leaflet 地図表示モジュール
 // - 地図の初期化と共有インスタンスの提供(getMap)
 // - オーバーレイ(緊急ポイント / ハイキングルート+スポット / 通行止め)の描画・スタイル
+// 表示データはすべて published-data.js が公開API から取得して渡す(本モジュールは描画専用)。
 // 現在地表示・移動経路の記録は geolocation.js に分離している。
 // leaflet-src.esm.js は名前空間exportのため `* as L` で受ける(default exportではない)
 import * as L from 'leaflet';
@@ -19,13 +20,16 @@ const MAX_ZOOM = 18;
 
 let mapInstance = null;
 
-// 緊急ポイント: GeoJSON とレイヤー、現在のスタイルを保持
-let emergencyGeoJSON = null;
+// 地図データ(mapdata): 緊急ポイント・ルート・スポットを1本の FeatureCollection で受け取り、
+// properties.type で振り分けて2つのレイヤー(緊急ポイント / ハイキング)を作る。
+// 取得は published-data.js が行い、ここでは描画のみを担う。
+let mapdataGeoJSON = null;
+
+// 緊急ポイント: レイヤーと現在のスタイルを保持
 let emergencyLayer = null;
 let emergencyStyle = null;
 
-// ハイキング(ルート+スポット): GeoJSON とレイヤー、ルート/スポット双方のスタイルを保持
-let hikingGeoJSON = null;
+// ハイキング(ルート+スポット): レイヤーと、ルート/スポット双方のスタイルを保持
 let hikingLayer = null;
 let hikingRouteStyle = null;
 let hikingSpotStyle = null;
@@ -185,32 +189,24 @@ function replaceLayer(oldLayer, build) {
   return next;
 }
 
-// ===== 緊急ポイント =====
-export async function loadEmergencyPointsLayer(url, style) {
-  if (!mapInstance) return null;
-  // ユーザーが先に設定変更していたらそちらを優先(load完了前の race 対策)
-  emergencyStyle = emergencyStyle || style;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    emergencyGeoJSON = await res.json();
-    emergencyLayer = buildEmergencyLayer();
-    // ルート端点(開始/終了ポイント)の多くは緊急ポイント。
-    // ハイキング層が先に構築済みなら、端点座標を反映するため再構築する。
-    rebuildHikingLayer();
-    return emergencyLayer;
-  } catch (err) {
-    console.warn('緊急ポイントGeoJSON読込失敗:', err);
-    return null;
-  }
+// ===== 地図データ(緊急ポイント + ハイキングルート・スポット) =====
+// 表示データを差し替える(キャッシュからの初期描画・公開データ更新時の再描画で共通)。
+// 表示中だった場合は差し替え後も表示を維持する。null で非表示・破棄。
+export function setMapdataGeoJSON(geojson) {
+  mapdataGeoJSON = geojson;
+  rebuildEmergencyLayer();
+  rebuildHikingLayer();
 }
 
+// ===== 緊急ポイント =====
 function buildEmergencyLayer() {
-  return L.geoJSON(emergencyGeoJSON, {
+  return L.geoJSON(mapdataGeoJSON, {
+    // 同じデータに含まれる route・spot は別レイヤーが描画するため除外する
+    filter: (feature) => feature.properties?.type === 'ポイントGPS',
     pointToLayer: (feature, latlng) => createPointMarker(latlng, emergencyStyle),
     onEachFeature: (feature, layer) => {
       const p = feature.properties || {};
-      const id = p.id ?? p.pointId ?? '';
+      const id = p.id ?? '';
       const name = p.name ?? '';
       layer.bindPopup(`<strong>${escapeHtml(id)}</strong><br>${escapeHtml(name)}`);
     }
@@ -219,8 +215,12 @@ function buildEmergencyLayer() {
 
 export function setEmergencyStyle(style) {
   emergencyStyle = style;
-  if (!emergencyGeoJSON || !mapInstance) return;
-  emergencyLayer = replaceLayer(emergencyLayer, buildEmergencyLayer);
+  rebuildEmergencyLayer();
+}
+
+function rebuildEmergencyLayer() {
+  if (!mapInstance) return;
+  emergencyLayer = replaceLayer(emergencyLayer, () => (mapdataGeoJSON ? buildEmergencyLayer() : null));
 }
 
 export function setEmergencyPointsVisible(visible) {
@@ -228,7 +228,7 @@ export function setEmergencyPointsVisible(visible) {
 }
 
 // ===== 通行止め・通行困難地点(closures) =====
-// データの取得(公開API `/api/closures`)は closures.js 側が行い、
+// データの取得(公開API `/api/closures`)は published-data.js 側が行い、
 // ここでは渡された GeoJSON の描画のみを担う。
 // kind でスタイルを分ける: closed(通行止め)=赤✖ / difficult(通行困難)=橙三角(既定)。
 // スタイルはマーカー設定で変更可能(setClosureClosedStyle / setClosureDifficultStyle)。
@@ -298,54 +298,22 @@ function rebuildClosureLayer() {
 }
 
 // ===== ハイキング(ルート+スポット) =====
-// routeStyle は LineString に、spotStyle は Point に適用
-export async function loadHikingRoutesLayer(url, routeStyle, spotStyle) {
-  if (!mapInstance) return null;
-  hikingRouteStyle = hikingRouteStyle || routeStyle;
-  hikingSpotStyle = hikingSpotStyle || spotStyle;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    hikingGeoJSON = await res.json();
-    hikingLayer = buildHikingLayer();
-    return hikingLayer;
-  } catch (err) {
-    console.warn('ハイキングルートGeoJSON読込失敗:', err);
-    return null;
-  }
-}
-
-// 開始/終了ポイントの座標索引を id から構築(緊急ポイント優先、無ければハイキングスポット)
-function buildEndpointIndex() {
-  const index = new Map();
-  const add = (gj) => {
-    if (!gj) return;
-    for (const f of gj.features) {
-      const g = f.geometry;
-      if (!g || g.type !== 'Point') continue;
-      const id = f.properties?.id ?? f.properties?.pointId;
-      if (id != null && !index.has(id)) index.set(id, g.coordinates);
-    }
-  };
-  add(emergencyGeoJSON);
-  add(hikingGeoJSON);
-  return index;
-}
-
 function sameCoord(a, b) {
   return !!a && !!b && a[0] === b[0] && a[1] === b[1];
 }
 
 // ルート線を「開始ポイント → 中間点 → 終了ポイント」で結ぶため、
 // LineString の先頭に開始ポイント、末尾に終了ポイントの座標を補う。
+// 端点座標は配信データの startPointGPS / endPointGPS をそのまま使う(null は補わない)。
 // 元データは変更せず、表示用に座標を拡張したコピーを返す。
-function withRouteEndpoints(gj, index) {
+function withRouteEndpoints(gj) {
   if (!gj) return gj;
   const features = gj.features.map((f) => {
-    if (f.properties?.type !== 'route' || f.geometry?.type !== 'LineString') return f;
+    const p = f.properties;
+    if (p?.type !== 'route' || f.geometry?.type !== 'LineString') return f;
     const coords = f.geometry.coordinates.slice();
-    const start = index.get(f.properties.startPoint);
-    const end = index.get(f.properties.endPoint);
+    const start = p.startPointGPS;
+    const end = p.endPointGPS;
     if (start && !sameCoord(start, coords[0])) coords.unshift(start);
     if (end && !sameCoord(end, coords[coords.length - 1])) coords.push(end);
     return { ...f, geometry: { ...f.geometry, coordinates: coords } };
@@ -354,15 +322,13 @@ function withRouteEndpoints(gj, index) {
 }
 
 function buildHikingLayer() {
-  // ルートに開始/終了ポイントを補ったコピーを描画(緊急ポイント未読込時は中間点のみ)
-  const data = withRouteEndpoints(hikingGeoJSON, buildEndpointIndex());
+  // ルートに開始/終了ポイントを補ったコピーを描画する
+  const data = withRouteEndpoints(mapdataGeoJSON);
   return L.geoJSON(data, {
-    // Point 地物は type==='spot' のみ描画する。
-    // 同ファイルには緊急ポイントと同座標の 'ポイントGPS' も含まれるが、それらは
+    // 描画するのは route(線)と spot(点)のみ。緊急ポイント('ポイントGPS')は
     // 緊急ポイントレイヤーが描画するため除外する(二重描画とスポット色の巻き込みを防ぐ)。
-    // route(LineString)等の非 Point 地物はそのまま通す。
     filter: (feature) =>
-      feature.geometry?.type !== 'Point' || feature.properties?.type === 'spot',
+      feature.properties?.type === 'route' || feature.properties?.type === 'spot',
     style: () => ({
       color: hikingRouteStyle?.color || '#ea580c',
       weight: hikingRouteStyle?.size || 3,
@@ -370,12 +336,11 @@ function buildHikingLayer() {
     }),
     pointToLayer: (feature, latlng) => createPointMarker(latlng, hikingSpotStyle),
     // ポップアップはスポットのみ。ルート(線・中間点)は表示しない。
+    // 配信データのスポットは名称と座標だけを持つ(id は編集用のため公開されない)。
     onEachFeature: (feature, layer) => {
       const p = feature.properties || {};
       if (p.type !== 'spot') return;
-      const id = p.id ?? '';
-      const name = p.name ?? '';
-      layer.bindPopup(`<strong>${escapeHtml(id)}</strong><br>${escapeHtml(name)}`);
+      layer.bindPopup(`<strong>${escapeHtml(p.name ?? '')}</strong>`);
     }
   });
 }
@@ -391,8 +356,8 @@ export function setHikingSpotStyle(style) {
 }
 
 function rebuildHikingLayer() {
-  if (!hikingGeoJSON || !mapInstance) return;
-  hikingLayer = replaceLayer(hikingLayer, buildHikingLayer);
+  if (!mapInstance) return;
+  hikingLayer = replaceLayer(hikingLayer, () => (mapdataGeoJSON ? buildHikingLayer() : null));
 }
 
 export function setHikingRoutesVisible(visible) {
@@ -400,18 +365,15 @@ export function setHikingRoutesVisible(visible) {
 }
 
 // 読み込んだデータの件数を返す(未読込は null)。表示状態に依らず常に実データの件数。
-// ポイント=緊急ポイント(Point)、ルート=route、スポット=spot。ルート中間点は数えない。
+// ポイント=ポイントGPS(緊急ポイント)、ルート=route、スポット=spot。ルート中間点は数えない。
 export function getFeatureCounts() {
-  const points = emergencyGeoJSON
-    ? emergencyGeoJSON.features.filter((f) => f.geometry?.type === 'Point').length
-    : null;
-  let routes = null;
-  let spots = null;
-  if (hikingGeoJSON) {
-    routes = hikingGeoJSON.features.filter((f) => f.properties?.type === 'route').length;
-    spots = hikingGeoJSON.features.filter((f) => f.properties?.type === 'spot').length;
-  }
-  return { points, routes, spots };
+  if (!mapdataGeoJSON) return { points: null, routes: null, spots: null };
+  const countByType = (type) => mapdataGeoJSON.features.filter((f) => f.properties?.type === type).length;
+  return {
+    points: countByType('ポイントGPS'),
+    routes: countByType('route'),
+    spots: countByType('spot')
+  };
 }
 
 function escapeHtml(s) {
