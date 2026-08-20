@@ -1,7 +1,7 @@
 # 箕面ハイキングマップ デプロイ手順書
 
-**バージョン:** 1.0
-**最終更新日:** 2026年8月18日
+**バージョン:** 1.1
+**最終更新日:** 2026年8月19日
 **対象:** 運用・開発担当者
 **関連:**
 [機能仕様 `funcspec-202608.md`](funcspec-202608.md) /
@@ -65,41 +65,222 @@ MapPublisher -- POST /api/mapdata, /api/closures --> Blob -- GET --> 両方の�
 
 ## 4. 事前設定（初回・環境を作り直したときのみ）
 
-Vercel プロジェクトに以下が必要。
+Vercel プロジェクト **minoh-hiking** に必要なのは、**Blob ストアの接続**と**公開トークン**の2つだけ。
+どちらも**設定した後の再デプロイで初めて有効**になる。4.1 から順に、1回だけ実施する。
 
-1. **Blob ストアを接続する**（`BLOB_READ_WRITE_TOKEN` が自動で入る）
-2. **環境変数 `MAP_PUBLISH_TOKEN` を設定する**
-   - 公開（POST）の共有トークン。**32文字以上のランダム値**にする
-   - コードや Git に入れない（`.gitignore` が `.env*` を除外している）
-   - 未設定のまま公開すると `503`（サーバー側トークン未設定）になる
-3. **設定後に再デプロイする**（環境変数は再デプロイで初めて有効）
+> 画面の項目名は Vercel 側の更新で変わることがある。表記が違うときは
+> 「Storage（ストレージ）」「Environment Variables（環境変数）」「Redeploy（再デプロイ）」
+> に当たる場所を探す。
 
-> トークンを変えたときは、MapPublisher 側の保存済みトークンも入れ直す必要がある。
+### 4.1 Blob ストアを接続する
+
+公開データ（地図データ・通行止め）の実体を置く場所。**接続するだけでよい**。
+フォルダやファイルを手で作る必要は無く、初回公開時に
+[`api/_lib/store.js`](../api/_lib/store.js) が作る。
+
+1. <https://vercel.com/> にログインし、プロジェクト **minoh-hiking** を開く
+2. 上部タブの **Storage** を開く
+3. **Create Database**（すでにあるストアを使うときは **Connect Store**）→ **Blob** を選ぶ
+4. ストア名を入れて作成する（例: `minoh-hiking-blob`。名前は任意。Region は既定のままでよい）
+5. 接続先プロジェクトに **minoh-hiking** を選び、Environment は
+   **Production / Preview / Development** すべてにチェックして **Connect**
+6. **Settings → Environment Variables** に **`BLOB_READ_WRITE_TOKEN`** が
+   自動追加されたことを確認する（**値は開かない・コピーしない・Git に入れない**）
+
+> **変数名は既定のままにする。** 接続時に Environment Variables のプレフィックスを付けて
+> `〇〇_READ_WRITE_TOKEN` にすると、`@vercel/blob` が読むのは `BLOB_READ_WRITE_TOKEN` だけなので
+> 公開時に `500` になる（[`api/_lib/store.js`](../api/_lib/store.js) は token を渡していない）。
+>
+> ストアの Settings → Quickstart の **`.env.local` タブに出る `BLOB_STORE_ID` /
+> `BLOB_READ_WRITE_TOKEN` は「ローカル開発用にコピーする値」の表示**で、そのままでよい。
+> Vercel 上は接続で設定済み。`BLOB_STORE_ID` は本アプリでは使わない（OIDC 認証用）。
+
+接続後、公開のたびに Blob 上へ次のパスが作られる（定義は
+[`api/_lib/datasets.js`](../api/_lib/datasets.js)）。
+
+| Blob 上のパス | 中身 |
+|---|---|
+| `manifest.json` | 各データセットの version・updatedAt・件数（`GET /api/manifest` の実体、**採番の基準**） |
+| `mapdata/minoh-hiking-mapdata.geojson` | 緊急ポイント・ルート・スポット（最新） |
+| `mapdata/previous.geojson` | 同・前回分（1世代のみ） |
+| `closures/minoh-hiking-closure.geojson` | 通行止め・通行困難地点（最新） |
+| `closures/previous.geojson` | 同・前回分（1世代のみ） |
+
+> **フォルダを手で作る必要は無い。** Blob に「フォルダ」という実体は無く、パス名の `/` を
+> 管理画面がフォルダのように見せているだけ。すでに運用している `closures/` はそのまま使い
+> （本体のパスは旧方式から変えていない）、`mapdata/` と `manifest.json` は**初回公開のときにできる**。
+> `previous.geojson` は退避元ができる2回目の公開から作られる。
+> 旧方式の `closures/history/` は新方式では使わない（削除は [6.3](#63-リリース後の後始末次のリリースで行う)）。
+
+> ストアはプロジェクトではなく**アカウント（チーム）に属する**。作り直すと中身は空になり、
+> `manifest.json` が無くなるため version の採番も 1 からやり直しになる。
+> 中身を残したまま別プロジェクトから使いたいときは、作り直さず **Connect Store** で接続する。
+
+### 4.2 公開トークン `MAP_PUBLISH_TOKEN` を設定する
+
+MapPublisher からの公開（POST）を通すための共有トークン。mapdata・closures 共通で1つ。
+
+1. ランダムな32バイトの値を作る（PowerShell）:
+
+```powershell
+$b = [byte[]]::new(32)
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b)
+[Convert]::ToBase64String($b)
+```
+
+2. **環境変数の画面を開く**（直接 URL が確実）
+
+   ```
+   https://vercel.com/<アカウント名またはチーム名>/minoh-hiking/settings/environment-variables
+   ```
+
+   画面からたどる場合は、**プロジェクト minoh-hiking を開く → 上部タブ Settings →
+   左メニュー Environment Variables**。
+   ここは**プロジェクトの Settings** で、Blob ストア側の Settings（Quickstart がある画面）には
+   環境変数の追加欄は無い。
+
+3. **Add New**（版により **Create new** / **＋**）を押して登録する。入力欄が最初から出ている版も
+   ある。`.env` を貼り付ける欄しか見当たらないときは `MAP_PUBLISH_TOKEN=値` の形式で貼ってもよい
+
+   | 項目 | 値 |
+   |---|---|
+   | Key | `MAP_PUBLISH_TOKEN` |
+   | Value | 1 で作った文字列（**32文字以上**） |
+   | Environments | **Production**（必須）。Preview でも公開を試すなら Preview も |
+   | Sensitive | 選べるならオン（登録後は値を読み出せなくなる） |
+
+4. **Save** する
+5. 値はパスワードと同じ扱いにする。Git・`public/`・チャットに貼らない
+   （`.gitignore` が `.env` / `.env.local` を除外しているのは、ローカルに置いたときの保険）
+
+### 4.3 再デプロイして有効化する
+
+**環境変数は、すでに動いているデプロイには入らない。** 設定したら必ず出し直す。
+
+1. **Deployments** タブを開く
+2. 最新の **Production** デプロイの右端 **⋯** → **Redeploy**
+3. ダイアログの **Redeploy** を押す（Build Cache の使用有無はどちらでもよい）
+4. Status が **Ready** になるまで待つ
+
+> GitHub Pages 側には API が無いため、この作業は不要（→ [2章](#2-配信先と役割)）。
+
+### 4.4 設定できたか確認する
+
+```powershell
+# (a) トークン無しの POST。401 が正しい状態
+curl.exe -s -o NUL -w "%{http_code}\n" -X POST -H "Content-Type: application/json" -d "{}" https://minoh-hiking.vercel.app/api/mapdata
+
+# (b) 配信状況。未公開なら version は空文字で返る
+curl.exe -s https://minoh-hiking.vercel.app/api/manifest
+```
+
+| 結果 | 意味 |
+|---|---|
+| (a) が `401` | `MAP_PUBLISH_TOKEN` が有効。正しい状態 |
+| (a) が `503` | トークン未設定、または**設定後に再デプロイしていない**（→ 4.2 / 4.3） |
+| (b) が JSON を返す | API は動いている（**Blob 未接続でも空の JSON が返る**ため、これだけでは接続の確認にならない） |
+
+**Blob 接続の最終確認は、MapPublisher から実際に1回公開すること。**
+`200`（`version` と `count` が返る）なら接続できている。
+`500`（`公開ストアへの保存に失敗しました`）なら Blob 未接続か、接続後に再デプロイしていない。
+
+### 4.5 MapPublisher 側にトークンを登録する
+
+公開操作を行う MapPublisher（別リポジトリの運用担当者用アプリ）に、4.2 と**同じ値**を保存する。
+
+- Vercel 側だけ変えると公開が `401`、MapPublisher 側だけ変えても `401` になる
+- **トークンを変えるときは、Vercel（+ 再デプロイ）と MapPublisher の両方を必ず揃える**
+
+### 4.6 完了チェックリスト
+
+- [ ] Storage に Blob ストアがあり、minoh-hiking に接続されている
+- [ ] `BLOB_READ_WRITE_TOKEN` が Environment Variables にある（自動追加）
+- [ ] `MAP_PUBLISH_TOKEN` を Production に設定した
+- [ ] 設定後に Redeploy し、Ready になった
+- [ ] トークン無しの POST が `401`（`503` ではない）
+- [ ] MapPublisher に同じトークンを登録した
+- [ ] 試しに1回公開して `200` が返った
+
+> ローカルで `vercel dev` を使って API まで動かすときだけ、Vercel CLI で環境変数を取り込む
+> （`vercel link` → `vercel env pull .env.local`）。`public/` を静的配信するだけなら不要。
 
 ---
 
 ## 5. 通常のデプロイ（アプリの更新）
 
+`public/` または `api/` を変更したときの手順。
+**データの内容だけを直したときは、この章は不要**（MapPublisher からの公開で届く → [3章](#3-変更の種類とやること早見表)）。
+
 ### 5.1 手順
 
-1. **`public/service-worker.js` の `SHELL_CACHE` をバンプする**（`app-shell-yyyy-mm-dd.n`）
-   - **これを忘れると、端末に旧 UI と新 UI が混ざったまま残る。**
-     Service Worker はアプリシェルを stale-while-revalidate で配るため、
-     キャッシュ名が同じだと更新の確認（`SHELL_CACHE` 比較 → confirm）が働かない
-2. **JS ファイルを追加したときは `SHELL_LOCAL_PATHS` にも追加する**
-3. **差し替えた旧ファイルを同じリリースで削除しない**
-   - 端末には旧 `index.html` / 旧 `app.js` がキャッシュされたまま残ることがあり、
-     消すと 404 になって画像が出ない・モジュールが読めない、といった壊れ方をする
-   - 全端末がアプリ更新を通した後（次のリリース以降）に削除する
-   - 現在の保留分は `public/service-worker.js` の注記にまとめてある
-4. `main` へ push する（Vercel と GitHub Pages の両方が自動で更新される）
-5. [7章](#7-動作確認)の確認を行う
+**① 変更内容とブランチを確認する**
+
+```powershell
+git status --short
+git branch --show-current   # main であること
+```
+
+**② `public/` を変更したなら `SHELL_CACHE` をバンプする**（[`public/service-worker.js`](../public/service-worker.js)）
+
+```powershell
+Select-String -Path public/service-worker.js -Pattern "SHELL_CACHE = "
+# 例: const SHELL_CACHE = 'app-shell-2026-08-19.1';
+```
+
+- 命名は `app-shell-yyyy-mm-dd.n`。**日付は出す日**、`n` はその日の連番（初回 `.1`、同じ日の2回目は `.2`）
+- **⚠ 忘れると、端末に旧 UI と新 UI が混ざったまま残る。**
+  アプリシェルは stale-while-revalidate で配るため、キャッシュ名が同じだと
+  更新の確認（`SHELL_CACHE` 比較 → confirm）が働かない
+- `api/` や `docs/` だけの変更ならバンプ不要
+
+**③ ファイルを追加したときは `SHELL_LOCAL_PATHS` にも足す**（同じファイル）
+
+- JS モジュール・アイコン・画像など、オフラインでも要るものはすべて
+- 入れ忘れると、オフライン起動時にそのファイルだけ取得できない
+
+**④ 差し替えた旧ファイルは、このリリースでは消さない**
+
+- 端末には旧 `index.html` / 旧 `app.js` がキャッシュされたまま残ることがあり、
+  消すと 404 になって画像が出ない・モジュールが読めない、といった壊れ方をする
+- 削除待ちの一覧は `service-worker.js` の `SHELL_LOCAL_PATHS` 直下の注記にまとめてある
+- 全端末が更新を通したと判断できる次のリリース以降に消す
+
+**⑤ ローカルで表示を確認する**
+
+```powershell
+cd public; python -m http.server 8123    # → http://localhost:8123/
+```
+
+- `/api/*` は 404 になる（ローカルに API は無い）。地図データ・通行止めが出ないのは想定どおりで、
+  「バージョン情報」の該当行と件数は `-` になる
+- API 込みで見たいときだけ `vercel dev`
+
+**⑥ コミットして push する**
+
+```powershell
+git add -A
+git commit -m "変更内容の要約"
+git push origin main
+```
+
+**⑦ 2つの配信先が更新されたか見る**
+
+| 配信先 | 見る場所 | 正常 |
+|---|---|---|
+| Vercel | Deployments タブ | 当該コミットの Production が **Ready** |
+| GitHub Pages | リポジトリの Actions → **Deploy to GitHub Pages** | 緑（失敗なら `workflow_dispatch` で再実行） |
+
+**⑧ [7章](#7-動作確認)の動作確認を行う**（Vercel 版・GitHub Pages 版の両方）
+
+**⑨ `docs/*.md` を直したときは `docs/*.pdf` も作り直す**
 
 ### 5.2 ユーザーへの反映
 
 - 起動時に「アプリの更新版があります」の確認が出る（「起動時にアプリの更新版を確認」が ON のとき）
 - OK を押すと最新を取得して再読み込みする。**ダウンロード済みの地図タイルは消えない**
 - 確認を出さない設定の端末でも、次回以降の読み込みで自然に最新化される
+- 反映は**端末が次に起動したとき**。全端末に行き渡るまで日数がかかる前提で、
+  旧ファイルの削除は次のリリース以降にする（→ ④）
 
 ---
 
@@ -227,3 +408,4 @@ Vercel 版・GitHub Pages 版の**両方**で確認する。
 | 版 | 日付 | 内容 |
 |---|---|---|
 | 1.0 | 2026-08-18 | 初版。配信先2つの役割、変更の種類ごとの作業、2026.12 の移行デプロイ手順（API とアプリを分けて出す）、確認・復旧・トラブルシューティングをまとめた |
+| 1.1 | 2026-08-19 | 4章（事前設定）と5章（通常のデプロイ）を画面操作・コマンドのレベルまで具体化。Blob ストアの接続手順・Blob 上のパス一覧・トークンの生成と登録・再デプロイ・設定確認（401/503 の読み分け）と、デプロイ手順の各ステップにコマンドと確認箇所を追記 |
