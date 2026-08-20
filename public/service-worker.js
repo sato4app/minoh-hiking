@@ -57,8 +57,11 @@ const SHELL_LOCAL_PATHS = [
 // 全端末がアプリ更新(SHELL_CACHE 比較 → confirm)を通した後に削除する。
 //   - icons/Startup-512x918.png … WebP 化前の起動画像
 //   - closures.js                … 公開データ取得を published-data.js に統合する前の版
-//   - data/minoh-emergency-points.geojson / data/minoh-hiking-routes-spots.geojson
-//     … 公開API 配信に移行する前の同梱データ
+// 注2: data/minoh-emergency-points.geojson / data/minoh-hiking-routes-spots.geojson
+//   (公開API 配信に移行する前の同梱データ)は 2026-08-20 に削除した。旧シェルを
+//   キャッシュしたままの端末が旧 app.js から取得を試みると 404 になるが、旧 app.js は
+//   取得失敗を warn するだけで表示は続行するため、影響は地図データが出ないことに留まる。
+//   アプリ更新を通せば公開API から取得するようになる。
 
 // 外部CDN(完全URL一致で判定)
 const SHELL_CDN_URLS = [

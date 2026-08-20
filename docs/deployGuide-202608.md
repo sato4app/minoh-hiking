@@ -315,11 +315,23 @@ git push origin main
 
 全端末がアプリ更新を通したことを確認してから実施する。
 
-1. `public/data/minoh-emergency-points.geojson` / `public/data/minoh-hiking-routes-spots.geojson` を削除
-2. `public/closures.js` を削除
-3. `vercel.json` の `/data/(.*)` のキャッシュ設定を見直す（残るのは `tile_manifest.json` のみ）
-4. Vercel の環境変数 `CLOSURES_PUBLISH_TOKEN` を削除
-5. Blob 上の旧履歴 `closures/history/` を一括削除（前回分1世代の方式に移行済みのため）
+| # | 作業 | 状態 |
+|---|------|------|
+| 1 | `public/data/minoh-emergency-points.geojson` / `public/data/minoh-hiking-routes-spots.geojson` を削除 | **完了**（2026-08-20） |
+| 2 | `public/closures.js` を削除 | 未 |
+| 3 | `vercel.json` の `/data/(.*)` のキャッシュ設定を見直す（残るのは `tile_manifest.json` のみ） | 未 |
+| 4 | Vercel の環境変数 `CLOSURES_PUBLISH_TOKEN` を削除 | **完了**（2026-08-20） |
+| 5 | Blob 上の旧履歴 `closures/history/` を一括削除（前回分1世代の方式に移行済みのため） | **完了**（2026-08-20） |
+
+> 手順1は全端末の更新完了を待たずに実施した。旧シェルをキャッシュしたままの端末が
+> 旧 `app.js` から取得を試みると 404 になるが、旧 `map.js` は
+> `console.warn` して `return null` するだけで表示は継続するため、
+> **影響は緊急ポイント・ルート・スポットが表示されないことに留まる**。
+> アプリ更新を通せば公開API から取得するようになる。
+>
+> 手順2の `public/closures.js` は、旧 `index.html` / 旧 `app.js` が
+> `import` しているため、削除すると**モジュール読み込みが失敗して起動しない**。
+> こちらは全端末の更新完了を待つこと。
 
 ---
 
