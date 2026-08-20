@@ -302,28 +302,52 @@ function sameCoord(a, b) {
   return !!a && !!b && a[0] === b[0] && a[1] === b[1];
 }
 
-// ルート線を「開始ポイント → 中間点 → 終了ポイント」で結ぶため、
-// LineString の先頭に開始ポイント、末尾に終了ポイントの座標を補う。
-// 端点座標は配信データの startPointGPS / endPointGPS をそのまま使う(null は補わない)。
-// 元データは変更せず、表示用に座標を拡張したコピーを返す。
-function withRouteEndpoints(gj) {
+// ルート線の表示用コピーを作る。
+// 配信データの LineString は中間点のみのため、開始ポイント・終了ポイントの座標
+// (startPointGPS / endPointGPS。null は補わない)をつないで端点まで伸ばす。
+//
+// このとき1本のルートを「中間点どうしを結ぶ区間」と「端点をつなぐ区間」に分ける。
+// ポップアップを中間点間の線上だけに出すため(端点は緊急ポイントの位置であり、
+// その付近でルートのポップアップが開かないようにする)。
+// 分割しても色・太さは同じなので、見た目は1本の線のまま。
+// 元データは変更せず、表示用のコピーを返す。
+const ROUTE_PART = '__routePart';   // 'middle' = 中間点どうし / 'cap' = 端点をつなぐ区間
+
+function expandRouteFeatures(gj) {
   if (!gj) return gj;
-  const features = gj.features.map((f) => {
+  const features = gj.features.flatMap((f) => {
     const p = f.properties;
-    if (p?.type !== 'route' || f.geometry?.type !== 'LineString') return f;
-    const coords = f.geometry.coordinates.slice();
+    if (p?.type !== 'route' || f.geometry?.type !== 'LineString') return [f];
+    const mid = f.geometry.coordinates;
+    if (mid.length === 0) return [];
+    const part = (coords, kind) => ({
+      ...f,
+      properties: { ...p, [ROUTE_PART]: kind },
+      geometry: { ...f.geometry, coordinates: coords }
+    });
+    const parts = [];
+    // 中間点が2点以上あるときだけ「中間点どうしを結ぶ区間」ができる
+    if (mid.length >= 2) parts.push(part(mid, 'middle'));
     const start = p.startPointGPS;
     const end = p.endPointGPS;
-    if (start && !sameCoord(start, coords[0])) coords.unshift(start);
-    if (end && !sameCoord(end, coords[coords.length - 1])) coords.push(end);
-    return { ...f, geometry: { ...f.geometry, coordinates: coords } };
+    const last = mid[mid.length - 1];
+    if (start && !sameCoord(start, mid[0])) parts.push(part([start, mid[0]], 'cap'));
+    if (end && !sameCoord(end, last)) parts.push(part([last, end], 'cap'));
+    return parts;
   });
   return { ...gj, features };
 }
 
+// ルートの id(`route_<開始>_to_<終了>`)を「開始 〜 終了」の区間表記にする。
+// 想定外の書式なら id をそのまま返す。
+function routeSectionLabel(id) {
+  const m = /^route_(.+?)_to_(.+)$/.exec(String(id ?? ''));
+  return m ? `${m[1]} 〜 ${m[2]}` : String(id ?? '');
+}
+
 function buildHikingLayer() {
-  // ルートに開始/終了ポイントを補ったコピーを描画する
-  const data = withRouteEndpoints(mapdataGeoJSON);
+  // ルートに開始/終了ポイントを補い、区間ごとに分けたコピーを描画する
+  const data = expandRouteFeatures(mapdataGeoJSON);
   return L.geoJSON(data, {
     // 描画するのは route(線)と spot(点)のみ。緊急ポイント('ポイントGPS')は
     // 緊急ポイントレイヤーが描画するため除外する(二重描画とスポット色の巻き込みを防ぐ)。
@@ -335,12 +359,19 @@ function buildHikingLayer() {
       opacity: 0.85
     }),
     pointToLayer: (feature, latlng) => createPointMarker(latlng, hikingSpotStyle),
-    // ポップアップはスポットのみ。ルート(線・中間点)は表示しない。
+    // ポップアップは「スポット」と「ルートの中間点どうしを結ぶ区間」に付ける。
     // 配信データのスポットは名称と座標だけを持つ(id は編集用のため公開されない)。
+    // ルートは名称を持たないため、id から区間表記を組み立てて表示する。
+    // 端点をつなぐ区間(cap)には付けない(緊急ポイントのマーカーと重なる位置のため)。
     onEachFeature: (feature, layer) => {
       const p = feature.properties || {};
-      if (p.type !== 'spot') return;
-      layer.bindPopup(`<strong>${escapeHtml(p.name ?? '')}</strong>`);
+      if (p.type === 'spot') {
+        layer.bindPopup(`<strong>${escapeHtml(p.name ?? '')}</strong>`);
+        return;
+      }
+      if (p.type === 'route' && p[ROUTE_PART] === 'middle') {
+        layer.bindPopup(`<strong>${escapeHtml(routeSectionLabel(p.id))}</strong>`);
+      }
     }
   });
 }
