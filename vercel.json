@@ -1,4 +1,5 @@
 {
+  "buildCommand": "node scripts/gen-shell-revisions.mjs",
   "cleanUrls": true,
   "trailingSlash": false,
   "outputDirectory": "public",
@@ -8,6 +9,12 @@
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
         { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/shell-revisions.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
       ]
     },
     {

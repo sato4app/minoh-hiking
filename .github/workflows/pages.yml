@@ -23,6 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
+      # アプリシェルの内容ハッシュ一覧を生成する(Service Worker の install が参照し、
+      # 内容が変わっていないファイルの再取得を省く)
+      - run: node scripts/gen-shell-revisions.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./public

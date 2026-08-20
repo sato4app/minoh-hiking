@@ -17,9 +17,23 @@
 //   新バージョンの明示更新は、アプリ側の「起動時/バージョン情報等の更新確認」
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
+//
+// SHELL_CACHE を上げたときの install は、shell-revisions.json(デプロイ時に
+// scripts/gen-shell-revisions.mjs が生成する内容ハッシュ一覧)を見て、
+// 内容が変わっていないファイルを旧キャッシュから複製する(ネットワークに出ない)。
+// 一覧を取得できたキャッシュは「デプロイ時の内容と一致する」ことが確認済みなので、
+// 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
+// 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
 
-const SHELL_CACHE = 'app-shell-2026-08-20.1';
+const SHELL_CACHE = 'app-shell-2026-08-20.2';
 const TILE_CACHE_PREFIX = 'gsi-';
+const SHELL_CACHE_PREFIX = 'app-shell-';
+
+// シェル各ファイルの内容ハッシュ一覧。デプロイ時に生成される(未生成なら null 扱い)。
+const REVISIONS_URL = './shell-revisions.json';
+// インストール時の一覧をキャッシュ自身に控えるためのキー。
+// 実在しないパスを使い、シェル資産と衝突しないようにする。
+const REVISIONS_KEY = './__shell-revisions__';
 
 // アプリが自分で作る公開データのキャッシュ(published-data.js が put する)。
 // SW は読み書きしないが、activate の掃除で消さないよう名前を知っておく必要がある。
@@ -74,23 +88,102 @@ const SHELL_CDN_URLS = [
 
 const SHELL_ASSETS = [...SHELL_LOCAL_PATHS, ...SHELL_CDN_URLS];
 
-// インストール: アプリシェルをキャッシュ
+// インストール: アプリシェルをキャッシュ。
+// 内容が変わっていないファイルは旧キャッシュから複製し、ネットワークには出ない。
+// (バージョンを上げただけでシェル全件を取り直すと、弱電波では更新直後の起動が待たされる)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
       const cache = await caches.open(SHELL_CACHE);
-      // 個別にaddして失敗を許容(CDNの一部が落ちていても継続)
+      const revisions = await fetchRevisions();
+      const previous = await openPreviousShellCache();
+      const previousRevisions = previous ? await readStoredRevisions(previous) : null;
+
+      // 個別に処理して失敗を許容(CDNの一部が落ちていても継続)
       await Promise.all(
         SHELL_ASSETS.map((url) =>
-          cache.add(url).catch((err) => {
+          installAsset(cache, url, { previous, revisions, previousRevisions }).catch((err) => {
             console.warn('[SW] shell add failed:', url, err);
           })
         )
       );
+
+      // 一覧を控えておく。次回の install がこれと突き合わせて複製の可否を決める。
+      // 同時に「デプロイ時の内容と一致することを確認済み」の目印にもなる(裏取得の省略判定)。
+      if (revisions) {
+        await cache.put(REVISIONS_KEY, new Response(JSON.stringify(revisions), {
+          headers: { 'Content-Type': 'application/json' }
+        }));
+      }
       await self.skipWaiting();
     })()
   );
 });
+
+// 1ファイル分のインストール。複製できるものは複製し、それ以外だけ取得する。
+async function installAsset(cache, url, { previous, revisions, previousRevisions }) {
+  if (previous && canReuse(url, revisions, previousRevisions)) {
+    const hit = await previous.match(url, { ignoreSearch: true });
+    if (hit) {
+      await cache.put(url, hit);
+      return;
+    }
+  }
+  await cache.add(url);
+}
+
+// 旧キャッシュの内容をそのまま使えるか。
+// - CDN: URL にバージョンが入っており内容は変わらないため、あれば常に再利用できる
+// - 同一オリジン: 新旧の内容ハッシュが一致するときだけ再利用できる
+//   (どちらかの一覧が無ければ判断できないので取得し直す)
+function canReuse(url, revisions, previousRevisions) {
+  if (SHELL_CDN_URLS.includes(url)) return true;
+  if (!revisions || !previousRevisions) return false;
+  const now = revisions[url];
+  return !!now && now === previousRevisions[url];
+}
+
+// 今回デプロイされた内容ハッシュ一覧。取得できなければ null(従来どおり全件取得になる)
+async function fetchRevisions() {
+  try {
+    const res = await fetch(REVISIONS_URL, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+// 直前のアプリシェルキャッシュ(あれば)。activate で1つに掃除されるため通常は1件。
+async function openPreviousShellCache() {
+  const keys = await caches.keys();
+  const name = keys.find((k) => k.startsWith(SHELL_CACHE_PREFIX) && k !== SHELL_CACHE);
+  return name ? caches.open(name) : null;
+}
+
+// そのキャッシュが作られたときの内容ハッシュ一覧
+async function readStoredRevisions(cache) {
+  try {
+    const res = await cache.match(REVISIONS_KEY);
+    return res ? await res.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+// このキャッシュが「デプロイ時の内容と一致する」ことを install で確認済みか。
+// 確認済みなら stale-while-revalidate の裏取得は不要(新版の検知はアプリ側の
+// 更新確認が service-worker.js を直接見て行うため、裏取得に頼る必要がない)。
+let shellVerified = null;
+function isShellVerified() {
+  if (!shellVerified) {
+    shellVerified = caches.open(SHELL_CACHE)
+      .then((cache) => cache.match(REVISIONS_KEY))
+      .then((res) => !!res)
+      .catch(() => false);
+  }
+  return shellVerified;
+}
 
 // アプリからの SKIP_WAITING 要求で即座にアクティベート
 self.addEventListener('message', (event) => {
@@ -193,8 +286,9 @@ function stripRedirect(response) {
 // アプリシェルの取得。
 // - swr=true(同一オリジンのシェル): stale-while-revalidate。
 //   キャッシュを即返して高速・弱電波に強く、裏でネット取得して次回用に更新する。
-//   → オンライン時は自然に最新化(反映は次回読み込み)。バージョン更新の明示通知は
-//     アプリ側の「起動時/バージョン情報等の更新確認」(SHELL_CACHE 比較→confirm)が担う。
+//   ただし install で内容一致を確認済み(REVISIONS_KEY あり)のキャッシュでは裏取得を省く。
+//   バージョン更新の検知と適用は、いずれの場合もアプリ側の
+//   「起動時/バージョン情報等の更新確認」(SHELL_CACHE 比較→confirm)が担う。
 // - swr=false(CDN 等の安定資産): cache-first(高速・通信節約)。
 async function handleShellRequest(event, { swr = false } = {}) {
   const req = event.request;
@@ -204,6 +298,9 @@ async function handleShellRequest(event, { swr = false } = {}) {
   const cached = await cache.match(req, { ignoreSearch: true });
 
   if (swr) {
+    // install で内容一致を確認済みのキャッシュは、再検証せずそのまま返す。
+    // (毎起動でシェル全件を再検証すると、弱電波では往復のぶんだけ遅くなる)
+    if (cached && await isShellVerified()) return stripRedirect(cached);
     // 裏でネット取得→キャッシュ更新(失敗時は null)。SW が早期終了しないよう待機登録。
     const networkUpdate = fetch(req)
       .then((res) => {
