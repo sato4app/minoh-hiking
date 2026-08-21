@@ -17,7 +17,8 @@ import {
   setEmergencyPointsVisible, setEmergencyStyle,
   setHikingRoutesVisible, setHikingRouteStyle, setHikingSpotStyle,
   setClosuresVisible, setClosureClosedStyle, setClosureDifficultStyle,
-  setZoomDisplayVisible, getFeatureCounts
+  setZoomDisplayVisible, getFeatureCounts,
+  setCurrentMarkerButtonHandler, setCurrentMarkerButtonState
 } from './map.js';
 import {
   setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
@@ -193,6 +194,14 @@ async function init() {
   requestAnimationFrame(() => resizeMap());
 }
 
+// 現在地マーカーの表示状態を反映する。メニューのトグル・ズームボタン上の
+// アイコンボタンのどちらから切り替えても、両方の見た目が揃うようにする。
+function applyCurrentMarkerVisible(on) {
+  el.toggleCurrentMarker.checked = on;
+  setCurrentMarkerVisible(on);
+  setCurrentMarkerButtonState(on);
+}
+
 function bindEvents() {
   // ホームメニュー: data-view 属性でビュー切替
   for (const btn of document.querySelectorAll('[data-view]')) {
@@ -267,8 +276,10 @@ function bindEvents() {
   // ズームレベル表示トグル(設定モーダル内): ON で地図右下に現在のズームレベルを表示。
   // 表示要素は地図コントロール内にあり、マップ・ナビ画面でのみ出るためビュー切替の反映は不要。
   el.toggleZoomDisplay.addEventListener('change', (e) => setZoomDisplayVisible(e.target.checked));
-  // 現在地点をマーカー表示: 現在地マーカー(青丸)・精度円の表示/非表示を切替
-  el.toggleCurrentMarker.addEventListener('change', (e) => setCurrentMarkerVisible(e.target.checked));
+  // 現在地点をマーカー表示: 現在地マーカー(青丸)・精度円の表示/非表示を切替。
+  // メニューのトグルと、ズームボタン上のアイコンボタンの両方から切り替える。
+  el.toggleCurrentMarker.addEventListener('change', (e) => applyCurrentMarkerVisible(e.target.checked));
+  setCurrentMarkerButtonHandler(() => applyCurrentMarkerVisible(!el.toggleCurrentMarker.checked));
   // 現在地点は中央に表示: 地図を現在地へ追従させるか切替
   el.toggleCenterCurrent.addEventListener('change', (e) => setFollowCurrentLocation(e.target.checked));
   el.toggleTrackRecording.addEventListener('change', (e) => {
@@ -463,7 +474,7 @@ function showView(name) {
         logHistory(msg, 'error');
       }
     });
-    setCurrentMarkerVisible(el.toggleCurrentMarker.checked);
+    applyCurrentMarkerVisible(el.toggleCurrentMarker.checked);
     setFollowCurrentLocation(el.toggleCenterCurrent.checked);
     // 移動経路を記録トグルの状態に応じて記録開始/停止ボタンの表示を更新
     updateTrackButtonState(el.toggleTrackRecording.checked);

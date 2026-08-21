@@ -440,6 +440,24 @@ textarea {
   display: none;
 }
 
+/* 現在地マーカーの表示切替(ズームボタンの上)。枠・大きさは leaflet-bar に任せ、
+   アイコンの色だけで状態を示す。ON は現在地マーカー(青丸)と同じ青、OFF は灰色 */
+.leaflet-right .current-marker-toggle a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+}
+
+.leaflet-right .current-marker-toggle.is-on a {
+  color: #1d4ed8;
+}
+
+/* ナビ画面は現在地マーカーを表示しないため、切替ボタンも出さない */
+body.view-state-nav .current-marker-toggle {
+  display: none;
+}
+
 body.view-state-map .leaflet-control-container,
 body.view-state-nav .leaflet-control-container {
   display: block;

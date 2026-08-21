@@ -35,7 +35,8 @@ let hikingRouteStyle = null;
 let hikingSpotStyle = null;
 
 // 地図の初期化
-// 右下に下から: 国土地理院クレジット(attribution) → スケール(metric) → ズームボタン
+// 右下に下から: 国土地理院クレジット(attribution) → スケール(metric)
+//              → ズームレベル表示 → ズームボタン → 現在地マーカーの表示切替
 export function initMap(containerId) {
   const map = L.map(containerId, {
     center: INITIAL_CENTER,
@@ -59,6 +60,7 @@ export function initMap(containerId) {
   L.control.scale({ position: 'bottomright', metric: true, imperial: false, maxWidth: 150 }).addTo(map);
   new ZoomDisplayControl({ position: 'bottomright' }).addTo(map);
   L.control.zoom({ position: 'bottomright' }).addTo(map);
+  new CurrentMarkerControl({ position: 'bottomright' }).addTo(map);
 
   mapInstance = map;
   return map;
@@ -88,6 +90,53 @@ const ZoomDisplayControl = L.Control.extend({
 // ズームレベル表示の ON/OFF(設定モーダルの「ズームレベルを表示」から呼ぶ)
 export function setZoomDisplayVisible(on) {
   if (zoomDisplayEl) zoomDisplayEl.hidden = !on;
+}
+
+// ===== 現在地マーカーの表示切替ボタン(ズームボタンの上に配置) =====
+// メニューの「現在地点をマーカー表示」トグルと同じ状態を切り替えるショートカット。
+// このモジュールはボタンの見た目だけを持ち、状態の管理は app.js が行う
+// (押されたら handler を呼び、結果は setCurrentMarkerButtonState で反映してもらう)。
+let currentMarkerButtonEl = null;
+let currentMarkerButtonHandler = null;
+
+// 現在地アイコン(中心の点と十字。Material Design の my_location 相当)
+const CURRENT_MARKER_ICON = `<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+  <path fill="currentColor" d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06zM12 19c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/>
+</svg>`;
+
+const CurrentMarkerControl = L.Control.extend({
+  onAdd() {
+    const div = L.DomUtil.create('div', 'leaflet-bar current-marker-toggle');
+    const link = L.DomUtil.create('a', '', div);
+    link.href = '#';
+    link.setAttribute('role', 'button');
+    link.innerHTML = CURRENT_MARKER_ICON;
+    // 地図のドラッグ・ダブルクリックズームに拾われないようにする
+    L.DomEvent.disableClickPropagation(div);
+    L.DomEvent.on(link, 'click', (ev) => {
+      L.DomEvent.stop(ev);
+      currentMarkerButtonHandler?.();
+    });
+    currentMarkerButtonEl = div;
+    return div;
+  }
+});
+
+// ボタンが押されたときに呼ぶ処理を登録する(app.js から)
+export function setCurrentMarkerButtonHandler(fn) {
+  currentMarkerButtonHandler = fn;
+}
+
+// ボタンの見た目を現在の状態に合わせる(ON は現在地マーカーと同じ青、OFF は灰色)
+export function setCurrentMarkerButtonState(on) {
+  if (!currentMarkerButtonEl) return;
+  currentMarkerButtonEl.classList.toggle('is-on', !!on);
+  const link = currentMarkerButtonEl.querySelector('a');
+  if (!link) return;
+  const label = t('map.toggleCurrentMarker');
+  link.title = label;
+  link.setAttribute('aria-label', label);
+  link.setAttribute('aria-pressed', on ? 'true' : 'false');
 }
 
 // ビュー表示直後に呼んでサイズを再計算する(hidden→visible 切替で必須)
