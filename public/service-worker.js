@@ -1,10 +1,10 @@
 // Service Worker
 // - gsi-{version}: 地理院標準地図タイル(明示ダウンロードでのみ書込)
-//   {version} は data/tile_manifest.json の version を埋め込む。
+//   {version} は公開API から受け取ったタイル一覧の version を埋め込む。
 //   旧 version のキャッシュは自動削除しない(ユーザーがDL済みのタイル資産を保持)。
-// - app-shell-vN: アプリシェル(HTML/CSS/JS、CDN、アイコン、tile_manifest.json)。
+// - app-shell-vN: アプリシェル(HTML/CSS/JS、CDN、アイコン)。
 //
-// 公開API(/api/*)は横取りしない。地図データ・通行止めの取得とキャッシュは
+// 公開API(/api/*)は横取りしない。地図データ・通行止め・タイル一覧の取得とキャッシュは
 // アプリ側(published-data.js)が version を見て制御する。SW はアプリシェルと
 // 地理院タイルのみを担当する。
 //
@@ -25,7 +25,7 @@
 // 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
 // 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
 
-const SHELL_CACHE = 'app-shell-2026-08-21.1';
+const SHELL_CACHE = 'app-shell-2026-08-21.2';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 
@@ -37,8 +37,9 @@ const REVISIONS_KEY = './__shell-revisions__';
 
 // アプリが自分で作る公開データのキャッシュ(published-data.js が put する)。
 // SW は読み書きしないが、activate の掃除で消さないよう名前を知っておく必要がある。
-// 消すとオフライン起動時に地図データが出なくなる(オンラインでは気づけない)。
-const APP_MANAGED_CACHES = ['mapdata-cache', 'closures-cache'];
+// 消すとオフライン起動時に地図データが出ず、タイル一覧も失われる
+// (オンラインでは気づけない)。
+const APP_MANAGED_CACHES = ['mapdata-cache', 'closures-cache', 'tiles-cache'];
 
 // 同一オリジンの相対パス
 const SHELL_LOCAL_PATHS = [
@@ -62,8 +63,7 @@ const SHELL_LOCAL_PATHS = [
   './icons/icon-180.png',
   // 起動画面の中央に出す画像。シェルに含めないと、端末のHTTPキャッシュが
   // 失われたとき弱電波下で取得に十数秒かかり、初期表示が空白のままになる
-  './icons/Startup-512x918.webp',
-  './data/tile_manifest.json'
+  './icons/Startup-512x918.webp'
 ];
 // 注: 以下のファイルは、この一覧に無くても public/ から削除しないこと。
 // シェルは stale-while-revalidate のため、端末にはそれらを参照する旧 index.html /
@@ -71,6 +71,10 @@ const SHELL_LOCAL_PATHS = [
 // 全端末がアプリ更新(SHELL_CACHE 比較 → confirm)を通した後に削除する。
 //   - icons/Startup-512x918.png … WebP 化前の起動画像
 //   - closures.js                … 公開データ取得を published-data.js に統合する前の版
+//   - data/tile_manifest.json    … タイル一覧を公開API 配信に移す前の版が fetch する。
+//                                  消すと旧シェルの端末で「地図のダウンロード」が使えなくなる
+//                                  (取得失敗のメッセージが出るだけで、起動と表示は続く)
+//   - data/tile_buffers.geojson  … 現行・過去いずれのシェルからも参照されない出力物
 // 注2: data/minoh-emergency-points.geojson / data/minoh-hiking-routes-spots.geojson
 //   (公開API 配信に移行する前の同梱データ)は 2026-08-20 に削除した。旧シェルを
 //   キャッシュしたままの端末が旧 app.js から取得を試みると 404 になるが、旧 app.js は
@@ -235,7 +239,7 @@ self.addEventListener('fetch', (event) => {
 
   // 同一オリジンのアプリシェル: パス末尾で判定
   if (url.origin === self.location.origin) {
-    const reqPath = url.pathname; // 例: "/index.html" "/data/tile_manifest.json" "/"
+    const reqPath = url.pathname; // 例: "/index.html" "/style.css" "/"
     const swDir = self.location.pathname.replace(/[^/]*$/, ''); // 例: "/" or "/foo/"
 
     const isShell = SHELL_LOCAL_PATHS.some((p) => {

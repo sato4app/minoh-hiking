@@ -1,12 +1,14 @@
 // オフライン地図(タイル)モジュール
-// - tile_manifest.json の読込とバージョン比較・更新バナー
+// - タイル一覧(タイルマニフェスト)の保持とバージョン比較・更新バナー
+//   一覧は公開API から配信で受け取る(取得・キャッシュは published-data.js が担い、
+//   ここへは setTileManifest() で渡される)
 // - 地理院タイルのダウンロード(基本/詳細、差分/全部更新)
 // - タイルキャッシュ(gsi-{version})の参照・削除・サイズ集計
 // タイルキャッシュ名は `gsi-{version}` 形式。旧 version のキャッシュは保持し、
 // 全 gsi-* を横断参照する(version 変更後も旧タイルを活用)。
 
 import {
-  TILE_CACHE_PREFIX, TILE_URL_BASE, MANIFEST_URL,
+  TILE_CACHE_PREFIX, TILE_URL_BASE,
   CONCURRENCY, MAX_RETRIES, AVG_TILE_KB, VERSION_STORAGE_KEY
 } from './config.js';
 import { savePackage, listPackages, clearPackages, deletePackage } from './db.js';
@@ -46,25 +48,15 @@ export function initTilesEvents() {
   window.addEventListener('offline', handleOffline);
 }
 
-// ===== マニフェスト読込 / バージョン比較 =====
-export async function loadManifest() {
-  try {
-    const res = await fetch(MANIFEST_URL, { cache: 'no-cache' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    manifest = await res.json();
-  } catch (err) {
-    setStatus(t('download.manifestLoadFailed', { message: err.message }), 'error');
-  }
+// ===== マニフェストの受け取り / バージョン比較 =====
+// 配信データ(published-data.js)から渡される。オフラインでは前回取得分が渡る。
+export function setTileManifest(data) {
+  manifest = data;
 }
 
 // 現在のマニフェスト version(無ければ null)
 export function getManifestVersion() {
   return (manifest && manifest.version != null) ? String(manifest.version) : null;
-}
-
-export async function onSWControllerChange() {
-  await loadManifest();
-  evaluateManifestVersion();
 }
 
 export function getSavedManifestVersion() {

@@ -6,6 +6,7 @@
 
 import { DATASETS } from './_lib/datasets.js';
 import { applyCors } from './_lib/http.js';
+import { countOf } from './_lib/publish.js';
 import { readBlobJSON, readManifest } from './_lib/store.js';
 
 export default async function handler(req, res) {
@@ -47,6 +48,6 @@ async function summarizeFromBody(dataset) {
   return {
     version: typeof data.version === 'string' ? data.version : '',
     updatedAt: data.updatedAt ?? null,
-    count: Array.isArray(data.features) ? data.features.length : 0
+    count: countOf(dataset, data)
   };
 }

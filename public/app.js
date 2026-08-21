@@ -41,8 +41,8 @@ import {
   getCachedAppShellVersion
 } from './update.js';
 import {
-  loadManifest, getManifestVersion, getSavedManifestVersion,
-  evaluateManifestVersion, onSWControllerChange,
+  getManifestVersion, getSavedManifestVersion,
+  evaluateManifestVersion,
   openDownloadModal, refreshStorageInfo,
   migrateLegacyPackages, initTilesEvents, setStatus
 } from './tiles.js';
@@ -131,16 +131,14 @@ async function init() {
   // 選択言語が英語のとき、静的なHTML文言(data-i18n属性)を一括置換する。
   // 以降の confirm・トースト等の動的文言より必ず先に適用する
   applyStaticTranslations();
-  await loadManifest();
 
-  // SW 登録 + 更新検知
+  // SW 登録
   if ('serviceWorker' in navigator) {
     try {
       await navigator.serviceWorker.register('service-worker.js');
     } catch (err) {
       console.warn('SW登録失敗:', err);
     }
-    navigator.serviceWorker.addEventListener('controllerchange', onSWControllerChange);
   }
 
   bindEvents();
@@ -151,9 +149,8 @@ async function init() {
   restoreAppSettingsModalAfterReload();
   await migrateLegacyPackages();
   await refreshStorageInfo();
-  evaluateManifestVersion();
-  // 起動時に確認したバージョンを履歴に残す
-  logStartupVersionCheck();
+  // タイル一覧の版の確認と履歴への記録は、配信データが揃ってから行う
+  // (loadPublishedData の onApplied)。
   // service-worker.js の SHELL_CACHE とキャッシュ済みバージョンを比較し
   // 不一致なら confirm を出してアプリ全体を最新に更新
   // (「起動時にアプリの更新版を確認」が ON のときのみ)
@@ -181,6 +178,11 @@ async function init() {
         setClosuresVisible(true);
       }
       updateFeatureCounts();
+      // タイル一覧も配信で届くため、ここで保存済み version と比較する
+      // (相違があれば更新バナーを出す)
+      evaluateManifestVersion();
+      // 起動時に確認したバージョンを履歴に残す(1回だけ)
+      logStartupVersionCheckOnce();
     }
   });
   setTrackStyle(markerSettings.track);
@@ -895,6 +897,14 @@ async function importTrackGpx(ev) {
 
 // ===== 起動時のバージョン確認(履歴記録) =====
 // 起動時に確認したバージョン(地図/アプリ)を履歴に残す
+// onApplied はキャッシュ描画と更新取得で最大2回呼ばれるため、履歴への記録は1回に絞る
+let startupVersionLogged = false;
+function logStartupVersionCheckOnce() {
+  if (startupVersionLogged) return;
+  startupVersionLogged = true;
+  logStartupVersionCheck();
+}
+
 async function logStartupVersionCheck() {
   const v = getManifestVersion();
   const mv = v ? `v${v}` : t('common.unknown');

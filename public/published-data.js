@@ -17,9 +17,11 @@
 // 以後その端末は永久に更新されなくなる。
 
 import { setMapdataGeoJSON, setClosureGeoJSON } from './map.js';
+import { setTileManifest } from './tiles.js';
 import {
-  PUBLISH_MANIFEST_URL, MAPDATA_API_URL, CLOSURE_API_URL,
-  MAPDATA_CACHE, CLOSURE_CACHE, MAPDATA_VERSION_KEY, CLOSURES_VERSION_KEY
+  PUBLISH_MANIFEST_URL, MAPDATA_API_URL, CLOSURE_API_URL, TILES_API_URL,
+  MAPDATA_CACHE, CLOSURE_CACHE, TILES_CACHE,
+  MAPDATA_VERSION_KEY, CLOSURES_VERSION_KEY, TILES_VERSION_KEY
 } from './config.js';
 
 // データセットの定義。apply は取得したデータを地図へ反映する関数
@@ -35,6 +37,14 @@ const DATASETS = {
     cacheName: CLOSURE_CACHE,
     versionKey: CLOSURES_VERSION_KEY,
     apply: setClosureGeoJSON
+  },
+  // オフライン地図のダウンロード対象タイル一覧。地図には描画せず、
+  // 「地図のダウンロード」画面と更新バナーが使う(GeoJSON ではない)
+  tiles: {
+    url: TILES_API_URL,
+    cacheName: TILES_CACHE,
+    versionKey: TILES_VERSION_KEY,
+    apply: setTileManifest
   }
 };
 

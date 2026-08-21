@@ -26,9 +26,6 @@ export const APP_UPDATED_FLAG_KEY = 'minoh-hiking.app-updated';
 // セットし、起動時に読み取って設定モーダルを開き直す(読んだら即削除する)。
 export const REOPEN_APP_SETTINGS_KEY = 'minoh-hiking.reopen-app-settings';
 
-// ===== データファイルURL =====
-export const MANIFEST_URL = 'data/tile_manifest.json';
-
 // ===== 公開API(Vercel Function + Blob) =====
 // 地図データ(ポイント・ルート・スポット)と通行止め・通行困難地点は、外部の運用アプリ
 // MapPublisher が公開したものを配信で受け取る。本アプリは表示専用のため GET のみ利用する。
@@ -44,13 +41,22 @@ const PUBLISH_API_BASE = location.hostname.endsWith('github.io')
 export const PUBLISH_MANIFEST_URL = `${PUBLISH_API_BASE}/manifest`;
 export const MAPDATA_API_URL = `${PUBLISH_API_BASE}/mapdata`;
 export const CLOSURE_API_URL = `${PUBLISH_API_BASE}/closures`;
+// オフライン地図のダウンロード対象タイル一覧。GeoJSON ではないが、取得・キャッシュ・
+// version 判定は他の2つとまったく同じ仕組みに乗せる(published-data.js)
+export const TILES_API_URL = `${PUBLISH_API_BASE}/tiles`;
 
 // 公開データの保存先(Cache API)と、表示済み version の保存キー(localStorage)。
 // キャッシュは Service Worker ではなくアプリ側(published-data.js)が管理する。
 export const MAPDATA_CACHE = 'mapdata-cache';
 export const CLOSURE_CACHE = 'closures-cache';
+export const TILES_CACHE = 'tiles-cache';
 export const MAPDATA_VERSION_KEY = 'minoh-hiking.mapdata-version';
 export const CLOSURES_VERSION_KEY = 'minoh-hiking.closures-version';
+// 配信で受け取ったタイル一覧の version。「ダウンロード済みの version」
+// (VERSION_STORAGE_KEY)とは別物なので混同しないこと。
+// - TILES_VERSION_KEY      … 配信元から受け取った最新の一覧の版
+// - VERSION_STORAGE_KEY    … その端末が実際にタイルを保存したときの版
+export const TILES_VERSION_KEY = 'minoh-hiking.tiles-version';
 
 // ===== 地理院タイル =====
 // タイルキャッシュ名は `gsi-{version}` 形式(version は tile_manifest.json から)。

@@ -39,7 +39,7 @@ export function createDatasetHandler(datasetKey) {
 async function handleGet(dataset, res) {
   // 常にフレッシュに返す(キャッシュは端末側のアプリが Cache API で担う)
   res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('Content-Type', 'application/geo+json; charset=utf-8');
+  res.setHeader('Content-Type', dataset.contentType ?? 'application/geo+json; charset=utf-8');
 
   const body = await readBlobText(dataset.blobPath);
   if (body !== null) {
@@ -47,7 +47,7 @@ async function handleGet(dataset, res) {
     return;
   }
   // Blob 未作成・取得失敗時も 200 で空を返す(アプリ側の表示を止めない)
-  res.status(200).send(JSON.stringify({ type: 'FeatureCollection', version: '', features: [] }));
+  res.status(200).send(JSON.stringify(emptyBodyOf(dataset)));
 }
 
 // ===== POST: 公開(全置換保存) =====
@@ -61,7 +61,7 @@ async function handlePost(dataset, req, res) {
   const manifest = await readManifest();
   const version = nextVersion(manifest[dataset.key]?.version, dataset.versionPeriod);
 
-  const error = validateGeoJSON(req.body, dataset);
+  const error = (dataset.validate ?? validateGeoJSON)(req.body, dataset);
   if (error) {
     res.status(400).json({ error });
     return;
@@ -69,8 +69,8 @@ async function handlePost(dataset, req, res) {
 
   // version / updatedAt は送られても無視し、サーバーの値を採用する(仕様書 §3.1)
   const updatedAt = new Date().toISOString();
-  const features = req.body.features;
-  const json = JSON.stringify({ type: 'FeatureCollection', version, updatedAt, features }, null, 2);
+  const count = countOf(dataset, req.body);
+  const json = JSON.stringify(buildBody(dataset, req.body, version, updatedAt), null, 2);
 
   // 前回分の退避。初回公開時は本体が無く BlobNotFoundError になる。
   // 退避に失敗しても公開は成立させる(公開を止めるほうが運用上の害が大きい)
@@ -88,7 +88,7 @@ async function handlePost(dataset, req, res) {
     return;
   }
 
-  manifest[dataset.key] = { version, updatedAt, count: features.length };
+  manifest[dataset.key] = { version, updatedAt, count };
   try {
     await writeManifest(manifest);
   } catch (err) {
@@ -101,7 +101,26 @@ async function handlePost(dataset, req, res) {
     ok: true,
     dataset: dataset.key,
     version,
-    count: features.length,
+    count,
     updatedAt
   });
+}
+
+// ===== データセットごとの差分(既定は GeoJSON) =====
+// mapdata / closures は FeatureCollection、tiles はタイル一覧という別構造のため、
+// 「保存する本体」「件数」「空のときに返す形」だけを定義側から差し替える。
+
+function buildBody(dataset, input, version, updatedAt) {
+  if (dataset.buildBody) return dataset.buildBody(input, version, updatedAt);
+  return { type: 'FeatureCollection', version, updatedAt, features: input.features };
+}
+
+export function countOf(dataset, input) {
+  if (dataset.countOf) return dataset.countOf(input);
+  return Array.isArray(input?.features) ? input.features.length : 0;
+}
+
+function emptyBodyOf(dataset) {
+  if (dataset.emptyBody) return dataset.emptyBody();
+  return { type: 'FeatureCollection', version: '', features: [] };
 }

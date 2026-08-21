@@ -52,10 +52,10 @@ MapPublisher -- POST /api/mapdata, /api/closures --> Blob -- GET --> 両方の�
 | 変更したもの | 必要な作業 | デプロイ |
 |---|---|---|
 | **地図データ・通行止めの内容** | MapPublisher で公開する | **不要** |
+| **オフライン地図のタイル範囲** | DownloadArea で出力 → MapPublisher で公開する | **不要** |
 | `public/` のコード・画像 | `SHELL_CACHE` をバンプ → push（→ [5章](#5-通常のデプロイアプリの更新)） | 要 |
 | `api/` のコード | push | 要 |
 | **Vercel の環境変数** | 値を設定 → **再デプロイ**（設定だけでは反映されない） | 要 |
-| `public/data/tile_manifest.json`（タイル範囲） | `SHELL_CACHE` をバンプ → push | 要 |
 | `docs/` のみ | push（`.md` を直したら `.pdf` も作り直す） | 影響なし |
 
 `public/shell-revisions.json`（シェルの内容ハッシュ一覧）は**デプロイ時に自動生成**される。
@@ -63,7 +63,8 @@ MapPublisher -- POST /api/mapdata, /api/closures --> Blob -- GET --> 両方の�
 `buildCommand`、GitHub Pages は `.github/workflows/pages.yml` のステップで
 `scripts/gen-shell-revisions.mjs` を実行する）。
 
-**「データを直すたびにアプリを出し直す」必要は無い。** ポイント・ルート・スポット・通行止めは
+**「データを直すたびにアプリを出し直す」必要は無い。** ポイント・ルート・スポット・通行止め・
+タイル範囲は
 すべて公開API 配信であり、MapPublisher からの公開だけでユーザーに届く。
 
 ---
@@ -339,6 +340,8 @@ git push origin main
 | 5 | `public/icons/Startup-512x918.png` を削除 | 旧 `index.html` の `<img src>` | 起動画面の画像が出ないだけ。**表示は継続** | 小 |
 | 6 | `public/service-worker.js` のコメント（4・5 を「消さないこと」と記した注記）を削除 | — | なし | 4・5 と同時 |
 | 7 | `vercel.json` の `/data/(.*)` のキャッシュ設定を見直す | — | 下記参照 | なし |
+| 8 | `public/data/tile_manifest.json` を削除 | 旧 `tiles.js` の **`fetch()`** | 旧シェルの端末で「地図のダウンロード」が使えなくなる（取得失敗のメッセージが出るだけで起動・表示は継続） | 小 |
+| 9 | `public/data/tile_buffers.geojson` を削除 | **なし**（現行・過去どのシェルからも参照されない） | なし。1.2MB の無駄な配信が止まる | **なし** |
 
 **4 が唯一の要注意項目である。** `import` は 404 でモジュールグラフ全体の読み込みが失敗するため、
 アプリが起動しなくなる。5 と 1 は `<img src>` / `fetch()` であり、404 でも表示は続く。
@@ -346,13 +349,10 @@ git push origin main
 #### 7（`vercel.json`）について
 
 現行のルールは `/data/(.*)` に `Cache-Control: public, max-age=3600` を付けている。
-後始末後に `/data/` に残るのは `tile_manifest.json` のみになる。
+タイル一覧を公開API 配信に移したため（2026.17）、**8・9 を実施すると `/data/` は空になる**。
 
-- **パターンを `/data/tile_manifest.json` に狭めるだけ** → 挙動は変わらない
-- **`max-age` の値を変える** → 端末がタイルマニフェストを再確認する頻度が変わる。
-  オフライン地図の更新確認の効き方に影響するため、**仕様変更として扱う**
-
-特に理由がなければ、パターンを狭めるだけに留める。
+- 8・9 を実施したら、`/data/(.*)` のルールごと削除してよい
+- 8 を実施するまでは、旧シェルの端末が `tile_manifest.json` を取りに来るため残す
 
 #### 「全端末が更新を通した」の判断
 

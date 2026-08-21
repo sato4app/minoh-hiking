@@ -74,3 +74,66 @@ function checkPosition(pos, label) {
   }
   return null;
 }
+
+// ===== タイルマニフェスト(tiles)の検証 =====
+// GeoJSON ではないため専用の検証を持つ(仕様書 §6.4)。
+// 構造: { version?, source?, layers: { <キー>: { z, tile_count?, tiles: [[x, y], ...] } } }
+// version / updatedAt はサーバーが採番・付与するため、ここでは検証しない。
+
+const ZOOM_RANGE = [10, 18];   // アプリの minZoom / maxZoom に合わせる
+
+// タイル(z/x/y)が覆う経緯度の範囲。範囲チェックを座標と同じ土俵で行うために使う
+function tileLonLatBounds(x, y, z) {
+  const n = Math.pow(2, z);
+  const lonOf = (tx) => tx / n * 360 - 180;
+  const latOf = (ty) => {
+    const r = Math.PI - 2 * Math.PI * ty / n;
+    return 180 / Math.PI * Math.atan(0.5 * (Math.exp(r) - Math.exp(-r)));
+  };
+  return { lonMin: lonOf(x), lonMax: lonOf(x + 1), latMin: latOf(y + 1), latMax: latOf(y) };
+}
+
+export function validateTileManifest(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return 'タイルマニフェストの形式ではありません';
+  }
+  const layers = data.layers;
+  if (!layers || typeof layers !== 'object' || Array.isArray(layers)) {
+    return 'layers がありません';
+  }
+  const keys = Object.keys(layers);
+  if (keys.length === 0) return 'layers が空です';
+
+  for (const key of keys) {
+    const layer = layers[key];
+    const label = `layers.${key}`;
+    if (!layer || typeof layer !== 'object') return `${label} の形式が不正です`;
+
+    const z = layer.z;
+    if (!Number.isInteger(z) || z < ZOOM_RANGE[0] || z > ZOOM_RANGE[1]) {
+      return `${label} の z が ${ZOOM_RANGE[0]}〜${ZOOM_RANGE[1]} ではありません: ${z}`;
+    }
+    if (!Array.isArray(layer.tiles)) return `${label} の tiles が配列ではありません`;
+
+    // 途中で切れたファイルに気づけるよう、宣言された枚数と実際の要素数を照合する
+    if (layer.tile_count != null && layer.tile_count !== layer.tiles.length) {
+      return `${label} の tile_count(${layer.tile_count})と tiles の要素数(${layer.tiles.length})が一致しません`;
+    }
+
+    const max = Math.pow(2, z);
+    for (const [i, tile] of layer.tiles.entries()) {
+      if (!Array.isArray(tile) || tile.length < 2) return `${label}.tiles[${i}] が [x, y] ではありません`;
+      const [x, y] = tile;
+      if (!Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x >= max || y >= max) {
+        return `${label}.tiles[${i}] の座標が z=${z} の範囲外です: [${x}, ${y}]`;
+      }
+      // 座標データと同じ考え方で、箕面エリアに掛からないタイルは入力ミスとして弾く
+      const b = tileLonLatBounds(x, y, z);
+      if (!(b.lonMin < LON_RANGE[1] && b.lonMax > LON_RANGE[0] &&
+            b.latMin < LAT_RANGE[1] && b.latMax > LAT_RANGE[0])) {
+        return `${label}.tiles[${i}] が箕面エリアの範囲外です: [${x}, ${y}]`;
+      }
+    }
+  }
+  return null;
+}

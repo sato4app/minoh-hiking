@@ -1,7 +1,7 @@
-# 箕面ハイキングマップ 公開API 仕様書（契約バージョン 2.0）
+# 箕面ハイキングマップ 公開API 仕様書（契約バージョン 2.1）
 
-**バージョン:** 1.0
-**最終更新日:** 2026年8月18日
+**バージョン:** 1.1
+**最終更新日:** 2026年8月21日
 **対象:** minoh-hiking `api/` — 実装側 / MapPublisher — 呼び出し側
 **関連:**
 [機能仕様 `funcspec-202608.md`](funcspec-202608.md) §10（契約 1.0 の §10.2 は**本書で置き換えた**） /
@@ -26,7 +26,21 @@ MapPublisher `docs/migration-plan-202608.md`（移行の実装計画）
 
 破壊的変更のときだけ契約バージョンを上げ、呼び出し側にも反映する。
 
-### 1.3 契約 1.0 からの変更点
+### 1.3 契約 2.0 からの変更点（2.1）
+
+**追加のみで、既存の呼び出しは変わらない。** mapdata / closures の送信・応答・検証は 2.0 のまま。
+
+| 項目 | 内容 |
+|---|---|
+| データセット | **`tiles`（オフライン地図のタイル一覧）を追加**。GeoJSON ではない |
+| 公開スキーマ | §3.6 にタイル一覧の構造を追加。`FeatureCollection` の要件は GeoJSON データセットにのみ適用する |
+| 検証 | §6.1 を「GeoJSON データセット共通」に改め、§6.4 に tiles 固有のルールを追加 |
+| エンドポイント | `GET/POST /api/tiles` を追加 |
+
+タイル一覧はこれまでアプリに同梱していた（`public/data/tile_manifest.json`）。
+範囲を変えるたびにアプリのデプロイが必要だったため、他の2つと同じ配信に揃える。
+
+### 1.4 契約 1.0 からの変更点
 
 | 項目 | 契約 1.0 | **契約 2.0** | 理由 |
 |------|---------|-------------|------|
@@ -47,6 +61,9 @@ MapPublisher `docs/migration-plan-202608.md`（移行の実装計画）
 |---|---|---|---|---|
 | `mapdata` | **ハイキングマップデータ** | 緊急ポイント・ハイキングルート・スポット | `yyyy.n` | 年に数回 |
 | `closures` | **通行止め・通行困難地点** | 通行止め・通行困難の地点 | `yyyy-mm.n` | 随時 |
+| `tiles` | **オフライン地図のタイル一覧** | ダウンロード対象の地理院タイル（z/x/y） | `yyyy.n` | 年に1回程度 |
+
+`mapdata` / `closures` は GeoJSON、**`tiles` は GeoJSON ではない**（§3.6）。
 
 日本語名は利用者向けの画面・文書で用いる呼称であり、**本書を正本とする**。
 
@@ -55,6 +72,7 @@ MapPublisher `docs/migration-plan-202608.md`（移行の実装計画）
 | 主体 | 責務 |
 |---|---|
 | MapEditor | 地点・ルート・スポットの編集、通行止め地点の登録。作業用 GeoJSON を出力する |
+| DownloadArea | オフライン地図の対象範囲を指定し、`tile_manifest.json` を出力する。**公開はしない** |
 | MapPublisher | 作業用 GeoJSON を**公開スキーマへ整形**し、公開API へ送信する |
 | 公開API（本書） | 検証・version 採番・保存・配信 |
 | minoh-hiking アプリ | 配信データの表示。**GET のみ**利用する |
@@ -66,9 +84,12 @@ MapPublisher `docs/migration-plan-202608.md`（移行の実装計画）
 
 ## 3. 公開スキーマ
 
-配信される GeoJSON の形式を定義する。**利用者の表示に必要なものだけを出す。**
+配信されるデータの形式を定義する。**利用者の表示に必要なものだけを出す。**
 
-### 3.1 FeatureCollection
+§3.1〜§3.5 は GeoJSON データセット（`mapdata` / `closures`）に適用する。
+`tiles` は GeoJSON ではないため §3.6 に別途定義する。
+
+### 3.1 FeatureCollection（GeoJSON データセット）
 
 ```json
 {
@@ -192,6 +213,34 @@ geometry: `Point`
 }
 ```
 
+### 3.6 tiles の構造（GeoJSON ではない）
+
+DownloadArea が出力した `tile_manifest.json` をそのまま送る。整形は不要。
+
+```json
+{
+  "version": "2026.1",
+  "updatedAt": "2026-08-21T04:00:00.000Z",
+  "source": "download-area-edited",
+  "layers": {
+    "z14_default":  { "z": 14, "buffer_m_max": 300, "tile_count": 8,   "tiles": [[14357, 6497], ...] },
+    "z18_optional": { "z": 18, "buffer_m_max": 150, "tile_count": 824, "tiles": [[229724, 103959], ...] }
+  }
+}
+```
+
+| プロパティ | 型 | 必須 | 説明 |
+|---|---|---|---|
+| `layers` | object | ○ | レイヤーキー → レイヤー定義。1つ以上 |
+| `layers.<key>.z` | number | ○ | ズームレベル（10〜18） |
+| `layers.<key>.tiles` | array | ○ | `[x, y]` の配列 |
+| `layers.<key>.tile_count` | number | — | あれば `tiles` の要素数と一致すること |
+| `source` | string | — | 出力元の記録。無ければ空文字で保存する |
+
+- `version` / `updatedAt` は**送られても無視し、サーバーの値を採用する**（他のデータセットと同じ）
+- レイヤーキー（`z14_default` 等）は利用側アプリが「基本／詳細」の区分に使う。
+  **サーバーはキーの命名を検証しない**
+
 ---
 
 ## 4. version の採番
@@ -237,6 +286,8 @@ geometry: `Point`
 | POST | `/api/mapdata` | 要 | mapdata の公開（全置換） |
 | GET | `/api/closures` | 不要 | closures の GeoJSON |
 | POST | `/api/closures` | 要 | closures の公開（全置換） |
+| GET | `/api/tiles` | 不要 | tiles のタイル一覧（JSON） |
+| POST | `/api/tiles` | 要 | tiles の公開（全置換） |
 | OPTIONS | 全て | 不要 | CORS プリフライト（204） |
 
 上記以外のメソッドは `405 Method Not Allowed`。
@@ -246,27 +297,35 @@ geometry: `Point`
 ```json
 {
   "mapdata":  { "version": "2026.1",    "updatedAt": "2026-08-18T05:12:34.567Z", "count": 668 },
-  "closures": { "version": "2026-08.1", "updatedAt": "2026-08-17T22:03:11.004Z", "count": 12  }
+  "closures": { "version": "2026-08.1", "updatedAt": "2026-08-17T22:03:11.004Z", "count": 12  },
+  "tiles":    { "version": "2026.1",    "updatedAt": "2026-08-21T04:00:00.000Z", "count": 1248 }
 }
 ```
+
+`count` は GeoJSON データセットでは Feature 数、**tiles では全レイヤーのタイル枚数の合計**。
 
 - `Cache-Control: no-store`
 - `manifest.json` が未作成・取得失敗のときは、各データセットの本体から復元して返す
 - それも取得できないデータセットは `{ "version": "", "updatedAt": null, "count": 0 }` を返す
 
-### 5.3 GET /api/mapdata, GET /api/closures
+### 5.3 GET /api/mapdata, GET /api/closures, GET /api/tiles
 
-- `Content-Type: application/geo+json; charset=utf-8`
+- `Content-Type`: GeoJSON は `application/geo+json; charset=utf-8` /
+  tiles は `application/json; charset=utf-8`
 - `Cache-Control: no-store`（キャッシュは端末側が担う）
-- Blob 未作成・取得失敗時も **200 で空を返す**
-  （`{"type":"FeatureCollection","version":"","features":[]}`）。アプリの表示を止めないため
+- Blob 未作成・取得失敗時も **200 で空を返す**。アプリの表示を止めないため
+  - GeoJSON: `{"type":"FeatureCollection","version":"","features":[]}`
+  - tiles: `{"version":"","updatedAt":null,"source":"","layers":{}}`
 
-### 5.4 POST /api/mapdata, POST /api/closures
+### 5.4 POST /api/mapdata, POST /api/closures, POST /api/tiles
 
 - リクエスト: `Content-Type: application/json`、ヘッダ `x-publish-token`
-- ボディ: 公開スキーマ（§3）の FeatureCollection
+- ボディ: 公開スキーマ（§3）
+  - `mapdata` / `closures`: FeatureCollection（§3.1）
+  - `tiles`: タイル一覧（§3.6）
 - **保存は全置換**（0件を送ると全消去になる）
 - `version` / `updatedAt` は送られても無視し、サーバーの値を採用する
+- `count` は GeoJSON では Feature 数、tiles では全レイヤーのタイル枚数の合計
 
 成功応答（200）:
 
@@ -293,7 +352,7 @@ geometry: `Point`
 
 問題がなければ受理し、あればエラーメッセージを返す。**判定はここにのみ置く。**
 
-### 6.1 共通
+### 6.1 GeoJSON データセット共通（`mapdata` / `closures`）
 
 1. `FeatureCollection` 形式であり `features` が配列であること
 2. 各要素が `Feature` 形式で `geometry` を持つこと
@@ -315,6 +374,22 @@ geometry: `Point`
 
 - geometry は `Point` のみ
 
+### 6.4 tiles 固有
+
+GeoJSON ではないため §6.1 は適用しない。
+
+1. `layers` がオブジェクトで、1つ以上のレイヤーを持つこと
+2. 各レイヤーの `z` が整数で **10〜18** の範囲であること（アプリの minZoom / maxZoom）
+3. 各レイヤーの `tiles` が配列であること
+4. `tile_count` があれば `tiles` の要素数と一致すること
+   - **途中で切れたファイルに気づくための照合。** 一致しなければ 400
+5. 各タイルが `[x, y]` の整数で、`0 <= x, y < 2^z` であること
+6. 各タイルが**箕面エリアに掛かること**
+   - タイルが覆う経緯度の範囲が §6.1-3 と同じ枠（経度 `135.2`〜`135.8` / 緯度 `34.6`〜`35.1`）と
+     重なるかで判定する。掛からないタイルは入力ミスとして 400
+
+`id` の一意性は対象外（タイル一覧に `id` は無い）。
+
 ---
 
 ## 7. 保存仕様
@@ -327,6 +402,8 @@ mapdata/minoh-hiking-mapdata.geojson   ← 現行
 mapdata/previous.geojson               ← 前回分（1世代のみ・毎回上書き）
 closures/minoh-hiking-closure.geojson  ← 現行
 closures/previous.geojson              ← 前回分（1世代のみ・毎回上書き）
+tiles/tile_manifest.json               ← 現行
+tiles/previous.json                    ← 前回分（1世代のみ・毎回上書き）
 ```
 
 ### 7.2 POST の書き込み順
@@ -427,3 +504,4 @@ GitHub Pages 版アプリ・MapPublisher からもクロスオリジンで参照
 | 版 | 日付 | 内容 |
 |---|---|---|
 | 1.0 | 2026-08-18 | 初版。契約バージョン 2.0 を定義し、機能仕様書 §10.2（契約 1.0）を置き換える |
+| 1.1 | 2026-08-21 | **契約バージョン 2.1**。データセット `tiles`（オフライン地図のタイル一覧）を追加（追加のみ・既存の呼び出しに影響なし）。GeoJSON 以外を扱うため §3.6 に構造、§6.4 に検証ルールを追加し、§6.1 を「GeoJSON データセット共通」に改めた。責務分担に DownloadArea を追加（出力のみ・公開は MapPublisher） |
