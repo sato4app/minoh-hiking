@@ -434,6 +434,11 @@ function showView(name) {
   }
   currentView = name;
 
+  // ビューを切り替えたらマップ画面のメニューは閉じる。
+  // 開いたまま「起動時の画面に戻る」で離れても、次にマップ画面へ入ったときは
+  // メニューボタン(≡)で開くまで表示しない。
+  el.mapLayerPanel.hidden = true;
+
   // ビュー名を body クラスに反映(地図コントロールの表示/非表示などで使用)
   for (const cls of [...document.body.classList]) {
     if (cls.startsWith('view-state-')) document.body.classList.remove(cls);
