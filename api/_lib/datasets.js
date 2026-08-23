@@ -1,7 +1,7 @@
 // 公開データセットの定義(公開API 仕様書 docs/publish-api-202608.md §2.1・§6・§7.1)
 //
 // エンドポイント(api/mapdata.js / api/closures.js)は、この定義を渡すだけで
-// GET 配信・POST 公開・version 採番・検証を共通実装(_lib/publish.js)に委ねる。
+// GET 配信・POST 公開・検証を共通実装(_lib/publish.js)に委ねる。
 // データセットを増やすときは、ここに1件足してエンドポイントを1本作る。
 //
 // 注: api/ 配下で `_` から始まるディレクトリは Vercel が関数として公開しない。
@@ -18,7 +18,6 @@ export const DATASETS = {
     key: 'mapdata',
     blobPath: 'mapdata/minoh-hiking-mapdata.geojson',
     previousPath: 'mapdata/previous.geojson',
-    versionPeriod: 'year',   // yyyy.n
     geometryTypes: ['Point', 'LineString'],
     // properties.type → 許可する geometry(この表に無い type は 400)
     featureTypes: {
@@ -32,7 +31,6 @@ export const DATASETS = {
     key: 'closures',
     blobPath: 'closures/minoh-hiking-closure.geojson',
     previousPath: 'closures/previous.geojson',
-    versionPeriod: 'month',  // yyyy-mm.n
     geometryTypes: ['Point'],
     featureTypes: null       // properties.type は問わない
   },
@@ -41,10 +39,9 @@ export const DATASETS = {
     key: 'tiles',
     blobPath: 'tiles/tile_manifest.json',
     previousPath: 'tiles/previous.json',
-    versionPeriod: 'year',   // yyyy.n(タイル範囲の変更は多くない)
     contentType: 'application/json; charset=utf-8',
     validate: validateTileManifest,
-    // source は DownloadArea が入れる出力元の記録。version / updatedAt はサーバーが付ける
+    // source は DownloadArea が入れる出力元の記録。version は送信側、updatedAt はサーバー
     buildBody: (input, version, updatedAt) => ({
       version,
       updatedAt,

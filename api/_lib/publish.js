@@ -1,5 +1,5 @@
 // データセット1本ぶんの公開エンドポイント(GET 配信 / POST 公開)の共通実装。
-// 仕様: docs/publish-api-202608.md(契約バージョン 2.0)— 本書が正本。
+// 仕様: docs/publish-api-202608.md(契約バージョン 3.0)— 本書が正本。
 //
 // ⚠ POST は外部の運用アプリ MapPublisher(別リポジトリ)から呼ばれている。
 //   検証・レスポンスを変えるときは仕様書の契約バージョンを更新し、
@@ -8,7 +8,7 @@
 import { DATASETS } from './datasets.js';
 import { applyCors, requirePublishToken } from './http.js';
 import { readBlobText, putBlob, copyBlob, readManifest, writeManifest } from './store.js';
-import { nextVersion } from './version.js';
+import { isValidVersion } from './version.js';
 import { validateGeoJSON } from './validate.js';
 
 // データセット名から Vercel Function のハンドラーを作る(api/mapdata.js・api/closures.js)
@@ -51,15 +51,32 @@ async function handleGet(dataset, res) {
 }
 
 // ===== POST: 公開(全置換保存) =====
-// 書き込み順は仕様書 §7.2 のとおり: 採番 → 検証 → 前回分へ退避 → 本体 → manifest。
+// 書き込み順は仕様書 §7.2 のとおり: version の検証 → データの検証 → 前回分へ退避
+// → 本体 → manifest。
 // manifest の put で失敗したら 500 を返す。manifest が進んでいないため、
-// 再実行すると同じ version が再採番される(冪等)。運用者は「もう一度公開」で復旧できる。
+// 同じ version でもう一度公開でき(重複判定も通る)、運用者は再送で復旧できる(冪等)。
 async function handlePost(dataset, req, res) {
   // 認証は検証より前に行う(未認証者に検証の詳細を返さない)
   if (!requirePublishToken(req, res)) return;
 
   const manifest = await readManifest();
-  const version = nextVersion(manifest[dataset.key]?.version, dataset.versionPeriod);
+
+  // version は送信側が決める(契約 3.0 §4)。サーバーは形式と重複だけを見る。
+  const version = req.body?.version;
+  if (!isValidVersion(version)) {
+    res.status(400).json({
+      error: 'version は yyyy.nn 形式で指定してください(例: 2026.01)'
+    });
+    return;
+  }
+  // 同じ version で公開すると、利用者アプリは更新に気づけない(判定は等値比較のみ。§10)。
+  // 「公開したのに届かない」事故になるため、ここで止める。
+  if (manifest[dataset.key]?.version === version) {
+    res.status(400).json({
+      error: `version ${version} はすでに公開されています。番号を進めてください`
+    });
+    return;
+  }
 
   const error = (dataset.validate ?? validateGeoJSON)(req.body, dataset);
   if (error) {
@@ -67,7 +84,7 @@ async function handlePost(dataset, req, res) {
     return;
   }
 
-  // version / updatedAt は送られても無視し、サーバーの値を採用する(仕様書 §3.1)
+  // updatedAt は送られても無視し、サーバーの値を採用する(仕様書 §3.1)
   const updatedAt = new Date().toISOString();
   const count = countOf(dataset, req.body);
   const json = JSON.stringify(buildBody(dataset, req.body, version, updatedAt), null, 2);
