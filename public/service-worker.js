@@ -25,7 +25,7 @@
 // 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
 // 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
 
-const SHELL_CACHE = 'app-shell-2026-08-23.1';
+const SHELL_CACHE = 'app-shell-2026-08-23.2';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 
@@ -71,11 +71,12 @@ const SHELL_LOCAL_PATHS = [
 // 全端末がアプリ更新(SHELL_CACHE 比較 → confirm)を通した後に削除する。
 //   - icons/Startup-512x918.png … WebP 化前の起動画像
 //   - closures.js                … 公開データ取得を published-data.js に統合する前の版
-//   - data/tile_manifest.json    … タイル一覧を公開API 配信に移す前の版が fetch する。
-//                                  消すと旧シェルの端末で「地図のダウンロード」が使えなくなる
-//                                  (取得失敗のメッセージが出るだけで、起動と表示は続く)
-//   - data/tile_buffers.geojson  … 現行・過去いずれのシェルからも参照されない出力物
-// 注2: data/minoh-emergency-points.geojson / data/minoh-hiking-routes-spots.geojson
+// 注2: public/data/ は 2026-08-23 に廃止した(tile_manifest.json / tile_buffers.geojson を削除)。
+//   タイル一覧は公開API 配信に移したため、現行シェルは参照しない。移行前のシェルを
+//   キャッシュしたままの端末は旧 tiles.js が 404 を受けるが、取得失敗のメッセージが
+//   出るだけで起動と表示は続く(影響は「地図のダウンロード」画面に限られる)。
+//   tile_buffers.geojson はどのシェルからも参照されていなかった。
+// 注3: data/minoh-emergency-points.geojson / data/minoh-hiking-routes-spots.geojson
 //   (公開API 配信に移行する前の同梱データ)は 2026-08-20 に削除した。旧シェルを
 //   キャッシュしたままの端末が旧 app.js から取得を試みると 404 になるが、旧 app.js は
 //   取得失敗を warn するだけで表示は続行するため、影響は地図データが出ないことに留まる。
