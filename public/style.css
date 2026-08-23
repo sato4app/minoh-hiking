@@ -3,6 +3,18 @@
   box-sizing: border-box;
 }
 
+/* 画面上下左右のセーフエリア(ステータスバー・ノッチ・ホームインジケータ)。
+   viewport-fit=cover のため、標準(standalone)で起動すると Web の描画領域が
+   ステータスバーの下まで広がる。取り込まないと、画面隅に絶対配置している
+   メニューボタン(≡)や戻るボタンがバッテリー残量・通信状態の表示に隠れて
+   タップできなくなる。対応していない端末では 0px になる */
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+}
+
 html,
 body {
   margin: 0;
@@ -15,10 +27,17 @@ body {
   background: #f5f5f5;
 }
 
+/* 更新バナー・各ビューをまとめてセーフエリアの内側へ収める。
+   全画面地図(#map)は position: fixed のため padding の影響を受けず、
+   地図自体は画面の端まで表示されたまま、操作要素だけが安全な位置に入る */
 body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  padding-top: var(--safe-area-top);
+  padding-right: var(--safe-area-right);
+  padding-bottom: var(--safe-area-bottom);
+  padding-left: var(--safe-area-left);
 }
 
 /* フォーム部品の文字サイズは 16px(1rem)未満にしないこと。
@@ -104,7 +123,7 @@ textarea {
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 2.5rem;
+  bottom: calc(2.5rem + var(--safe-area-bottom));
   transform: translateX(-50%) translateY(0.5rem);
   max-width: min(90vw, 420px);
   padding: 0.7rem 1.1rem;
@@ -420,6 +439,14 @@ textarea {
 .leaflet-control-container {
   display: none;
 }
+
+/* 地図コントロールは #map(画面全体)の隅に置かれるため、body の padding では
+   セーフエリアに入らない。位置コンテナ側に余白を足してホームインジケータや
+   ノッチに重ならないようにする */
+.leaflet-top { margin-top: var(--safe-area-top); }
+.leaflet-right { margin-right: var(--safe-area-right); }
+.leaflet-bottom { margin-bottom: var(--safe-area-bottom); }
+.leaflet-left { margin-left: var(--safe-area-left); }
 
 /* 現在ズームレベル表示: スケールとズームボタンの間(独立した行)に配置 */
 .leaflet-right .zoom-display {
