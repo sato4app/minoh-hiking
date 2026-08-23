@@ -145,8 +145,6 @@ async function init() {
   initTilesEvents();
   initMarkerSettings();
   renderMessageList();
-  // 言語変更によるリロード直後なら、設定モーダルを開いた状態に戻す
-  restoreAppSettingsModalAfterReload();
   await migrateLegacyPackages();
   await refreshStorageInfo();
   // タイル一覧の版の確認と履歴への記録は、配信データが揃ってから行う
@@ -193,6 +191,9 @@ async function init() {
 
   // 初期表示はホーム(オーバーレイは非表示のまま)
   showView('home');
+  // 言語変更によるリロード直後なら、設定モーダルを開いた状態に戻す。
+  // showView() は開いているモーダルを閉じるため、その後に呼ぶ
+  restoreAppSettingsModalAfterReload();
   requestAnimationFrame(() => resizeMap());
 }
 
@@ -243,21 +244,30 @@ function bindEvents() {
   for (const elem of document.querySelectorAll('[data-close-modal]')) {
     elem.addEventListener('click', () => {
       const modal = elem.closest('.modal');
-      if (modal) modal.hidden = true;
-      // 入力欄にフォーカスが残っているとモバイルではキーボードが開いたままになり、
-      // 表示領域がずれたままになるため明示的に外す
-      if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+      // フォーカス解除(モバイルのキーボード対策)と用途の破棄は closeModal に集約
+      closeModal(modal);
       // 設定モーダルを閉じた後、現在のビュー状態(マップ画面の戻る/メニュー
       // ボタン等)を正規化して表示崩れを防ぐ
       if (modal && modal.id === 'settingsModal' && currentView === 'map') {
         showView('map');
       }
-      // 「クリア/追加/中止」モーダルを閉じたのは操作の中止。保持した用途を捨てる
-      if (modal && modal.id === 'trackExistingModal') trackExistingMode = null;
       // どのモーダルを閉じた場合も、マップ画面の操作要素を確実に表示状態へ戻す
       if (currentView === 'map') normalizeMapChrome();
     });
   }
+
+  // ハイキングマップ表示中は文字入力を行わない。モーダルが開いていないのに
+  // 文字入力欄へフォーカスが入った場合(閉じ忘れ・ポケット内の誤タッチ等)は即座に外し、
+  // ソフトキーボードや文字入力ウインドウが出ないようにする。
+  // 開いているモーダル内の入力欄(GPX のファイル名など)は対象外
+  document.addEventListener('focusin', (e) => {
+    if (currentView !== 'map') return;
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) return;
+    if (!isKeyboardInput(target)) return;
+    if (target.closest('.modal:not([hidden])')) return;
+    target.blur();
+  });
 
   // マップ表示設定(開くとき、移動経路の統計表を最新化する)
   el.btnMapLayers.addEventListener('click', () => {
@@ -366,7 +376,7 @@ function bindEvents() {
 
   // 設定モーダルから「マーカーの設定」モーダルを開く(設定モーダルは閉じる)
   el.btnOpenMarkerSettings.addEventListener('click', () => {
-    el.appSettingsModal.hidden = true;
+    closeModal(el.appSettingsModal);
     openMarkerSettingsModal();
   });
 
@@ -440,8 +450,51 @@ function normalizeMapChrome() {
 }
 
 // ===== ビュー切替 =====
+// ソフトキーボード(文字入力ウインドウ)が開く入力欄かどうか。
+// チェックボックス・選択リスト・色ピッカーはキーボードを開かないため対象外
+const KEYBOARD_INPUT_TYPES = new Set(['text', 'number', 'search', 'tel', 'url', 'email', 'password']);
+function isKeyboardInput(elem) {
+  if (elem.tagName === 'TEXTAREA') return true;
+  return elem.tagName === 'INPUT' && KEYBOARD_INPUT_TYPES.has(elem.type);
+}
+
+// 入力欄からフォーカスを外す。
+// モバイルではフォーカスが残ったまま要素を隠すとソフトキーボードや
+// 文字入力ウインドウが表示され続けるため、要素を隠す前に呼ぶ
+function blurActiveElement() {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active !== document.body) active.blur();
+}
+
+// モーダルを閉じる。入力欄にフォーカスが残ったまま非表示にすると、モバイルでは
+// ソフトキーボードや文字入力ウインドウが開いたままになる(非表示後は activeElement が
+// body へ移るため外せない)。モーダルを閉じるときは必ずこの関数を通す
+function closeModal(modal) {
+  blurActiveElement();
+  if (!modal) return;
+  modal.hidden = true;
+  // 「クリア/追加/中止」モーダルを閉じたのは操作の中止。保持した用途を捨てる
+  if (modal.id === 'trackExistingModal') trackExistingMode = null;
+}
+
+// 開いているモーダルをすべて閉じる(ビュー切替時の後始末)
+function closeAllModals() {
+  for (const modal of document.querySelectorAll('.modal')) {
+    if (modal.hidden) continue;
+    closeModal(modal);
+  }
+}
+
 function showView(name) {
   if (!el.views[name]) return;
+
+  // 前の画面に残った入力状態を持ち込まない。
+  // マーカーの設定のサイズ入力(数値入力欄)などにフォーカスが残っていると、
+  // ハイキングマップ表示中にソフトキーボードや文字入力ウインドウが出てしまうため、
+  // フォーカスを外してから、開いたままのモーダルをすべて閉じる
+  blurActiveElement();
+  closeAllModals();
+
   for (const [key, view] of Object.entries(el.views)) {
     view.hidden = (key !== name);
   }
@@ -668,7 +721,7 @@ function openTrackExistingModal(mode) {
 function resolveTrackExisting(append) {
   const mode = trackExistingMode;
   trackExistingMode = null;
-  el.trackExistingModal.hidden = true;
+  closeModal(el.trackExistingModal);
   if (mode === 'record') startTrackRecordingNow(append);
   else if (mode === 'import') openTrackImportPicker(append);
 }
@@ -795,7 +848,7 @@ function exportTrackGpx() {
   const segments = getTrackSegments();
   if (segments.length === 0) {
     showToast(t('track.nothingToExport'));
-    el.trackExportModal.hidden = true;
+    closeModal(el.trackExportModal);
     return;
   }
   // ファイル名に使えない文字は除去し、拡張子まで入力された場合は二重に付かないよう落とす。
@@ -819,7 +872,7 @@ function exportTrackGpx() {
   // click 直後の revoke はダウンロード開始前に無効化される場合があるため遅延させる
   setTimeout(() => URL.revokeObjectURL(url), 10000);
   writeExportSeq(name);
-  el.trackExportModal.hidden = true;
+  closeModal(el.trackExportModal);
   logHistory(t('track.exported', { name: fileName }), 'success');
   showToast(t('track.exported', { name: fileName }));
 }
