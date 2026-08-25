@@ -1,5 +1,5 @@
 // アプリのエントリポイント
-// - SPA ビュー切替(home / map / nav)+ 各モーダル
+// - SPA ビュー切替(home / map)+ 各モーダル
 // - 現在地・移動記録(移動経路の記録)の操作の取りまとめ
 // - 各機能モジュールの初期化と連携
 //
@@ -22,6 +22,7 @@ import {
 } from './map.js';
 import {
   setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
+  showCurrentLocationSpot,
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
   startTrackRecording, stopTrackRecording, getTrackStats, getTrackStatsList,
   getTrackSegments, clearTrack, loadTrackSegments, fitMapToTrack,
@@ -56,8 +57,7 @@ const el = {
   // ビュー
   views: {
     home: document.getElementById('viewHome'),
-    map: document.getElementById('viewMap'),
-    nav: document.getElementById('viewNav')
+    map: document.getElementById('viewMap')
   },
 
   // ホーム
@@ -156,6 +156,9 @@ async function init() {
 
   // 共有地図を初期化(箕面大滝中心 / z=15、ホーム/マップで共通)
   initMap('map');
+  // 現在地点表示ボタンは押されていないときは灰色。ラベル(title/aria-label)も
+  // ここで初期化する(押されるまで一度も設定されないため)
+  setCurrentMarkerButtonState(false);
   // ズームレベル表示は「ズームレベルを表示」トグルの状態に従う
   setZoomDisplayVisible(el.toggleZoomDisplay.checked);
   // 各マーカースタイルは公開データの読込前に設定しておく
@@ -197,12 +200,19 @@ async function init() {
   requestAnimationFrame(() => resizeMap());
 }
 
-// 現在地マーカーの表示状態を反映する。メニューのトグル・ズームボタン上の
-// アイコンボタンのどちらから切り替えても、両方の見た目が揃うようにする。
+// メニューの「現在地点をマーカー表示」トグルの状態を反映する。
+// ズームボタン上の現在地点表示ボタンは別系統のため、ここでは触らない。
 function applyCurrentMarkerVisible(on) {
   el.toggleCurrentMarker.checked = on;
   setCurrentMarkerVisible(on);
-  setCurrentMarkerButtonState(on);
+}
+
+// 現在地点表示ボタン(ズームボタンの上)を押したとき。
+// メニューのトグルとは独立した単発の操作で、押している間だけボタンを青くする。
+// 表示が終わったら(3秒経過・測位失敗)灰色へ戻す。
+function handleCurrentSpotButton() {
+  setCurrentMarkerButtonState(true);
+  showCurrentLocationSpot({ onEnd: () => setCurrentMarkerButtonState(false) });
 }
 
 function bindEvents() {
@@ -286,12 +296,13 @@ function bindEvents() {
   // 時刻表示トグル(「バージョン情報等」内): ON でメニューボタンの左に現在時刻を表示
   el.toggleClock.addEventListener('change', (e) => setClockVisible(e.target.checked));
   // ズームレベル表示トグル(設定モーダル内): ON で地図右下に現在のズームレベルを表示。
-  // 表示要素は地図コントロール内にあり、マップ・ナビ画面でのみ出るためビュー切替の反映は不要。
+  // 表示要素は地図コントロール内にあり、マップ画面でのみ出るためビュー切替の反映は不要。
   el.toggleZoomDisplay.addEventListener('change', (e) => setZoomDisplayVisible(e.target.checked));
   // 現在地点をマーカー表示: 現在地マーカー(青丸)・精度円の表示/非表示を切替。
-  // メニューのトグルと、ズームボタン上のアイコンボタンの両方から切り替える。
+  // ズームボタン上の現在地点表示ボタンとは独立(あちらは3秒だけ出す単発の操作)。
   el.toggleCurrentMarker.addEventListener('change', (e) => applyCurrentMarkerVisible(e.target.checked));
-  setCurrentMarkerButtonHandler(() => applyCurrentMarkerVisible(!el.toggleCurrentMarker.checked));
+  // 現在地点表示ボタンはメニューのトグルとは独立(押すたびに3秒だけ表示する)
+  setCurrentMarkerButtonHandler(handleCurrentSpotButton);
   // 現在地点は中央に表示: 地図を現在地へ追従させるか切替。
   // ON にすると現在地は画面中央へ来るが、その中央はこのメニュー(表示設定パネル)の
   // 真下に隠れる位置にある。切り替えた結果が見えるよう、ON にしたらメニューを閉じる
@@ -543,8 +554,8 @@ function showView(name) {
     updateTrackButtonState(el.toggleTrackRecording.checked);
     // 時刻表示は normalizeMapChrome() でトグルの状態に従って反映済み
     requestAnimationFrame(() => resizeMap());
-  } else if (name === 'home' || name === 'nav') {
-    // ホーム/ナビ: 全オーバーレイを非表示にして地理院地図のみ表示
+  } else if (name === 'home') {
+    // ホーム: 全オーバーレイを非表示にして地理院地図のみ表示
     setEmergencyPointsVisible(false);
     setHikingRoutesVisible(false);
     setClosuresVisible(false);

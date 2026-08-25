@@ -92,10 +92,11 @@ export function setZoomDisplayVisible(on) {
   if (zoomDisplayEl) zoomDisplayEl.hidden = !on;
 }
 
-// ===== 現在地マーカーの表示切替ボタン(ズームボタンの上に配置) =====
-// メニューの「現在地点をマーカー表示」トグルと同じ状態を切り替えるショートカット。
-// このモジュールはボタンの見た目だけを持ち、状態の管理は app.js が行う
-// (押されたら handler を呼び、結果は setCurrentMarkerButtonState で反映してもらう)。
+// ===== 現在地点表示ボタン(ズームボタンの上に配置) =====
+// メニューの「現在地点をマーカー表示」トグルとは独立した単発の操作。
+// 押すと 現在地へ地図を寄せ + 青丸 + 精度円 を3秒だけ出し、3秒後に灰色へ戻る。
+// このモジュールはボタンの見た目だけを持ち、表示そのものは geolocation.js が行う
+// (押されたら handler を呼び、終わったら setCurrentMarkerButtonState(false) で戻してもらう)。
 let currentMarkerButtonEl = null;
 let currentMarkerButtonHandler = null;
 
@@ -127,13 +128,14 @@ export function setCurrentMarkerButtonHandler(fn) {
   currentMarkerButtonHandler = fn;
 }
 
-// ボタンの見た目を現在の状態に合わせる(ON は現在地マーカーと同じ青、OFF は灰色)
+// ボタンの見た目を現在の状態に合わせる。
+// ON(表示中の3秒間)は現在地マーカーと同じ青、OFF は灰色。
 export function setCurrentMarkerButtonState(on) {
   if (!currentMarkerButtonEl) return;
   currentMarkerButtonEl.classList.toggle('is-on', !!on);
   const link = currentMarkerButtonEl.querySelector('a');
   if (!link) return;
-  const label = t('map.toggleCurrentMarker');
+  const label = t('map.showCurrentSpot');
   link.title = label;
   link.setAttribute('aria-label', label);
   link.setAttribute('aria-pressed', on ? 'true' : 'false');

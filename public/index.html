@@ -112,19 +112,6 @@
     </div>
   </section>
 
-  <!-- ハイキングコースの案内・ナビ(地図そのものは body 直下の #map を共有) -->
-  <section class="view view-nav" id="viewNav" hidden>
-    <button type="button" class="btn-float btn-back-float" data-view="home" aria-label="ホームに戻る" data-i18n-aria="nav.ariaBack">
-      <svg class="icon-back" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
-        <path d="M15.5 4.5L8 12l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </button>
-    <button type="button" class="btn-float btn-menu-float" id="btnNavMenu" aria-label="ナビメニュー" data-i18n-aria="nav.ariaMenu">≡</button>
-    <div class="nav-pending">
-      <p class="placeholder-message" data-i18n="nav.pending">この機能は準備中です。</p>
-    </div>
-  </section>
-
   <!-- 表示中の移動経路があるときに「クリア/追加/中止」を選ぶモーダル。
        記録開始と読み込みで共用し、見出し・説明・ボタン文言は app.js が用途に応じて設定する。
        閉じる(×・背景・キャンセル)は操作の中止で、経路には手を付けない -->

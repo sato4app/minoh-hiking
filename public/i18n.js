@@ -49,14 +49,11 @@ const DICT = {
   'map.ariaMap': { ja: '箕面エリア地理院地図', en: 'GSI map of the Minoh area' },
   'map.ariaLayers': { ja: '表示設定', en: 'Display settings' },
   'map.toggleCurrentMarker': { ja: '現在地点をマーカー表示', en: 'Show current location marker' },
+  // 現在地点表示ボタン(ズームボタンの上)。メニューのトグルとは独立した単発の操作
+  'map.showCurrentSpot': { ja: '現在地点表示', en: 'Show current location' },
   'map.toggleCenterCurrent': { ja: '現在地点は中央に表示', en: 'Keep current location centered' },
   'map.toggleTrackRecording': { ja: '移動経路を記録', en: 'Record track' },
   'map.backToHome': { ja: '起動時の画面に戻る', en: 'Back to start screen' },
-
-  // ----- ナビ画面 -----
-  'nav.ariaBack': { ja: 'ホームに戻る', en: 'Back to home' },
-  'nav.ariaMenu': { ja: 'ナビメニュー', en: 'Navigation menu' },
-  'nav.pending': { ja: 'この機能は準備中です。', en: 'This feature is under preparation.' },
 
   // ----- 移動記録 -----
   'track.start': { ja: '記録開始', en: 'Start recording' },

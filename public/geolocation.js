@@ -5,7 +5,9 @@
 // 監視(watchPosition)は、記録中は常に、それ以外はマップビュー表示中で
 // 「現在地点をマーカー表示」「現在地点は中央に表示」のいずれかが有効なときに動く
 // (refreshLocationWatch が制御)。記録中に起動時画面へ移動しても記録は継続する。
-// マーカー表示は showCurrentMarker、地図追従は followCurrentLocation で個別に切り替える。
+// マーカー表示は showCurrentMarker、地図追従は followCurrentLocation で切り替える。
+// 地図追従は「現在地点をマーカー表示」も ON のときだけ働く(shouldFollowMap)。
+// マーカーが出ていないのに地図だけが動くと、何に追従しているのかが画面から分からないため。
 // 記録中(startTrackRecording 後)は、位置更新ごとに軌跡(ポリライン + 通過点マーカー)を追加する。
 // 記録点は「20m 以上移動」または「60秒以上経過」で追加するため、その間は経路の先端が
 // 現在地に届かない。そこで最終記録地点から現在地点までを同じスタイルの線でつなぐ。
@@ -30,11 +32,13 @@ let geoWatchId = null;
 let onMapView = false;
 // 現在地点をマーカー表示(メニュートグル・既定 ON)
 let showCurrentMarker = true;
-// 現在地を地図中央に表示=現在地へ追従(メニュートグル・既定 ON)
+// 現在地を地図中央に表示=現在地へ追従(メニュートグル・既定 ON)。
+// 実際に地図を動かす条件は shouldFollowMap()(マーカー表示 ON かつマップ画面表示中)。
 let followCurrentLocation = true;
 // 次に地図を現在地へ寄せるとき、アニメ無しで一気に移動するか。
-// 追従を ON にした直後は現在地が画面外(遠距離)のこともあるため、最初の1回はアニメ無しで寄せる。
-// 実際に地図を動かしたときだけ倒すので、追従 OFF のあいだに位置を取得しても倒れない。
+// 追従を ON にした直後(およびマーカー表示を ON に戻した直後)は現在地が画面外のこともあるため、
+// 最初の1回はアニメ無しで寄せる。
+// 実際に地図を動かしたときだけ倒すので、地図が動かない条件のあいだに位置を取得しても倒れない。
 let recenterWithoutAnimation = true;
 // 直近に取得した現在地(トグル切替時の即時反映に使用)
 let lastKnownLatLng = null;
@@ -218,13 +222,11 @@ export function startTrackRecording({ append = false } = {}) {
   refreshLocationWatch();
   recordingTrack = createTrack();
   // 既に現在地が取得済なら、最初の点として打つ(待たずに描画開始する)。
-  // このとき現在地マーカーを青丸から三角(移動記録現在地点)へ切り替える。
+  // 青丸は消さない。表示するかは「現在地点をマーカー表示」トグルだけで決まる。
   if (currentLocationMarker) {
     const ll = currentLocationMarker.getLatLng();
     appendTrackPoint(recordingTrack, [ll.lat, ll.lng]);
     updateRecordingLive(ll);
-    map.removeLayer(currentLocationMarker);
-    currentLocationMarker = null;
   }
 }
 
@@ -277,7 +279,8 @@ export function stopTrackRecording() {
   }
   removeTrackLeadLine();
   recordingTrack = null;
-  // 記録停止後、マーカー表示 ON なら現在地(青丸)を再表示する。
+  // マーカー表示 ON なら現在地(青丸)を最新位置に合わせておく
+  // (記録中も出しているので通常は既にあるが、無ければここで出す)。
   if (showCurrentMarker && lastKnownLatLng) showOrUpdateCurrentMarker(lastKnownLatLng);
   // 記録が監視を要求しなくなった場合に備えて監視状態を見直す。
   refreshLocationWatch();
@@ -481,6 +484,14 @@ function notifyTrack(msg) { onTrackNotice && onTrackNotice(msg); }
 // 監視(watchPosition)が必要か:
 // - 移動記録中: 画面(ビュー)に関わらず常に必要。起動時画面へ移動しても記録を続けるため。
 // - それ以外: マップビュー表示中で、現在地マーカー表示・現在地追従のいずれかが要求しているとき。
+//
+// 「現在地点は中央に表示」だけが ON のとき(マーカー表示は OFF)、地図は動かず
+// (shouldFollowMap)、マーカーも精度円も出ないため画面上は何も起きない。それでも
+// 監視を続けるのは意図した選択で、直近の測位を新しく保つため。
+// 止めてしまうと、マーカー表示を ON に戻したときに直近位置が古すぎて
+// (LAST_FIX_MAX_AGE_MS 超え)使えず、次の測位まで現在地が出ない・地図も寄らない。
+// 「何も表示していないのに測位している」のは不具合ではないので、電池優先に振るとき以外は
+// この条件を狭めないこと。
 function needLocationWatch() {
   if (isRecordingTrack) return true;
   return onMapView && (showCurrentMarker || followCurrentLocation);
@@ -529,9 +540,9 @@ function onGeoSuccess(pos) {
   lastKnownLatLng = latlng;
   lastKnownAtMs = Date.now();
 
-  // 現在地マーカー(青丸): 「現在地点をマーカー表示」ON かつ 非記録中のみ表示。
-  // 記録中はライブ現在地を三角(移動記録現在地点)で表すため青丸は出さない。
-  if (showCurrentMarker && !isRecordingTrack) {
+  // 現在地マーカー(青丸): 「現在地点をマーカー表示」ON なら表示する。
+  // 記録中も出す(ライブ現在地は三角でも示すが、青丸を消す理由にはしない)。
+  if (showCurrentMarker) {
     showOrUpdateCurrentMarker(latlng);
   } else {
     removeCurrentMarker();
@@ -562,7 +573,16 @@ function onGeoSuccess(pos) {
 
   // 「現在地点は中央に表示」ON のとき、現在地が画面中央に来るよう地図を追従させる。
   // 記録中は起動時画面でも監視が続くため、マップ表示中に限って地図を動かす。
-  if (followCurrentLocation && onMapView) moveMapToCurrentLocation(latlng);
+  if (shouldFollowMap()) moveMapToCurrentLocation(latlng);
+}
+
+// いま地図を現在地へ寄せてよいか。
+// 「現在地点は中央に表示」に加えて「現在地点をマーカー表示」も ON であることを要求する。
+// マーカーを出していないのに地図だけが動くと、何に追従しているのかが画面から分からず、
+// 地図を自分で動かしても引き戻される理由が読めなくなるため。
+// 地図を動かすのはマップ画面表示中のみ(記録中は起動時画面でも監視が続く)。
+function shouldFollowMap() {
+  return followCurrentLocation && showCurrentMarker && onMapView;
 }
 
 // 直近の位置が「現在地」として使えるほど新しいか。
@@ -582,16 +602,20 @@ function moveMapToCurrentLocation(latlng) {
   recenterWithoutAnimation = false;
 }
 
+// 現在地マーカー(青丸)の見た目。メニュー由来の青丸と、
+// 現在地点表示ボタンが出す青丸で共用する(同じ色・大きさに見せるため)。
+const CURRENT_MARKER_STYLE = {
+  radius: 7,
+  color: '#ffffff',
+  weight: 2,
+  fillColor: '#1d4ed8',
+  fillOpacity: 0.95
+};
+
 // 現在地マーカー(青丸)の生成・更新
 function showOrUpdateCurrentMarker(latlng) {
   if (!currentLocationMarker) {
-    currentLocationMarker = L.circleMarker(latlng, {
-      radius: 7,
-      color: '#ffffff',
-      weight: 2,
-      fillColor: '#1d4ed8',
-      fillOpacity: 0.95
-    }).addTo(getMap());
+    currentLocationMarker = L.circleMarker(latlng, CURRENT_MARKER_STYLE).addTo(getMap());
     currentLocationMarker.bindPopup('現在地');
   } else {
     currentLocationMarker.setLatLng(latlng);
@@ -632,6 +656,88 @@ function removeCurrentCircle() {
   }
 }
 
+// ===== 現在地点表示ボタン(ズームボタンの上)の一時表示(3秒) =====
+// メニューの「現在地点をマーカー表示」とは独立して動く単発の操作。
+// 押すと 現在地へ地図を寄せ + 青丸 + 精度円 を3秒だけ出し、3秒後にすべて消す。
+// メニュー由来の currentLocationMarker とは別のレイヤーを使う。トグルが OFF でも
+// このボタンだけで青丸を出せるようにし、3秒後の後片付けでメニュー側の表示
+// (トグル ON のあいだ出しっぱなしの青丸)を巻き込まないようにするため。
+let spotMarker = null;          // このボタンが出す青丸(メニューの青丸とは別)
+let spotTimerId = null;         // 3秒後に消すタイマー
+let spotEndCb = null;           // 終了(3秒経過・失敗)をボタンへ知らせる
+
+// 現在地点表示ボタンが押されたときの処理。
+// 直近の測位が新しければ即座に、そうでなければ1回だけ測位してから表示する
+// (監視は両トグル OFF のあいだ止まっているため、古い位置を現在地として出さない)。
+// onEnd は表示が終わったとき(3秒経過・測位失敗)に呼ぶ。ボタンを灰色へ戻すのに使う。
+export function showCurrentLocationSpot({ onEnd } = {}) {
+  const map = getMap();
+  if (!map) { onEnd?.(); return; }
+  // 連打されたら前回の表示を畳んでから出し直す(タイマーの取り違えを避ける)
+  clearCurrentLocationSpot();
+  spotEndCb = onEnd;
+
+  if (isLastFixFresh()) {
+    renderCurrentLocationSpot(lastKnownLatLng, lastKnownAccuracy);
+    return;
+  }
+  if (!('geolocation' in navigator)) {
+    reportLocationError(t('geo.notSupported'));
+    endCurrentLocationSpot();
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const { latitude, longitude, accuracy } = pos.coords;
+      lastKnownLatLng = [latitude, longitude];
+      lastKnownAccuracy = Number.isFinite(accuracy) ? accuracy : null;
+      lastKnownAtMs = Date.now();
+      renderCurrentLocationSpot(lastKnownLatLng, lastKnownAccuracy);
+    },
+    (err) => {
+      reportLocationError(t('geo.fetchFailed', { message: err.message }));
+      endCurrentLocationSpot();
+    },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+  );
+}
+
+// 青丸・精度円を出して地図を寄せ、3秒後に片付けるタイマーを張る
+function renderCurrentLocationSpot(latlng, accuracy) {
+  const map = getMap();
+  if (!map) { endCurrentLocationSpot(); return; }
+  spotMarker = L.circleMarker(latlng, CURRENT_MARKER_STYLE).addTo(map);
+  if (Number.isFinite(accuracy)) showOrUpdateCurrentCircle(latlng, accuracy);
+  // 現在地が画面外のこともあるため、アニメ無しで一気に寄せる。
+  // 追従(setFollowCurrentLocation)とは別系統なので recenterWithoutAnimation は触らない。
+  map.setView(latlng, map.getZoom(), { animate: false });
+  spotTimerId = setTimeout(endCurrentLocationSpot, CURRENT_CIRCLE_DURATION_MS);
+}
+
+// 3秒経過・測位失敗の後片付け。ボタンを灰色へ戻すため onEnd を必ず呼ぶ。
+function endCurrentLocationSpot() {
+  clearCurrentLocationSpot();
+  const cb = spotEndCb;
+  spotEndCb = null;
+  cb?.();
+}
+
+// このボタンが出した表示だけを消す(メニュー由来の青丸には触れない)
+function clearCurrentLocationSpot() {
+  if (spotTimerId != null) {
+    clearTimeout(spotTimerId);
+    spotTimerId = null;
+  }
+  if (spotMarker) {
+    getMap()?.removeLayer(spotMarker);
+    spotMarker = null;
+  }
+  // 精度円は3秒で消す(メニュー側の一時表示も3秒なので、共用のまま消してよい)。
+  // ここで消さないと、メニューの「現在地点をマーカー表示」が ON のときは
+  // 円に消すタイマーが付いておらず出しっぱなしになる。
+  removeCurrentCircle();
+}
+
 // ===== 現在地点を中心とする円の一時表示(3秒) =====
 // 円の一時表示を要求する。新しい位置が分かっていれば即表示し、
 // 未取得・古い位置しか無いなら次に位置を取得したとき(onGeoSuccess)に表示する。
@@ -669,18 +775,28 @@ export function setLocationActiveForMapView(active, { onError } = {}) {
 // ON にした直後は、直近の取得位置が新しければ即座にマーカーを再表示し、
 // あわせて現在地点を中心とする円を3秒間だけ表示する。
 // 古い位置しか無いときは表示せず次の取得を待つ(実際とは違う地点に青丸を出さない)。
+// このトグルは地図追従の前提でもある(shouldFollowMap)。OFF のあいだは
+// 「現在地点は中央に表示」が ON でも地図は動かず、ON に戻した時点で追従を再開する。
 export function setCurrentMarkerVisible(on) {
   showCurrentMarker = on;
   if (!on) {
     removeCurrentMarker();
     removeCurrentCircle();
   } else {
-    if (isLastFixFresh() && !isRecordingTrack) {
+    if (isLastFixFresh()) {
       showOrUpdateCurrentMarker(lastKnownLatLng);
     }
     // ON にしたら現在地点を中心とする円を3秒間だけ表示する
     // (マップ表示中のみ。位置未取得なら初回取得時に表示)
     requestCurrentCircleFlash();
+    // 追従が ON なら、ここで初めて条件がそろう。次の測位を待たずに寄せる
+    // (「現在地点は中央に表示」を ON にしたときと同じ振る舞いにそろえる)。
+    // OFF のあいだは地図を自由に動かせるため現在地が画面外のこともある。
+    // 1回目はアニメ無しで一気に寄せる。
+    if (shouldFollowMap()) {
+      recenterWithoutAnimation = true;
+      if (isLastFixFresh()) moveMapToCurrentLocation(lastKnownLatLng);
+    }
   }
   refreshLocationWatch();
 }
@@ -689,13 +805,14 @@ export function setCurrentMarkerVisible(on) {
 // ON にした直後は、直近の取得位置が新しければ即座に現在地を中央へ寄せる。
 // 古い位置しか無いときは寄せずに次の取得を待つ。監視は両トグル OFF・マップ画面を
 // 離れているあいだ止まるため、そこへ寄せると現在地から離れた地点が中央に表示されてしまう。
-// 地図を動かすのはマップ画面表示中のみ(記録中は起動時画面でも監視が続くため)。
+// ただし「現在地点をマーカー表示」が OFF のあいだは、このトグルを ON にしても地図は
+// 動かない(shouldFollowMap)。マーカーを ON に戻した時点で追従が始まる。
 export function setFollowCurrentLocation(on) {
   followCurrentLocation = on;
   if (on) {
     // 追従を始めてからの1回目はアニメ無しで寄せる(現在地が画面外のこともあるため)
     recenterWithoutAnimation = true;
-    if (onMapView && isLastFixFresh()) moveMapToCurrentLocation(lastKnownLatLng);
+    if (shouldFollowMap() && isLastFixFresh()) moveMapToCurrentLocation(lastKnownLatLng);
   }
   refreshLocationWatch();
 }

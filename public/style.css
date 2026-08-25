@@ -335,20 +335,17 @@ textarea {
 }
 
 /* ===== マップビュー ===== */
-.view-map,
-.view-nav {
+.view-map {
   background: transparent;
   pointer-events: none;
 }
 
-/* マップ/ナビビューの操作要素(浮きボタン・パネル・記録ボタン群)はクリック可能に。
+/* マップビューの操作要素(浮きボタン・パネル・記録ボタン群)はクリック可能に。
    .view-map は pointer-events: none のため、操作要素ごとに auto を明示する必要がある。
    .map-top-actions は孫要素(div>button)なので div 自体を auto にする。 */
 .view-map > .btn-float,
 .view-map > .map-layer-panel,
-.view-map > .map-top-actions,
-.view-nav > .btn-float,
-.view-nav > .nav-pending {
+.view-map > .map-top-actions {
   pointer-events: auto;
 }
 
@@ -416,26 +413,7 @@ textarea {
   display: none;
 }
 
-/* ナビ画面の準備中メッセージ(中央オーバーレイ) */
-.nav-pending {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  padding: 1rem 1.4rem;
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  z-index: 400;
-}
-
-.nav-pending .placeholder-message {
-  margin: 0;
-  color: #555;
-  font-size: 0.95rem;
-}
-
-/* 地図コントロール(zoom/scale/attribution)はマップ・ナビ画面でのみ表示 */
+/* 地図コントロール(zoom/scale/attribution)はマップ画面でのみ表示 */
 .leaflet-control-container {
   display: none;
 }
@@ -480,13 +458,7 @@ textarea {
   color: #1d4ed8;
 }
 
-/* ナビ画面は現在地マーカーを表示しないため、切替ボタンも出さない */
-body.view-state-nav .current-marker-toggle {
-  display: none;
-}
-
-body.view-state-map .leaflet-control-container,
-body.view-state-nav .leaflet-control-container {
+body.view-state-map .leaflet-control-container {
   display: block;
 }
 
