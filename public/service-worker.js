@@ -25,7 +25,7 @@
 // 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
 // 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
 
-const SHELL_CACHE = 'app-shell-2026-08-24.1';
+const SHELL_CACHE = 'app-shell-2026-08-25.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 
@@ -63,13 +63,15 @@ const SHELL_LOCAL_PATHS = [
   './icons/icon-180.png',
   // 起動画面の中央に出す画像。シェルに含めないと、端末のHTTPキャッシュが
   // 失われたとき弱電波下で取得に十数秒かかり、初期表示が空白のままになる
-  './icons/Startup-512x918.webp'
+  './icons/Startup-v2-512x906.webp'
 ];
 // 注: 以下のファイルは、この一覧に無くても public/ から削除しないこと。
 // シェルは stale-while-revalidate のため、端末にはそれらを参照する旧 index.html /
 // 旧 app.js がキャッシュされたまま残ることがあり、消すと 404 になる。
 // 全端末がアプリ更新(SHELL_CACHE 比較 → confirm)を通した後に削除する。
-//   - icons/Startup-512x918.png … WebP 化前の起動画像
+//   - icons/Startup-512x918.webp … 旧版(v2 差し替え前)の起動画像。旧 index.html が参照する
+//   - icons/Startup-512x918.png  … その WebP 化前の元画像
+//   - icons/Startup-v2-512x906.png … 現行起動画像の WebP 化前の元画像
 //   - closures.js                … 公開データ取得を published-data.js に統合する前の版
 // 注2: public/data/ は 2026-08-23 に廃止した(tile_manifest.json / tile_buffers.geojson を削除)。
 //   タイル一覧は公開API 配信に移したため、現行シェルは参照しない。移行前のシェルを
