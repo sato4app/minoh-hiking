@@ -32,12 +32,21 @@ let onMapView = false;
 let showCurrentMarker = true;
 // 現在地を地図中央に表示=現在地へ追従(メニュートグル・既定 ON)
 let followCurrentLocation = true;
-// 現在地監視開始後、最初の位置取得を受け取ったか(初回はアニメ無しで移動)
-let hasHadFirstFix = false;
+// 次に地図を現在地へ寄せるとき、アニメ無しで一気に移動するか。
+// 追従を ON にした直後は現在地が画面外(遠距離)のこともあるため、最初の1回はアニメ無しで寄せる。
+// 実際に地図を動かしたときだけ倒すので、追従 OFF のあいだに位置を取得しても倒れない。
+let recenterWithoutAnimation = true;
 // 直近に取得した現在地(トグル切替時の即時反映に使用)
 let lastKnownLatLng = null;
 // 直近に取得した位置精度[m](円の即時表示に使用)
 let lastKnownAccuracy = null;
+// 直近の位置を取得した時刻[ms]。監視を止めているあいだ位置は更新されず古くなるため、
+// トグル切替時の即時反映では鮮度を確かめてから使う(isLastFixFresh)
+let lastKnownAtMs = 0;
+// 直近の位置を「現在地」として即時反映してよい上限。これより古い位置は使わず次の取得を待つ。
+// 監視は両トグル OFF・マップ画面を離れたときに止まるため、再開直後の直近位置は
+// 何分も前の地点でありうる。そこへ地図を寄せると現在地から離れた場所が表示されてしまう
+const LAST_FIX_MAX_AGE_MS = 30 * 1000;
 // 位置情報エラーの通知コールバックと、監視中に通知済みかのフラグ(連続エラーの抑制)
 let locationErrorCb = null;
 let locationErrorReported = false;
@@ -443,7 +452,7 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // 監視を張り直す(非表示中に OS/ブラウザ側で止められている場合への対処)。
-// stopGeoWatch と違いマーカーは消さず、初回フラグもそのままにする。
+// stopGeoWatch と違いマーカーは消さない。
 function restartGeoWatch() {
   if (geoWatchId != null) {
     navigator.geolocation.clearWatch(geoWatchId);
@@ -498,7 +507,6 @@ function startGeoWatch() {
 }
 
 function stopGeoWatch() {
-  hasHadFirstFix = false;
   if (geoWatchId != null) {
     navigator.geolocation.clearWatch(geoWatchId);
     geoWatchId = null;
@@ -516,13 +524,10 @@ function reportLocationError(msg) {
 
 // 位置取得成功時の更新処理(マーカー表示・精度円・記録・地図追従)
 function onGeoSuccess(pos) {
-  const map = getMap();
   const { latitude, longitude, accuracy } = pos.coords;
   const latlng = [latitude, longitude];
   lastKnownLatLng = latlng;
-  // 初回の位置取得かどうか(初回は遠距離になり得るためアニメ無しで移動)
-  const isFirstFix = !hasHadFirstFix;
-  hasHadFirstFix = true;
+  lastKnownAtMs = Date.now();
 
   // 現在地マーカー(青丸): 「現在地点をマーカー表示」ON かつ 非記録中のみ表示。
   // 記録中はライブ現在地を三角(移動記録現在地点)で表すため青丸は出さない。
@@ -557,10 +562,24 @@ function onGeoSuccess(pos) {
 
   // 「現在地点は中央に表示」ON のとき、現在地が画面中央に来るよう地図を追従させる。
   // 記録中は起動時画面でも監視が続くため、マップ表示中に限って地図を動かす。
-  if (followCurrentLocation && onMapView) {
-    if (isFirstFix) map.setView(latlng, map.getZoom());
-    else map.panTo(latlng);
-  }
+  if (followCurrentLocation && onMapView) moveMapToCurrentLocation(latlng);
+}
+
+// 直近の位置が「現在地」として使えるほど新しいか。
+// 監視を止めているあいだは位置が更新されないため、再開直後は古い位置が残っている
+function isLastFixFresh() {
+  return !!lastKnownLatLng && (Date.now() - lastKnownAtMs) <= LAST_FIX_MAX_AGE_MS;
+}
+
+// 地図を現在地が中央に来る位置へ動かす。
+// 追従を始めてからの1回目は現在地が画面外のこともあるためアニメ無しで一気に寄せ、
+// 2回目以降(移動にともなう更新)はアニメ付きで滑らかに追従する
+function moveMapToCurrentLocation(latlng) {
+  const map = getMap();
+  if (!map) return;
+  if (recenterWithoutAnimation) map.setView(latlng, map.getZoom(), { animate: false });
+  else map.panTo(latlng);
+  recenterWithoutAnimation = false;
 }
 
 // 現在地マーカー(青丸)の生成・更新
@@ -614,12 +633,12 @@ function removeCurrentCircle() {
 }
 
 // ===== 現在地点を中心とする円の一時表示(3秒) =====
-// 円の一時表示を要求する。位置が分かっていれば即表示し、
-// 未取得なら次に位置を取得したとき(onGeoSuccess)に表示する。
+// 円の一時表示を要求する。新しい位置が分かっていれば即表示し、
+// 未取得・古い位置しか無いなら次に位置を取得したとき(onGeoSuccess)に表示する。
 // マップ表示中でマーカー表示 ON のときのみ有効。
 function requestCurrentCircleFlash() {
   if (!getMap() || !onMapView || !showCurrentMarker) return;
-  if (lastKnownLatLng && Number.isFinite(lastKnownAccuracy)) {
+  if (isLastFixFresh() && Number.isFinite(lastKnownAccuracy)) {
     showTemporaryCircle(lastKnownLatLng, lastKnownAccuracy);
   } else {
     pendingCircleShow = true;
@@ -647,15 +666,16 @@ export function setLocationActiveForMapView(active, { onError } = {}) {
 }
 
 // 「現在地点をマーカー表示」トグル。OFF で青丸・精度円を消す。
-// ON にした直後は、直近の取得位置があれば即座にマーカーを再表示し、
+// ON にした直後は、直近の取得位置が新しければ即座にマーカーを再表示し、
 // あわせて現在地点を中心とする円を3秒間だけ表示する。
+// 古い位置しか無いときは表示せず次の取得を待つ(実際とは違う地点に青丸を出さない)。
 export function setCurrentMarkerVisible(on) {
   showCurrentMarker = on;
   if (!on) {
     removeCurrentMarker();
     removeCurrentCircle();
   } else {
-    if (lastKnownLatLng && !isRecordingTrack) {
+    if (isLastFixFresh() && !isRecordingTrack) {
       showOrUpdateCurrentMarker(lastKnownLatLng);
     }
     // ON にしたら現在地点を中心とする円を3秒間だけ表示する
@@ -665,12 +685,17 @@ export function setCurrentMarkerVisible(on) {
   refreshLocationWatch();
 }
 
-// 「現在地点は中央に表示」トグル。ON にした直後、直近の取得位置があれば即追従。
+// 「現在地点は中央に表示」トグル。
+// ON にした直後は、直近の取得位置が新しければ即座に現在地を中央へ寄せる。
+// 古い位置しか無いときは寄せずに次の取得を待つ。監視は両トグル OFF・マップ画面を
+// 離れているあいだ止まるため、そこへ寄せると現在地から離れた地点が中央に表示されてしまう。
+// 地図を動かすのはマップ画面表示中のみ(記録中は起動時画面でも監視が続くため)。
 export function setFollowCurrentLocation(on) {
   followCurrentLocation = on;
-  const map = getMap();
-  if (on && lastKnownLatLng && map) {
-    map.panTo(lastKnownLatLng);
+  if (on) {
+    // 追従を始めてからの1回目はアニメ無しで寄せる(現在地が画面外のこともあるため)
+    recenterWithoutAnimation = true;
+    if (onMapView && isLastFixFresh()) moveMapToCurrentLocation(lastKnownLatLng);
   }
   refreshLocationWatch();
 }

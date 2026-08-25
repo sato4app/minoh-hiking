@@ -292,8 +292,16 @@ function bindEvents() {
   // メニューのトグルと、ズームボタン上のアイコンボタンの両方から切り替える。
   el.toggleCurrentMarker.addEventListener('change', (e) => applyCurrentMarkerVisible(e.target.checked));
   setCurrentMarkerButtonHandler(() => applyCurrentMarkerVisible(!el.toggleCurrentMarker.checked));
-  // 現在地点は中央に表示: 地図を現在地へ追従させるか切替
-  el.toggleCenterCurrent.addEventListener('change', (e) => setFollowCurrentLocation(e.target.checked));
+  // 現在地点は中央に表示: 地図を現在地へ追従させるか切替。
+  // ON にすると現在地は画面中央へ来るが、その中央はこのメニュー(表示設定パネル)の
+  // 真下に隠れる位置にある。切り替えた結果が見えるよう、ON にしたらメニューを閉じる
+  // (閉じないと、パネルの外に見えている範囲=現在地から離れた場所だけが見え、
+  //  地図が見当違いの場所へ動いたように見えてしまう)。
+  el.toggleCenterCurrent.addEventListener('change', (e) => {
+    const on = e.target.checked;
+    if (on) el.mapLayerPanel.hidden = true;
+    setFollowCurrentLocation(on);
+  });
   el.toggleTrackRecording.addEventListener('change', (e) => {
     const on = e.target.checked;
     if (!on) {
