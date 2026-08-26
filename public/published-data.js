@@ -39,7 +39,7 @@ const DATASETS = {
     apply: setClosureGeoJSON
   },
   // オフライン地図のダウンロード対象タイル一覧。地図には描画せず、
-  // 「地図のダウンロード」画面と更新バナーが使う(GeoJSON ではない)
+  // 「地図データのダウンロード」画面と更新バナーが使う(GeoJSON ではない)
   tiles: {
     url: TILES_API_URL,
     cacheName: TILES_CACHE,

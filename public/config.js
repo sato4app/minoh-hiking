@@ -63,7 +63,7 @@ export const CLOSURES_VERSION_KEY = 'minoh-hiking.closures-version';
 export const TILES_VERSION_KEY = 'minoh-hiking.tiles-version';
 
 // ===== 地理院タイル =====
-// タイルキャッシュ名は `gsi-{version}` 形式(version は tile_manifest.json から)。
+// タイルキャッシュ名は `gsi-{version}` 形式(version は公開API のタイル一覧から)。
 // 旧 version のキャッシュは保持し、SW・アプリ双方で全 gsi-* を横断参照する。
 export const TILE_CACHE_PREFIX = 'gsi-';
 export const TILE_URL_BASE = 'https://cyberjapandata.gsi.go.jp/xyz/std';
@@ -71,7 +71,23 @@ export const TILE_URL_BASE = 'https://cyberjapandata.gsi.go.jp/xyz/std';
 // ===== ダウンロード制御 =====
 export const CONCURRENCY = 4;      // タイル取得の同時実行数
 export const MAX_RETRIES = 3;      // 取得失敗時のリトライ回数
-export const AVG_TILE_KB = 12;     // 実測不能時のサイズ推定用(平均タイルサイズ)
+
+// ===== ダウンロードサイズの概算 =====
+// ズームレベル別の1タイルあたり平均サイズ(KB)。配信中のタイル一覧(version 2026.01・
+// 全1405枚)へ HEAD を送り Content-Length を集計した実測値(2026-08-25)。
+// 一律の平均値では大きく外れるため z 別に持つ: 低ズームは1枚に等高線・注記が詰まって
+// 重く(z15=64.2KB)、z18 は軽い(6.1KB)。枚数の67%を占める z18 に平均が引きずられ、
+// 一律12KB だと基本レイヤーのみの合計が実測 8.5MB に対し 5.4MB と4割近く過小になる。
+// 配信範囲が変わると平均も動くため、範囲を拡張したときは実測し直すこと。
+export const TILE_AVG_KB_BY_Z = {
+  14: 53.9,
+  15: 64.2,
+  16: 24.8,
+  17: 13.1,
+  18: 6.1
+};
+// 上表に無いズームレベル用のフォールバック(全1405枚の実測平均)
+export const TILE_AVG_KB_FALLBACK = 10.3;
 
 // ===== アプリ更新制御(update.js) =====
 // アプリの更新版(アプリシェル一式)のダウンロード完了を待つ上限(ミリ秒)。

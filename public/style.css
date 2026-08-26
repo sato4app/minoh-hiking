@@ -484,8 +484,8 @@ body.view-state-map .leaflet-control-container {
 }
 
 /* データ件数(ポイント/ルート/スポット/通行止め):
-   「バージョン情報等」のバージョン情報内に、各項目を横一列・中央寄せで表示する。 */
-/* データ件数: ラベル行(1行目)+値行(2行目)の2行表・罫線なし。
+   バージョン情報モーダルのバージョン情報内に、横一列・中央寄せで表示する。
+   ラベル行(1行目)+値行(2行目)の2行表・罫線なし。
    margin-left: auto で表を右に寄せ、右余白は info-value の
    padding-right(1.5rem)と同じにして、表の右端を上の info-row の
    値(通行止め・通行困難地点)のテキスト右端に合わせる */
@@ -792,7 +792,7 @@ body.view-state-map .leaflet-control-container {
 }
 
 /* モーダル見出し直下の補足テキスト(例: ダウンロード画面の対象説明)。
-   横位置は .storage-info など本文セクション(padding 左右 1rem)に合わせる */
+   横位置は .download-version など本文セクション(padding 左右 1rem)に合わせる */
 .modal-subtitle {
   margin: 0;
   padding: 0.25rem 1rem 0.5rem;
@@ -940,23 +940,49 @@ body.view-state-map .leaflet-control-container {
   outline-offset: 2px;
 }
 
-.toggle-row {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #eee;
+/* ダウンロード実行中など、操作を受け付けないとき */
+.toggle-switch input[type="checkbox"]:disabled + .toggle-slider {
+  opacity: 0.5;
 }
 
-/* ===== ストレージ情報 ===== */
-.storage-info {
-  background: #fafafa;
+/* ===== 地図データのダウンロード ===== */
+/* バージョン行: ラベルを上、値を右寄せで下に置く。1行に並べると
+   「端末の地図データ ⇒ 配信中の最新」と版番号2つが収まらないため段組みにする。
+   値の文言は状態(未ダウンロード / 最新 / 更新あり)に応じて tiles.js が組み立てる */
+.download-version {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
   padding: 0.5rem 1rem;
+  background: #fafafa;
   border-bottom: 1px solid #eee;
 }
 
-/* 地図のダウンロード: ダウンロード済み地図バージョン/ファイルサイズは、
-   直上の補足文(modal-subtitle)より一段下げて明細であることを示す。
-   値は右端揃えのままにするため、左側だけインデントする。 */
-#downloadModal .storage-info {
-  padding-left: 2rem;
+.download-version-label {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.download-version-value {
+  align-self: flex-end;
+  font-weight: 600;
+  color: #222;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 更新版があるとき(未ダウンロードを含む)だけ色を変えて気づけるようにする */
+.download-version-value.is-update {
+  color: #b45309;
+}
+
+/* サイズ行: 直上の「詳細地図データ(Z=18)を含む」トグルに属する明細のため、
+   左端をトグルの文字位置(横 padding 0.75rem + スライダー 2.4rem + 間隔 0.6rem)に揃える */
+.download-size {
+  padding: 0 1rem 0.6rem 3.75rem;
+  font-size: 0.9rem;
+  color: #444;
+  font-variant-numeric: tabular-nums;
+  border-bottom: 1px solid #eee;
 }
 
 .info-row {
@@ -1018,7 +1044,7 @@ body.view-state-map .leaflet-control-container {
   word-break: break-all;
 }
 
-/* ===== 「バージョン情報等」モーダル: セクション ===== */
+/* ===== バージョン情報・設定/Settings モーダル共通: セクション ===== */
 .info-section {
   padding: 0.5rem 1rem 1rem;
   border-bottom: 1px solid #eee;
@@ -1091,7 +1117,7 @@ body.view-state-map .leaflet-control-container {
   padding: 0.5rem 1.5rem;
 }
 
-/* 「バージョン情報等」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
+/* 「設定/Settings」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
 .info-collapse .message-list {
   flex: none;
   max-height: 240px;

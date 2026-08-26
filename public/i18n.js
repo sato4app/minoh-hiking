@@ -40,7 +40,6 @@ const DICT = {
   // ----- ホーム画面 -----
   'home.ariaMainMenu': { ja: 'メインメニュー', en: 'Main menu' },
   'home.showMap': { ja: 'ハイキングマップ表示', en: 'Show Hiking Map' },
-  'home.download': { ja: '地図のダウンロード', en: 'Download Maps' },
   'home.versionInfo': { ja: 'バージョン情報', en: 'Version Info' },
   // 「設定/Settings」(起動画面のボタン・設定モーダルの見出し)は日英併記の固定文言のため
   // 翻訳キーを持たない(index.html に直接記述し、言語切替でも変えない)
@@ -155,14 +154,27 @@ const DICT = {
   'banner.later': { ja: '後で', en: 'Later' },
   'banner.ariaClose': { ja: 'バナーを閉じる', en: 'Close banner' },
 
-  // ----- 地図のダウンロード(モーダル + tiles.js) -----
+  // ----- 地図データのダウンロード(モーダル + tiles.js) -----
+  // 起動画面のボタンとモーダル見出しで共用する
+  'download.title': { ja: '地図データのダウンロード', en: 'Download Map Data' },
   'download.subtitle': {
-    ja: '電波が届かない場所でも地図を表示できるよう、地図データを端末に保存します（オフライン対応）',
-    en: 'Saves map data on your device so the map works where there is no signal (offline support)'
+    ja: '箕面でのハイキング用の地図データを端末に保存し、オフライン状態で使用可能にします',
+    en: 'Saves map data for hiking in Minoh on your device so it can be used offline'
   },
-  'download.savedVersion': { ja: 'ダウンロード済み地図バージョン:', en: 'Downloaded map version:' },
-  'download.fileSize': { ja: 'ファイルサイズ(MB):', en: 'File size (MB):' },
-  'download.includeDetail': { ja: '詳細地図(z=18)を含む', en: 'Include detailed map (z=18)' },
+  // バージョン行: ラベルと、状態別の値(未ダウンロード / 最新 / 更新あり)。
+  // 「保存済み ⇒ 最新」の形は版番号と矢印だけなので tiles.js 側で組み立てる
+  'download.versionLabel': { ja: '端末の地図データ ⇒ 配信中の最新', en: 'On device ⇒ Latest available' },
+  'download.notDownloaded': { ja: '未ダウンロード', en: 'Not downloaded' },
+  'download.versionUpToDate': { ja: '{version}（最新）', en: '{version} (latest)' },
+  // サイズ行: 合計は選択中レイヤーの総量、更新分はまだ端末に無いタイルの総量。
+  // 未ダウンロード(合計＝更新分)のときは合計だけを出す
+  'download.sizeTotal': { ja: '合計 約 {total} MB', en: 'Total approx. {total} MB' },
+  'download.sizeWithDelta': {
+    ja: '合計 約 {total} MB / 更新分 約 {delta} MB',
+    en: 'Total approx. {total} MB / Update approx. {delta} MB'
+  },
+  'download.sizeNoDelta': { ja: '合計 約 {total} MB / 更新分 なし', en: 'Total approx. {total} MB / No update needed' },
+  'download.includeDetail': { ja: '詳細地図データ(Z=18)を含む', en: 'Include detailed map data (Z=18)' },
   'download.startBtn': { ja: 'ダウンロード', en: 'Download' },
   'download.manifestLoadFailed': { ja: 'マニフェスト読込失敗: {message}', en: 'Failed to load manifest: {message}' },
   'download.noLayers': { ja: 'マニフェストにレイヤー情報がありません', en: 'The manifest has no layer information' },
@@ -174,37 +186,37 @@ const DICT = {
     en: 'Interrupted ({completed}/{total} done, {failed} failed)'
   },
   'download.abortedLog': {
-    ja: '地図のダウンロードを中断しました({completed}/{total})',
-    en: 'Map download interrupted ({completed}/{total})'
+    ja: '地図データのダウンロードを中断しました({completed}/{total})',
+    en: 'Map data download interrupted ({completed}/{total})'
   },
   'download.doneWithFailures': { ja: '完了(失敗 {failed} 件あり)', en: 'Finished ({failed} failed)' },
   'download.doneWithFailuresLog': {
-    ja: '地図のダウンロード完了(失敗 {failed} 件あり)',
-    en: 'Map download finished ({failed} failed)'
+    ja: '地図データのダウンロード完了(失敗 {failed} 件あり)',
+    en: 'Map data download finished ({failed} failed)'
   },
   'download.done': { ja: 'ダウンロード完了', en: 'Download finished' },
-  'download.doneLog': { ja: '地図のダウンロードが完了しました', en: 'Map download completed' },
+  'download.doneLog': { ja: '地図データのダウンロードが完了しました', en: 'Map data download completed' },
   'download.cacheReadFailed': { ja: 'キャッシュ参照失敗: {message}', en: 'Failed to read cache: {message}' },
   'download.upToDate': {
     ja: '追加でダウンロードするタイルはありません。バージョンを更新しました',
     en: 'No additional tiles to download. Version updated'
   },
-  'download.upToDateLog': { ja: '地図は最新の状態です(バージョンを更新)', en: 'Map is up to date (version updated)' },
+  'download.upToDateLog': { ja: '地図データは最新の状態です(バージョンを更新)', en: 'Map data is up to date (version updated)' },
   // 差分/全部更新の呼び名({label} に埋め込むため、英語は文中で自然な小文字)
   'download.diffLabel': { ja: '差分更新', en: 'differential update' },
   'download.allLabel': { ja: '全部更新', en: 'full update' },
   'download.updateStarted': { ja: '{label}開始: {n} タイル', en: 'Starting {label}: {n} tiles' },
   'download.updateAbortedLog': {
-    ja: '地図の{label}を中断しました({completed}/{total})',
-    en: 'Map {label} interrupted ({completed}/{total})'
+    ja: '地図データの{label}を中断しました({completed}/{total})',
+    en: 'Map data {label} interrupted ({completed}/{total})'
   },
   'download.updateDoneWithFailures': { ja: '{label}完了(失敗 {failed} 件あり)', en: 'Finished {label} ({failed} failed)' },
   'download.updateDoneWithFailuresLog': {
-    ja: '地図の{label}完了(失敗 {failed} 件あり)',
-    en: 'Finished map {label} ({failed} failed)'
+    ja: '地図データの{label}完了(失敗 {failed} 件あり)',
+    en: 'Finished map data {label} ({failed} failed)'
   },
   'download.updateDone': { ja: '{label}が完了しました', en: 'Finished {label}' },
-  'download.updateDoneLog': { ja: '地図の{label}が完了しました', en: 'Finished map {label}' },
+  'download.updateDoneLog': { ja: '地図データの{label}が完了しました', en: 'Finished map data {label}' },
   'download.noVersion': {
     ja: 'マニフェストの version が不明なため開始できません',
     en: 'Cannot start: manifest version is unknown'
@@ -217,9 +229,13 @@ const DICT = {
   'download.clearConfirm': { ja: 'キャッシュ済みのタイルを全て削除します。よろしいですか?', en: 'Delete all cached tiles?' },
   'download.cleared': { ja: 'キャッシュを削除しました', en: 'Cache cleared' },
   'download.clearFailed': { ja: '削除失敗: {message}', en: 'Failed to delete: {message}' },
-  'download.lowStorage': { ja: 'ストレージ残量が少なくなっています', en: 'Storage space is running low' },
 
-  // ----- バージョン情報等モーダル -----
+  // ----- バージョン情報モーダル / 設定/Settings モーダル -----
+  // 接頭辞 info. は、両モーダルが1つの「バージョン情報等」モーダルだった頃の名残
+  // (2026.9 で分離したがキー名は据え置き)。振り分けは次のとおり:
+  //   設定/Settings … showClock / showZoomLevel / showMessages / ariaClearMessages /
+  //                    noMessages / about / appName / appNameValue / contributorsValue
+  //   バージョン情報 … startupUpdateCheck / versionInfo / 各 version 系 / データ件数系
   'info.showClock': { ja: '時刻を表示', en: 'Show clock' },
   'info.showZoomLevel': { ja: 'ズームレベルを表示', en: 'Show zoom level' },
   'info.startupUpdateCheck': { ja: '起動時にアプリの更新版を確認', en: 'Check for app updates at startup' },
@@ -266,11 +282,11 @@ const DICT = {
   },
   'update.mapTilesNotice': {
     ja: 'ダウンロード対象の地図タイルが拡張されました。\n現在: {saved}\n最新: {latest}\n\n' +
-        '地図のダウンロードから、ダウンロードしてください。\n' +
-        'サイズは合計20MB弱で、既存分があれば差分のみです。',
+        '起動時画面の「地図データのダウンロード」から、ダウンロードしてください。\n' +
+        'サイズは詳細地図データを含めて合計約14MBで、既存分があれば差分のみです。',
     en: 'The map tiles available for download have been expanded.\nCurrent: {saved}\nLatest: {latest}\n\n' +
-        'Please download them from "Download Maps (Offline)".\n' +
-        'The total size is under 20 MB; if you already have tiles, only the difference is downloaded.'
+        'Please download them from "Download Map Data" on the start screen.\n' +
+        'The total size is about 14 MB including the detailed map data; if you already have tiles, only the difference is downloaded.'
   },
 
   // ----- マーカーの設定 -----

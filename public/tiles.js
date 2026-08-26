@@ -3,13 +3,14 @@
 //   一覧は公開API から配信で受け取る(取得・キャッシュは published-data.js が担い、
 //   ここへは setTileManifest() で渡される)
 // - 地理院タイルのダウンロード(基本/詳細、差分/全部更新)
-// - タイルキャッシュ(gsi-{version})の参照・削除・サイズ集計
+// - タイルキャッシュ(gsi-{version})の参照・削除と、ダウンロードサイズの概算
 // タイルキャッシュ名は `gsi-{version}` 形式。旧 version のキャッシュは保持し、
 // 全 gsi-* を横断参照する(version 変更後も旧タイルを活用)。
 
 import {
   TILE_CACHE_PREFIX, TILE_URL_BASE,
-  CONCURRENCY, MAX_RETRIES, AVG_TILE_KB, VERSION_STORAGE_KEY
+  CONCURRENCY, MAX_RETRIES, VERSION_STORAGE_KEY,
+  TILE_AVG_KB_BY_Z, TILE_AVG_KB_FALLBACK
 } from './config.js';
 import { savePackage, listPackages, clearPackages, deletePackage } from './db.js';
 import { logHistory } from './messages.js';
@@ -19,6 +20,11 @@ import { t } from './i18n.js';
 let manifest = null;
 let downloadController = null;
 let isDownloading = false;
+// ダウンロードモーダルを開いた時点のキャッシュ済みタイルURL集合。サイズ行の
+// 「更新分」を求めるために使う。全 gsi-* の走査は重いので、モーダルを開いたとき・
+// ダウンロード完了時・クリア時にだけ取り直し、詳細トグルの切替ではこの集合を
+// 使い回す(走査できなかったときは null にして「更新分」を出さない)。
+let cachedTileUrls = null;
 
 // ===== DOM要素 =====
 const el = {
@@ -27,8 +33,8 @@ const el = {
   toggleDetail: document.getElementById('toggleDetail'),
   btnDownloadMap: document.getElementById('btnDownloadMap'),
   btnClearCache: document.getElementById('btnClearCache'),
-  downloadedVersion: document.getElementById('downloadedVersion'),
-  downloadedSizeMB: document.getElementById('downloadedSizeMB'),
+  downloadVersionValue: document.getElementById('downloadVersionValue'),
+  downloadSizeValue: document.getElementById('downloadSizeValue'),
   updateBanner: document.getElementById('updateBanner'),
   updateBannerMessage: document.getElementById('updateBannerMessage'),
   btnUpdateDiff: document.getElementById('btnUpdateDiff'),
@@ -41,6 +47,8 @@ const el = {
 export function initTilesEvents() {
   el.btnDownloadMap.addEventListener('click', onDownloadMap);
   el.btnClearCache.addEventListener('click', onClearCache);
+  // 対象レイヤーが変わるとサイズも変わる(キャッシュ済み集合は取り直さない)
+  el.toggleDetail.addEventListener('change', updateSizeRow);
   el.btnUpdateDiff.addEventListener('click', () => startManifestUpdate('diff'));
   el.btnUpdateAll.addEventListener('click', () => startManifestUpdate('all'));
   el.btnUpdateLater.addEventListener('click', hideUpdateBanner);
@@ -73,7 +81,7 @@ export function evaluateManifestVersion() {
   if (isDownloading) return;
   if (!manifest || manifest.version == null) return;
   const saved = getSavedManifestVersion();
-  if (!saved) return; // 初回ユーザーは設定モーダル経由のDL誘導
+  if (!saved) return; // 初回ユーザーは起動時画面の「地図データのダウンロード」から誘導する
   if (String(manifest.version) !== saved) {
     showUpdateBanner();
   } else {
@@ -140,16 +148,22 @@ async function getCachedTileUrlSet() {
 // ===== ダウンロードモーダル =====
 export function openDownloadModal() {
   el.downloadModal.hidden = false;
-  refreshStorageInfo();
+  refreshDownloadInfo();
+}
+
+// 「詳細地図データ(Z=18)を含む」トグルで決まるダウンロード対象レイヤー。
+// Off(既定) → z14〜17(基本)、On → z14〜18(詳細を含む)
+const BASE_LAYER_KEYS = ['z14_default', 'z15_default', 'z16_default', 'z17_default'];
+const DETAIL_LAYER_KEY = 'z18_optional';
+
+function selectedLayerKeys() {
+  return el.toggleDetail.checked
+    ? [...BASE_LAYER_KEYS, DETAIL_LAYER_KEY]
+    : [...BASE_LAYER_KEYS];
 }
 
 async function onDownloadMap() {
-  // トグル: Off → z14〜17(基本)、On → z14〜18(詳細含む)
-  const baseKeys = ['z14_default', 'z15_default', 'z16_default', 'z17_default'];
-  const layerKeys = el.toggleDetail.checked
-    ? [...baseKeys, 'z18_optional']
-    : baseKeys;
-  await startDownload(layerKeys);
+  await startDownload(selectedLayerKeys());
 }
 
 async function startDownload(layerKeys) {
@@ -202,14 +216,14 @@ async function startDownload(layerKeys) {
     } else {
       setStatus(t('download.done'), 'success');
       logHistory(t('download.doneLog'), 'success');
-      const allLayerKeys = Object.keys(manifest.layers);
-      const coversAll = allLayerKeys.every((k) => layerKeys.includes(k));
-      if (coversAll) saveManifestVersion();
+      // 地図のバージョンは詳細地図データの有無とは無関係なので、選んだ対象を
+      // 取り切れた時点で保存する(基本レイヤーだけのダウンロードでも確定する)
+      saveManifestVersion();
       evaluateManifestVersion();
     }
   }
 
-  await refreshStorageInfo();
+  await refreshDownloadInfo();
 }
 
 // ===== マニフェスト更新DL(差分 / 全部) =====
@@ -243,7 +257,7 @@ async function startManifestUpdate(mode) {
     setStatus(t('download.upToDate'), 'success');
     logHistory(t('download.upToDateLog'), 'success');
     saveManifestVersion();
-    await refreshStorageInfo();
+    await refreshDownloadInfo();
     return;
   }
 
@@ -274,7 +288,7 @@ async function startManifestUpdate(mode) {
     saveManifestVersion();
   }
 
-  await refreshStorageInfo();
+  await refreshDownloadInfo();
 }
 
 // ===== ジョブ実行(共通ワーカーループ) =====
@@ -390,7 +404,7 @@ async function onClearCache() {
     try { localStorage.removeItem(VERSION_STORAGE_KEY); } catch { /* noop */ }
     hideUpdateBanner();
     setStatus(t('download.cleared'), 'success');
-    await refreshStorageInfo();
+    await refreshDownloadInfo();
   } catch (err) {
     setStatus(t('download.clearFailed', { message: err.message }), 'error');
   }
@@ -427,41 +441,84 @@ export async function migrateLegacyPackages() {
   }
 }
 
-// ===== ストレージ情報 =====
-// ダウンロード済みバージョンと、キャッシュ済タイルの推定サイズ(MB)を表示する。
-// 実測サイズ(navigator.storage.estimate)が取れる場合はそちらを優先。
-export async function refreshStorageInfo() {
-  // ダウンロード済みバージョン(未ダウンロードなら "-")
-  const savedVersion = getSavedManifestVersion();
-  el.downloadedVersion.textContent = savedVersion || '-';
-
-  // タイル枚数を集計
-  let tileCount = 0;
+// ===== バージョン行・サイズ行 =====
+// ダウンロードモーダルの表示を最新にする。キャッシュ済みタイルの走査は重いので
+// ここでだけ行い、詳細トグルの切替(updateSizeRow)では走査済みの集合を使い回す。
+export async function refreshDownloadInfo() {
+  updateVersionRow();
   try {
-    for (const name of await listTileCacheNames()) {
-      const cache = await caches.open(name);
-      const keys = await cache.keys();
-      tileCount += keys.length;
-    }
+    cachedTileUrls = await getCachedTileUrlSet();
   } catch {
-    tileCount = 0;
+    // 走査できないときは「更新分」を出さず、合計だけを表示する
+    cachedTileUrls = null;
+  }
+  updateSizeRow();
+}
+
+// 端末に保存済みの版と配信中の最新版を、状態別に表示する。
+// 未ダウンロード / 最新 / 更新あり の3状態で文言を変え、更新があるときだけ色を付ける。
+function updateVersionRow() {
+  const saved = getSavedManifestVersion();
+  const latest = getManifestVersion();
+  const target = el.downloadVersionValue;
+
+  target.classList.remove('is-update');
+
+  if (!latest) {
+    // 配信中の一覧をまだ受け取れていない(オフラインでの初回起動など)
+    target.textContent = saved || t('download.notDownloaded');
+    return;
+  }
+  if (!saved) {
+    target.textContent = `${t('download.notDownloaded')} ⇒ ${latest}`;
+    target.classList.add('is-update');
+    return;
+  }
+  if (saved === latest) {
+    target.textContent = t('download.versionUpToDate', { version: latest });
+    return;
+  }
+  target.textContent = `${saved} ⇒ ${latest}`;
+  target.classList.add('is-update');
+}
+
+// 選択中レイヤーの合計サイズと、まだ端末に無い分(更新分)の概算を表示する。
+// 合計＝更新分(未ダウンロード)のときは同じ数値が並ぶだけなので合計のみを出す。
+function updateSizeRow() {
+  const jobs = buildJobs(selectedLayerKeys());
+  if (jobs.length === 0) {
+    el.downloadSizeValue.textContent = '-';
+    return;
   }
 
-  // 実測が取れればそれを、無ければ平均タイルサイズから推定
-  let bytes = null;
-  if (navigator.storage && navigator.storage.estimate) {
-    try {
-      const est = await navigator.storage.estimate();
-      if (Number.isFinite(est.usage)) bytes = est.usage;
-      if (est.quota && est.usage / est.quota > 0.9) {
-        setStatus(t('download.lowStorage'), 'warning');
-      }
-    } catch { /* noop */ }
-  }
-  if (bytes == null) bytes = tileCount * AVG_TILE_KB * 1024;
+  const total = formatMB(estimateMB(jobs));
+  const pending = cachedTileUrls
+    ? jobs.filter((job) => !cachedTileUrls.has(tileUrl(job)))
+    : jobs;
 
-  el.downloadedSizeMB.textContent =
-    tileCount > 0 ? (bytes / (1024 * 1024)).toFixed(1) : '0';
+  if (pending.length === jobs.length) {
+    el.downloadSizeValue.textContent = t('download.sizeTotal', { total });
+  } else if (pending.length === 0) {
+    el.downloadSizeValue.textContent = t('download.sizeNoDelta', { total });
+  } else {
+    el.downloadSizeValue.textContent = t('download.sizeWithDelta', {
+      total, delta: formatMB(estimateMB(pending))
+    });
+  }
+}
+
+// ジョブ配列の合計サイズ(MB)。1タイルあたりの容量はズームレベルで大きく違う
+// (z15=64.2KB / z18=6.1KB)ため、一律の平均ではなく z 別の実測平均で積み上げる。
+function estimateMB(jobs) {
+  let kb = 0;
+  for (const job of jobs) {
+    kb += TILE_AVG_KB_BY_Z[job.z] ?? TILE_AVG_KB_FALLBACK;
+  }
+  return kb / 1024;
+}
+
+function formatMB(mb) {
+  return mb.toFixed(1);
 }
 
 // ===== ステータス表示 =====
@@ -475,6 +532,8 @@ export function setStatus(text, level) {
 function setDownloadButtonsDisabled(disabled) {
   el.btnDownloadMap.disabled = disabled;
   el.btnClearCache.disabled = disabled;
+  // 実行中に対象が変わるとサイズ行と実際に走っている内容が食い違うため止める
+  el.toggleDetail.disabled = disabled;
   el.btnUpdateDiff.disabled = disabled;
   el.btnUpdateAll.disabled = disabled;
 }

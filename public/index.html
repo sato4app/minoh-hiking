@@ -49,7 +49,7 @@
     <img class="home-image" src="icons/Startup-1024x1836.webp" alt="" aria-hidden="true" />
     <nav class="home-menu" aria-label="メインメニュー" data-i18n-aria="home.ariaMainMenu">
       <button type="button" class="home-btn" data-view="map" data-i18n="home.showMap">ハイキングマップ表示</button>
-      <button type="button" class="home-btn" id="btnOpenDownload" data-i18n="home.download">地図のダウンロード</button>
+      <button type="button" class="home-btn" id="btnOpenDownload" data-i18n="download.title">地図データのダウンロード</button>
       <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-i18n="home.versionInfo">バージョン情報</button>
       <!-- 設定/Settings(設定モーダルを開く。設定中の言語が分からない人でもここから
            言語を変更できると分かるよう、ボタン名は日英併記とし翻訳対象外(言語切替で不変) -->
@@ -155,39 +155,43 @@
     </div>
   </div>
 
-  <!-- オフライン地図ダウンロードモーダル -->
+  <!-- 地図データのダウンロード(オフライン用タイル)モーダル。
+       起動時画面の「地図データのダウンロード」ボタンと、更新バナーからの更新
+       ダウンロード(進捗を見せるため自動で開く)で共用する。 -->
   <div class="modal" id="downloadModal" hidden role="dialog" aria-modal="true" aria-labelledby="downloadTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="downloadTitle" data-i18n="home.download">地図のダウンロード</h2>
+        <h2 id="downloadTitle" data-i18n="download.title">地図データのダウンロード</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
       </header>
       <div class="modal-body">
         <!-- ヘッダー直下の補足: ダウンロード対象の説明 -->
-        <p class="modal-subtitle" data-i18n="download.subtitle">電波が届かない場所でも地図を表示できるよう、地図データを端末に保存します（オフライン対応）</p>
-        <div class="storage-info">
-          <div class="info-row">
-            <span class="info-label" data-i18n="download.savedVersion">ダウンロード済み地図バージョン:</span>
-            <span class="info-value" id="downloadedVersion">-</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label" data-i18n="download.fileSize">ファイルサイズ(MB):</span>
-            <span class="info-value" id="downloadedSizeMB">-</span>
-          </div>
+        <p class="modal-subtitle" data-i18n="download.subtitle">箕面でのハイキング用の地図データを端末に保存し、オフライン状態で使用可能にします</p>
+
+        <!-- バージョン行: 端末に保存済みの版と、配信中の最新版。
+             値は状態(未ダウンロード / 最新 / 更新あり)で出し分けるため tiles.js が組み立てる -->
+        <div class="download-version">
+          <span class="download-version-label" data-i18n="download.versionLabel">端末の地図データ ⇒ 配信中の最新</span>
+          <span class="download-version-value" id="downloadVersionValue">-</span>
         </div>
 
-        <label class="toggle toggle-switch toggle-row">
-          <input type="checkbox" id="toggleDetail" checked />
+        <!-- 対象選択(既定オフ)。切り替えるとサイズ行を再計算する -->
+        <label class="toggle toggle-switch">
+          <input type="checkbox" id="toggleDetail" />
           <span class="toggle-slider" aria-hidden="true"></span>
-          <span class="toggle-text" data-i18n="download.includeDetail">詳細地図(z=18)を含む</span>
+          <span class="toggle-text" data-i18n="download.includeDetail">詳細地図データ(Z=18)を含む</span>
         </label>
+        <!-- サイズ行: 選択中のレイヤーの合計と、まだ端末に無い分(更新分)の概算。
+             直上のトグルに属する明細なので、トグルの文字位置まで左を下げて表示する -->
+        <div class="download-size" id="downloadSizeValue">-</div>
 
         <div class="button-group button-group-row">
           <button type="button" id="btnDownloadMap" class="btn btn-primary" data-i18n="download.startBtn">ダウンロード</button>
           <button type="button" id="btnClearCache" class="btn btn-danger" data-i18n="common.clear">クリア</button>
         </div>
 
+        <!-- 進捗・結果メッセージ(ボタンの下) -->
         <div class="status-message" id="statusMessage" role="status" aria-live="polite"></div>
       </div>
     </div>
@@ -267,8 +271,8 @@
   </div>
 
   <!-- 設定モーダル(起動画面の「設定/Settings」から表示)。
-       時刻を表示・メッセージ履歴・このアプリについて(旧バージョン情報等から移動)と、
-       マーカーの設定・言語/Language をまとめる。 -->
+       時刻を表示・ズームレベルを表示・メッセージ履歴の表示・このアプリについてと、
+       マーカーの設定・言語の設定をまとめる。 -->
   <div class="modal" id="appSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="appSettingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">

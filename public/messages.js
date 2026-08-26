@@ -1,7 +1,7 @@
 // メッセージ表示モジュール
-// - メッセージ履歴: 主要な操作・状態(起動時のバージョン確認、地図のダウンロード、
+// - メッセージ履歴: 主要な操作・状態(起動時のバージョン確認、地図データのダウンロード、
 //   移動記録の開始・終了など)を localStorage に蓄積し、
-//   「バージョン情報等」モーダルの「メッセージ履歴の表示」で一覧表示する。
+//   「設定/Settings」モーダルの「メッセージ履歴の表示」で一覧表示する。
 // - トースト: 画面中央下の一時メッセージ(自動で閉じる)。
 
 import { MESSAGE_LOG_KEY, MESSAGE_LOG_MAX, TOAST_DURATION_SEC } from './config.js';
@@ -14,7 +14,7 @@ const el = {
   toast: document.getElementById('toast')
 };
 
-// 履歴に1件追加する。「バージョン情報等」モーダルで履歴を表示中なら即時再描画する。
+// 履歴に1件追加する。「設定/Settings」モーダルで履歴を表示中なら即時再描画する。
 export function logHistory(text, level) {
   if (!text) return;
   const log = readMessageLog();

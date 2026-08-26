@@ -45,7 +45,7 @@ import {
 import {
   getManifestVersion, getSavedManifestVersion,
   evaluateManifestVersion,
-  openDownloadModal, refreshStorageInfo,
+  openDownloadModal,
   migrateLegacyPackages, initTilesEvents, setStatus
 } from './tiles.js';
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
@@ -147,7 +147,6 @@ async function init() {
   initMarkerSettings();
   renderMessageList();
   await migrateLegacyPackages();
-  await refreshStorageInfo();
   // タイル一覧の版の確認と履歴への記録は、配信データが揃ってから行う
   // (loadPublishedData の onApplied)。
   // service-worker.js の SHELL_CACHE とキャッシュ済みバージョンを比較し
@@ -296,7 +295,7 @@ function bindEvents() {
       }
     });
   }
-  // 時刻表示トグル(「バージョン情報等」内): ON でメニューボタンの左に現在時刻を表示
+  // 時刻表示トグル(設定モーダル内): ON でメニューボタンの左に現在時刻を表示
   el.toggleClock.addEventListener('change', (e) => setClockVisible(e.target.checked));
   // ズームレベル表示トグル(設定モーダル内): ON で地図右下に現在のズームレベルを表示。
   // 表示要素は地図コントロール内にあり、マップ画面でのみ出るためビュー切替の反映は不要。
@@ -449,7 +448,7 @@ function setClockVisible(on) {
 
 // ===== データ件数表示 =====
 // 読み込んだポイント/ルート/スポット/通行止めの件数を
-// 「バージョン情報等」のバージョン情報内に横一列で反映(未読込は "-")。
+// バージョン情報モーダルのバージョン情報内に横一列で反映(未読込は "-")。
 function updateFeatureCounts() {
   const c = getFeatureCounts();
   el.countPoints.textContent = c.points == null ? '-' : String(c.points);

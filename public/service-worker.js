@@ -14,7 +14,7 @@
 // アプリシェルの取得戦略:
 // - 同一オリジン(HTML/CSS/JS 等): stale-while-revalidate(キャッシュ即返し+裏で
 //   ネット更新)。高速・弱電波に強く、オンライン時は次回読み込みで最新化される。
-//   新バージョンの明示更新は、アプリ側の「起動時/バージョン情報等の更新確認」
+//   新バージョンの明示更新は、アプリ側の「起動時/バージョン情報モーダルの更新確認」
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 //
@@ -25,7 +25,7 @@
 // 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
 // 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
 
-const SHELL_CACHE = 'app-shell-2026-08-26.4';
+const SHELL_CACHE = 'app-shell-2026-08-26.5';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 
@@ -80,7 +80,7 @@ const SHELL_LOCAL_PATHS = [
 // 注2: public/data/ は 2026-08-23 に廃止した(tile_manifest.json / tile_buffers.geojson を削除)。
 //   タイル一覧は公開API 配信に移したため、現行シェルは参照しない。移行前のシェルを
 //   キャッシュしたままの端末は旧 tiles.js が 404 を受けるが、取得失敗のメッセージが
-//   出るだけで起動と表示は続く(影響は「地図のダウンロード」画面に限られる)。
+//   出るだけで起動と表示は続く(影響は「地図データのダウンロード」画面に限られる)。
 //   tile_buffers.geojson はどのシェルからも参照されていなかった。
 // 注3: data/minoh-emergency-points.geojson / data/minoh-hiking-routes-spots.geojson
 //   (公開API 配信に移行する前の同梱データ)は 2026-08-20 に削除した。旧シェルを
@@ -299,7 +299,7 @@ function stripRedirect(response) {
 //   キャッシュを即返して高速・弱電波に強く、裏でネット取得して次回用に更新する。
 //   ただし install で内容一致を確認済み(REVISIONS_KEY あり)のキャッシュでは裏取得を省く。
 //   バージョン更新の検知と適用は、いずれの場合もアプリ側の
-//   「起動時/バージョン情報等の更新確認」(SHELL_CACHE 比較→confirm)が担う。
+//   「起動時/バージョン情報モーダルの更新確認」(SHELL_CACHE 比較→confirm)が担う。
 // - swr=false(CDN 等の安定資産): cache-first(高速・通信節約)。
 async function handleShellRequest(event, { swr = false } = {}) {
   const req = event.request;

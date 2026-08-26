@@ -69,7 +69,7 @@ export async function checkAppShellUpdate() {
 }
 
 // アプリ更新の confirm を表示し、OK なら最新へ更新(再読み込み)する。
-// 起動時・「バージョン情報等」モーダルの両方から呼べる共通処理。
+// 起動時・「バージョン情報」モーダルの両方から呼べる共通処理。
 // confirm を表示したら true、対象なし(初回/取得失敗/最新)なら false を返す。
 export async function promptAppShellUpdate() {
   const [cached, latest] = await Promise.all([
@@ -85,7 +85,7 @@ export async function promptAppShellUpdate() {
 }
 
 // 地図タイル更新の案内ダイアログ。地図タイルは自動更新しないため、
-// 「地図のダウンロード」画面からの手動ダウンロードを案内するのみ。
+// 「地図データのダウンロード」画面からの手動ダウンロードを案内するのみ。
 // OK・キャンセルとも処理は行わない(案内表示専用)。
 export function promptMapTileUpdate(savedMap, latestMap) {
   confirm(t('update.mapTilesNotice', { saved: savedMap, latest: latestMap }));
