@@ -32,7 +32,8 @@ import {
   loadPublishedData, getMapdataVersion, getClosureVersion, getClosureCount
 } from './published-data.js';
 import {
-  TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC
+  TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC,
+  TRACK_RECORDING_FLAG_KEY
 } from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
@@ -191,6 +192,8 @@ async function init() {
   setTrackCurrentStyle(markerSettings.trackCurrent);
   // 統計表の中身は経路の本数に応じて組み立てるため、初期状態(0件の1行)を描画しておく
   updateTrackStatsDisplay();
+  // 前回の記録が停止操作を経ずに終わっていたら履歴に残す(起動ごとに1回)
+  logInterruptedTrackRecording();
 
   // 初期表示はホーム(オーバーレイは非表示のまま)
   showView('home');
@@ -298,10 +301,10 @@ function bindEvents() {
   // ズームレベル表示トグル(設定モーダル内): ON で地図右下に現在のズームレベルを表示。
   // 表示要素は地図コントロール内にあり、マップ画面でのみ出るためビュー切替の反映は不要。
   el.toggleZoomDisplay.addEventListener('change', (e) => setZoomDisplayVisible(e.target.checked));
-  // 現在地点をマーカー表示: 現在地マーカー(青丸)・精度円の表示/非表示を切替。
-  // ズームボタン上の現在地点表示ボタンとは独立(あちらは3秒だけ出す単発の操作)。
+  // 現在地点をマーカー表示: 現在地マーカー(青丸)の表示/非表示を切替。
+  // 現在地点表示ボタンが出す円とは独立だが、青丸を出すかはこのトグルに従う。
   el.toggleCurrentMarker.addEventListener('change', (e) => applyCurrentMarkerVisible(e.target.checked));
-  // 現在地点表示ボタンはメニューのトグルとは独立(押すたびに3秒だけ表示する)
+  // 現在地点表示ボタンはメニューのトグルとは独立(押すたびに円を3秒だけ表示する)
   setCurrentMarkerButtonHandler(handleCurrentSpotButton);
   // 現在地点は中央に表示: 地図を現在地へ追従させるか切替。
   // ON にすると現在地は画面中央へ来るが、その中央はこのメニュー(表示設定パネル)の
@@ -316,8 +319,14 @@ function bindEvents() {
   el.toggleTrackRecording.addEventListener('change', (e) => {
     const on = e.target.checked;
     if (!on) {
-      // OFF: 軌跡が消去される前に終了処理(統計の出力)を行う
-      finishTrackRecording();
+      // OFF: 軌跡が消去される前に終了処理(統計の出力)を行う。
+      // 記録中は確認を挟み、取り消されたらトグルを ON に戻して記録を続ける
+      // (誤って触れただけで記録が終わらないようにする)。
+      if (isTrackRecording && !confirm(t('track.stopConfirm'))) {
+        e.target.checked = true;
+        return;
+      }
+      finishTrackRecording('track.stopByToggle');
     }
     // 記録開始・停止ボタンの表示を切替。
     // 現在地の監視は「現在地点をマーカー表示」等のトグルが管理するため、ここでは触らない。
@@ -331,8 +340,16 @@ function bindEvents() {
     // checked の値に依存すると、位置情報エラーで checked が戻されたとき無言で
     // 効かなくなるため、ボタン自身の表示状態で判定する。
     if (el.btnTrackToggle.hidden) return;
-    if (isTrackRecording) finishTrackRecording();
-    else beginTrackRecording();
+    // 停止だけ確認を挟む。このボタンはメニューボタン(≡)のすぐ左(間隔 8px)にあり、
+    // ≡ を狙った指が触れて記録が終わる誤操作が起きるため。
+    // 停止すると記録中の経路がその場で確定し、押す前の状態には戻せない
+    // (再開しても別の経路として記録される)。開始は取り消せるので確認しない。
+    if (isTrackRecording) {
+      if (!confirm(t('track.stopConfirm'))) return;
+      finishTrackRecording('track.stopByButton');
+    } else {
+      beginTrackRecording();
+    }
   });
 
   // 読み込み: GPX ファイルを選び、記録済みの移動経路として地図に表示する。
@@ -381,6 +398,7 @@ function bindEvents() {
     if (!confirm(t('track.clearConfirm'))) return;
     clearTrack();
     isTrackRecording = false;
+    writeTrackRecordingFlag(false);
     setTrackRecordingActive(false);
     updateTrackStatsDisplay();
     logHistory(t('track.cleared'), '');
@@ -668,6 +686,27 @@ function setTrackRecordingActive(active) {
 // 実際に移動記録中かどうか(開始ボタン押下〜停止まで)
 let isTrackRecording = false;
 
+// 記録の実行中フラグ(localStorage)。記録開始で立て、停止・クリア・読み込みで降ろす。
+// 停止操作を経ずにアプリが終わると立ったまま残るため、次の起動でそれを検出できる。
+function writeTrackRecordingFlag(on) {
+  try {
+    if (on) localStorage.setItem(TRACK_RECORDING_FLAG_KEY, '1');
+    else localStorage.removeItem(TRACK_RECORDING_FLAG_KEY);
+  } catch { /* noop */ }
+}
+
+// 起動時に1回だけ呼ぶ。前回の記録が停止操作を経ずに終わっていたら履歴に残す。
+// 記録データはメモリ上にしか無いため、アプリが再読み込み・破棄されると記録は
+// 黙って消える。「■ を押していないのに止まっていた」の切り分けに使う
+// (この行があれば操作ではなくアプリの中断が原因)。
+function logInterruptedTrackRecording() {
+  let interrupted = false;
+  try { interrupted = localStorage.getItem(TRACK_RECORDING_FLAG_KEY) === '1'; } catch { /* noop */ }
+  if (!interrupted) return;
+  writeTrackRecordingFlag(false);
+  logHistory(t('track.interrupted'), 'error');
+}
+
 // 記録地点数・移動距離の統計文言(記録終了時のメッセージに使用)。
 // 移動距離は統計表と同じ小数点以下1位までの表記にそろえる。
 // 経路が複数あるときは、どの経路の統計かが分かるよう「経路 n:」を先頭に付ける。
@@ -761,6 +800,7 @@ function startTrackRecordingNow(append) {
   startTrackRecording({ append });
   setTrackRecordingActive(true);
   isTrackRecording = true;
+  writeTrackRecordingFlag(true);
   // クリアして開始した場合は統計表も 0 に戻す
   updateTrackStatsDisplay();
   logHistory(t('track.started'), 'success');
@@ -771,19 +811,27 @@ function startTrackRecordingNow(append) {
 // いま記録していた経路の地点数・移動距離を履歴(メッセージ)に出力する。
 // 記録中の経路は常に最後の経路なので、統計の末尾がその経路のもの。
 // 軌跡が消去される前に統計を取得する必要がある点に注意。
-function finishTrackRecording() {
+//
+// stopBy には停止のきっかけとなった操作の文言キーを渡す
+// ('track.stopByButton' / 'track.stopByToggle')。履歴にだけ添えて残し、
+// 「操作していないのに止まっていた」ときにどちらの操作が走ったのか
+// (あるいはどちらも走っていないのか)を後から切り分けられるようにする。
+// トーストは操作直後に本人が見るものなので、従来どおり内訳を付けない。
+function finishTrackRecording(stopBy) {
   const wasRecording = isTrackRecording;
   const list = getTrackStatsList();
   const stats = list[list.length - 1] || { pointCount: 0, distanceM: 0 };
   stopTrackRecording();
   setTrackRecordingActive(false);
   isTrackRecording = false;
+  writeTrackRecordingFlag(false);
   if (wasRecording) {
-    const summary = t('track.finished', {
-      summary: formatTrackSummary(stats, list.length - 1, list.length)
-    });
-    logHistory(summary, 'success');
-    showToast(summary);
+    const summary = formatTrackSummary(stats, list.length - 1, list.length);
+    const history = stopBy
+      ? t('track.finishedBy', { by: t(stopBy), summary })
+      : t('track.finished', { summary });
+    logHistory(history, 'success');
+    showToast(t('track.finished', { summary }));
   }
   // 地点数0で終わった経路は破棄されるため、統計表を取り直す
   updateTrackStatsDisplay();
@@ -949,6 +997,7 @@ async function importTrackGpx(ev) {
     const count = loadTrackSegments(segments, { append: importAppend });
     // 読み込んだ経路は記録済みの状態として扱う(記録開始ボタンは停止表示に戻す)
     isTrackRecording = false;
+    writeTrackRecordingFlag(false);
     setTrackRecordingActive(false);
     updateTrackStatsDisplay();
     // 読み込んだ経路が見えるよう、メニューを閉じて全体を表示する

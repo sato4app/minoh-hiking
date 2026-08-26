@@ -115,10 +115,25 @@ const DICT = {
   },
   'track.started': { ja: '移動記録を開始しました', en: 'Track recording started' },
   'track.finished': { ja: '移動記録を終了しました({summary})', en: 'Track recording finished ({summary})' },
+  // 履歴用: どの操作で止まったのかを残す(操作していないのに止まった場合の切り分けに使う)
+  'track.finishedBy': {
+    ja: '移動記録を終了しました[{by}]({summary})',
+    en: 'Track recording finished [{by}] ({summary})'
+  },
+  'track.stopByButton': { ja: '記録停止ボタン(■)をタップ', en: 'Stop button (■) tapped' },
+  'track.stopByToggle': { ja: '「移動経路を記録」をオフ', en: '"Record track" switched off' },
+  'track.interrupted': {
+    ja: '前回の移動記録は停止操作なしで中断されました(アプリの再読み込み・終了など)',
+    en: 'The previous track recording ended without a stop action (app reload or exit)'
+  },
   'track.nothingToClear': { ja: 'クリアする移動経路がありません', en: 'No recorded track to clear' },
   'track.clearConfirm': {
     ja: '表示中の移動経路をすべてクリアします。よろしいですか?',
     en: 'Clear all tracks currently shown on the map?'
+  },
+  'track.stopConfirm': {
+    ja: '移動経路の記録を停止します。よろしいですか?',
+    en: 'Stop recording the track?'
   },
   'track.cleared': { ja: '移動経路をクリアしました', en: 'Track cleared' },
   'track.wakeLockUnavailable': {

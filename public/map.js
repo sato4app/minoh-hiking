@@ -94,7 +94,8 @@ export function setZoomDisplayVisible(on) {
 
 // ===== 現在地点表示ボタン(ズームボタンの上に配置) =====
 // メニューの「現在地点をマーカー表示」トグルとは独立した単発の操作。
-// 押すと 現在地へ地図を寄せ + 青丸 + 精度円 を3秒だけ出し、3秒後に灰色へ戻る。
+// 押すと現在地へ地図を寄せ、現在地点を中心とする薄い青の円を出して3秒かけて縮め、
+// 消えたら灰色へ戻る(青丸を出すかは「現在地点をマーカー表示」に従う)。
 // このモジュールはボタンの見た目だけを持ち、表示そのものは geolocation.js が行う
 // (押されたら handler を呼び、終わったら setCurrentMarkerButtonState(false) で戻してもらう)。
 let currentMarkerButtonEl = null;
@@ -144,6 +145,24 @@ export function setCurrentMarkerButtonState(on) {
 // ビュー表示直後に呼んでサイズを再計算する(hidden→visible 切替で必須)
 export function resizeMap() {
   if (mapInstance) mapInstance.invalidateSize();
+}
+
+// Leaflet が覚えている地図の大きさが、実際のコンテナの大きさとずれていないか確かめ、
+// ずれていたら測り直す。ずれたぶんだけ戻り値が true になる。
+//
+// Leaflet は window の resize でしか大きさを測り直さないが、iOS では回転直後の
+// resize の時点でまだ回転前の大きさが返ることがあり、そのとき覚え違いが確定して
+// しまう。以降 setView/panTo が「画面の中央」と思う座標は実際の中央からずれ、
+// 現在地へ寄せても画面の外に置かれる(縦画面なのに横画面の幅で中央を計算する状態)。
+// resize は二度と来ないため、その後の位置更新を何回繰り返しても直らない。
+// invalidateSize は中央の緯度経度を保ったまま measure し直すので、呼んでも表示位置は動かない。
+export function ensureMapSize() {
+  if (!mapInstance) return false;
+  const el = mapInstance.getContainer();
+  const size = mapInstance.getSize();
+  if (size.x === el.clientWidth && size.y === el.clientHeight) return false;
+  mapInstance.invalidateSize({ animate: false });
+  return true;
 }
 
 // ===== マーカー形状の生成 =====

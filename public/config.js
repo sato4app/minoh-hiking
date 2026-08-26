@@ -7,6 +7,10 @@ export const MARKER_SETTINGS_KEY = 'minoh-hiking.marker-settings';
 export const VERSION_STORAGE_KEY = 'minoh-hiking.tile-manifest-version';
 export const MESSAGE_LOG_KEY = 'minoh-hiking.message-log';
 export const STARTUP_UPDATE_CHECK_KEY = 'minoh-hiking.startup-update-check';
+// 移動記録の実行中フラグ。記録開始で立て、停止操作で降ろす。
+// 起動時に立ったまま残っていれば、前回は停止操作を経ずに終わった(アプリの
+// 再読み込み・破棄・強制終了)ことになるため、その旨を履歴に残す手がかりに使う。
+export const TRACK_RECORDING_FLAG_KEY = 'minoh-hiking.track-recording';
 // 表示言語(「言語/Language」ドロップダウン)。'ja'(日本語・既定) / 'en'(English)。
 // 読み書きと文言の切替は i18n.js(getLang/setLang/t/applyStaticTranslations)が担う。
 export const LANGUAGE_KEY = 'minoh-hiking.language';

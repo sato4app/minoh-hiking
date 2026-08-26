@@ -1,7 +1,8 @@
 // 現在地表示 + 移動記録(移動経路の記録)モジュール(map.js から分離)
-// Geolocation API による現在地マーカー + 精度円(現在地点を中心とする円)。
-// 精度円は常時表示せず、マップ表示への切替時・「現在地点をマーカー表示」ON 時に
-// 3秒間だけ表示する(requestCurrentCircleFlash / showTemporaryCircle)。
+// Geolocation API による現在地マーカー(青丸)。測位精度(accuracy)を半径とする
+// 精度円は表示しない(大きさが測位状況で変わり、意味が伝わらないため)。
+// 現在地点表示ボタンは、現在地を画面中央へ寄せたうえで現在地点を中心とする
+// 薄い青の円を出し、3秒かけて縮めてから消す(showCurrentLocationSpot)。
 // 監視(watchPosition)は、記録中は常に、それ以外はマップビュー表示中で
 // 「現在地点をマーカー表示」「現在地点は中央に表示」のいずれかが有効なときに動く
 // (refreshLocationWatch が制御)。記録中に起動時画面へ移動しても記録は継続する。
@@ -17,16 +18,10 @@
 // ページが非表示になった場合は、復帰時に監視の張り直しと現在地の取得を行う。
 // 地図インスタンスは map.js の getMap() を通じて共有する。
 import * as L from 'leaflet';
-import { getMap, buildMarkerIcon } from './map.js';
+import { getMap, buildMarkerIcon, ensureMapSize } from './map.js';
 import { t } from './i18n.js';
 
 let currentLocationMarker = null;
-let currentLocationCircle = null;
-// 現在地点を中心とする円は常時表示せず、マップ表示への切替時・
-// 「現在地点をマーカー表示」ON 時に3秒間だけ表示する。
-const CURRENT_CIRCLE_DURATION_MS = 3000;
-let circleHideTimerId = null;   // 円を自動で消すタイマー(3秒)
-let pendingCircleShow = false;  // 位置未取得時: 次の取得で円を表示する要求
 let geoWatchId = null;
 // マップビュー表示中か(ビュー外では現在地を監視しない)
 let onMapView = false;
@@ -42,8 +37,6 @@ let followCurrentLocation = true;
 let recenterWithoutAnimation = true;
 // 直近に取得した現在地(トグル切替時の即時反映に使用)
 let lastKnownLatLng = null;
-// 直近に取得した位置精度[m](円の即時表示に使用)
-let lastKnownAccuracy = null;
 // 直近の位置を取得した時刻[ms]。監視を止めているあいだ位置は更新されず古くなるため、
 // トグル切替時の即時反映では鮮度を確かめてから使う(isLastFixFresh)
 let lastKnownAtMs = 0;
@@ -441,6 +434,33 @@ function releaseWakeLock() {
   if (sentinel) sentinel.release().catch(() => { /* 既に解除済み */ });
 }
 
+// ===== 画面の向き・表示領域が変わったときの処理 =====
+// 回転などで地図の大きさが変わったら測り直し、追従中なら現在地へ寄せ直す。
+//
+// iOS は回転直後の resize でまだ回転前の大きさを返すことがあり、Leaflet の
+// 自動計測(trackResize)がその値で確定してしまう。以降 resize は来ないため、
+// 縦画面なのに横画面の幅で中央を計算し続け、現在地が画面の外に出たままになる。
+// そこで確定を待つ意味で「直後・次の描画・0.3秒後」の3回測り直し、
+// 実際に大きさが変わっていたときだけ寄せ直す。
+// (ページのピンチズームでは visualViewport だけが変わりコンテナの大きさは変わらないため、
+//  ensureMapSize が false を返して寄せ直さない=勝手に地図が動かない)
+function handleViewportChange() {
+  const apply = () => {
+    if (!ensureMapSize()) return;
+    if (!shouldFollowMap() || !isLastFixFresh()) return;
+    // 回転後は現在地が画面外にあることもあるため、アニメ無しで一気に寄せる
+    recenterWithoutAnimation = true;
+    moveMapToCurrentLocation(lastKnownLatLng);
+  };
+  apply();
+  requestAnimationFrame(apply);
+  setTimeout(apply, 300);
+}
+
+window.addEventListener('orientationchange', handleViewportChange);
+window.addEventListener('resize', handleViewportChange);
+window.visualViewport?.addEventListener('resize', handleViewportChange);
+
 // ===== バックグラウンド復帰時の処理 =====
 // 他アプリへの切替や画面消灯でページが非表示になると、ブラウザは位置の監視を
 // 停止・間引きする(Web の仕様上、完全なバックグラウンド測位はできない)。
@@ -486,7 +506,7 @@ function notifyTrack(msg) { onTrackNotice && onTrackNotice(msg); }
 // - それ以外: マップビュー表示中で、現在地マーカー表示・現在地追従のいずれかが要求しているとき。
 //
 // 「現在地点は中央に表示」だけが ON のとき(マーカー表示は OFF)、地図は動かず
-// (shouldFollowMap)、マーカーも精度円も出ないため画面上は何も起きない。それでも
+// (shouldFollowMap)、マーカーも出ないため画面上は何も起きない。それでも
 // 監視を続けるのは意図した選択で、直近の測位を新しく保つため。
 // 止めてしまうと、マーカー表示を ON に戻したときに直近位置が古すぎて
 // (LAST_FIX_MAX_AGE_MS 超え)使えず、次の測位まで現在地が出ない・地図も寄らない。
@@ -523,7 +543,6 @@ function stopGeoWatch() {
     geoWatchId = null;
   }
   removeCurrentMarker();
-  removeCurrentCircle();
 }
 
 // 位置情報エラーの通知(1回の監視につき最初の1回のみ。連続エラーを抑制)
@@ -533,9 +552,9 @@ function reportLocationError(msg) {
   locationErrorCb && locationErrorCb(msg);
 }
 
-// 位置取得成功時の更新処理(マーカー表示・精度円・記録・地図追従)
+// 位置取得成功時の更新処理(マーカー表示・記録・地図追従)
 function onGeoSuccess(pos) {
-  const { latitude, longitude, accuracy } = pos.coords;
+  const { latitude, longitude } = pos.coords;
   const latlng = [latitude, longitude];
   lastKnownLatLng = latlng;
   lastKnownAtMs = Date.now();
@@ -546,23 +565,6 @@ function onGeoSuccess(pos) {
     showOrUpdateCurrentMarker(latlng);
   } else {
     removeCurrentMarker();
-  }
-
-  lastKnownAccuracy = Number.isFinite(accuracy) ? accuracy : null;
-
-  // 精度円(現在地点を中心とする円): 常時表示はしない。
-  // マップ表示への切替時・「現在地点をマーカー表示」ON 時に3秒間だけ表示する。
-  // - pendingCircleShow: 表示要求済みで位置が未取得だった → 取得できたので3秒間の表示を開始
-  // - 表示中(タイマー作動中): 現在地へ追従する(タイマーは延長しない)
-  if (showCurrentMarker && Number.isFinite(accuracy)) {
-    if (pendingCircleShow) {
-      showTemporaryCircle(latlng, accuracy);
-    } else if (currentLocationCircle) {
-      showOrUpdateCurrentCircle(latlng, accuracy);
-    }
-  } else {
-    removeCurrentCircle();
-    pendingCircleShow = false;
   }
 
   // 記録中: 条件を満たせば記録点を追加し、三角をライブ現在地へ追従(進行方向つき)
@@ -597,13 +599,16 @@ function isLastFixFresh() {
 function moveMapToCurrentLocation(latlng) {
   const map = getMap();
   if (!map) return;
+  // 寄せる前に地図の大きさを測り直す。覚え違いのまま寄せると、Leaflet が中央だと
+  // 思う座標が実際の中央からずれ、現在地が画面の外に置かれる(ensureMapSize 参照)。
+  // 回転時のイベントを取りこぼしても、次の位置更新でここが直してくれる。
+  ensureMapSize();
   if (recenterWithoutAnimation) map.setView(latlng, map.getZoom(), { animate: false });
   else map.panTo(latlng);
   recenterWithoutAnimation = false;
 }
 
-// 現在地マーカー(青丸)の見た目。メニュー由来の青丸と、
-// 現在地点表示ボタンが出す青丸で共用する(同じ色・大きさに見せるため)。
+// 現在地マーカー(青丸)の見た目。
 const CURRENT_MARKER_STYLE = {
   radius: 7,
   color: '#ffffff',
@@ -629,42 +634,33 @@ function removeCurrentMarker() {
   }
 }
 
-// 精度円の生成・更新
-function showOrUpdateCurrentCircle(latlng, accuracy) {
-  if (!currentLocationCircle) {
-    currentLocationCircle = L.circle(latlng, {
-      radius: accuracy,
-      color: '#1d4ed8',
-      weight: 1,
-      fillColor: '#3b82f6',
-      fillOpacity: 0.12
-    }).addTo(getMap());
-  } else {
-    currentLocationCircle.setLatLng(latlng);
-    currentLocationCircle.setRadius(accuracy);
-  }
-}
+// ===== 現在地点表示ボタン(ズームボタンの上)の単発表示(3秒) =====
+// 押すと現在地を画面中央へ寄せ、現在地点を中心とする薄い青の円を出して
+// 3秒かけて縮めてから消す、単発の操作。
+//
+// 円の大きさは地図の縮尺ではなく画面の大きさで決める(地図の短辺に対する割合)。
+// そのため半径をメートルで指定する L.circle ではなく、ピクセルで指定する
+// L.circleMarker を使う。直径は 短辺の70% から 短辺の10% まで一定の速さで縮む。
+//
+// 青丸(現在地マーカー)はこのボタンでは出し分けない。メニューの
+// 「現在地点をマーカー表示」が ON なら現在地へ青丸を出し、OFF なら出さない
+// (このボタン専用の青丸を持つと、トグル OFF のときだけ青丸が出る・3秒で消えるといった
+//  トグルと食い違う見え方になるため、表示の可否はトグルに一本化する)。
+const SPOT_CIRCLE_DURATION_MS = 3000;   // 表示してから消えるまで(縮小にかける時間)
+const SPOT_CIRCLE_START_RATIO = 0.70;   // 表示開始時の直径 / 地図の短辺
+const SPOT_CIRCLE_END_RATIO = 0.10;     // 縮小後の直径 / 地図の短辺
+// 薄い青の円。地図の記載が透けて読めるよう塗りは薄くする
+const SPOT_CIRCLE_STYLE = {
+  color: '#60a5fa',
+  weight: 2,
+  opacity: 0.8,
+  fillColor: '#93c5fd',
+  fillOpacity: 0.2
+};
 
-function removeCurrentCircle() {
-  if (circleHideTimerId != null) {
-    clearTimeout(circleHideTimerId);
-    circleHideTimerId = null;
-  }
-  if (currentLocationCircle) {
-    getMap().removeLayer(currentLocationCircle);
-    currentLocationCircle = null;
-  }
-}
-
-// ===== 現在地点表示ボタン(ズームボタンの上)の一時表示(3秒) =====
-// メニューの「現在地点をマーカー表示」とは独立して動く単発の操作。
-// 押すと 現在地へ地図を寄せ + 青丸 + 精度円 を3秒だけ出し、3秒後にすべて消す。
-// メニュー由来の currentLocationMarker とは別のレイヤーを使う。トグルが OFF でも
-// このボタンだけで青丸を出せるようにし、3秒後の後片付けでメニュー側の表示
-// (トグル ON のあいだ出しっぱなしの青丸)を巻き込まないようにするため。
-let spotMarker = null;          // このボタンが出す青丸(メニューの青丸とは別)
-let spotTimerId = null;         // 3秒後に消すタイマー
-let spotEndCb = null;           // 終了(3秒経過・失敗)をボタンへ知らせる
+let spotCircle = null;          // 縮小中の円
+let spotAnimFrameId = null;     // 縮小アニメーションの requestAnimationFrame ID
+let spotEndCb = null;           // 終了(3秒経過・測位失敗)をボタンへ知らせる
 
 // 現在地点表示ボタンが押されたときの処理。
 // 直近の測位が新しければ即座に、そうでなければ1回だけ測位してから表示する
@@ -673,12 +669,12 @@ let spotEndCb = null;           // 終了(3秒経過・失敗)をボタンへ知
 export function showCurrentLocationSpot({ onEnd } = {}) {
   const map = getMap();
   if (!map) { onEnd?.(); return; }
-  // 連打されたら前回の表示を畳んでから出し直す(タイマーの取り違えを避ける)
+  // 連打されたら前回の表示を畳んでから出し直す(アニメーションの取り違えを避ける)
   clearCurrentLocationSpot();
   spotEndCb = onEnd;
 
   if (isLastFixFresh()) {
-    renderCurrentLocationSpot(lastKnownLatLng, lastKnownAccuracy);
+    renderCurrentLocationSpot(lastKnownLatLng);
     return;
   }
   if (!('geolocation' in navigator)) {
@@ -688,11 +684,10 @@ export function showCurrentLocationSpot({ onEnd } = {}) {
   }
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      const { latitude, longitude, accuracy } = pos.coords;
+      const { latitude, longitude } = pos.coords;
       lastKnownLatLng = [latitude, longitude];
-      lastKnownAccuracy = Number.isFinite(accuracy) ? accuracy : null;
       lastKnownAtMs = Date.now();
-      renderCurrentLocationSpot(lastKnownLatLng, lastKnownAccuracy);
+      renderCurrentLocationSpot(lastKnownLatLng);
     },
     (err) => {
       reportLocationError(t('geo.fetchFailed', { message: err.message }));
@@ -702,16 +697,45 @@ export function showCurrentLocationSpot({ onEnd } = {}) {
   );
 }
 
-// 青丸・精度円を出して地図を寄せ、3秒後に片付けるタイマーを張る
-function renderCurrentLocationSpot(latlng, accuracy) {
+// 現在地を画面中央へ寄せてから円を出す。
+function renderCurrentLocationSpot(latlng) {
   const map = getMap();
   if (!map) { endCurrentLocationSpot(); return; }
-  spotMarker = L.circleMarker(latlng, CURRENT_MARKER_STYLE).addTo(map);
-  if (Number.isFinite(accuracy)) showOrUpdateCurrentCircle(latlng, accuracy);
-  // 現在地が画面外のこともあるため、アニメ無しで一気に寄せる。
-  // 追従(setFollowCurrentLocation)とは別系統なので recenterWithoutAnimation は触らない。
+  // 先に地図を動かす。現在地が画面外のこともあるためアニメ無しで一気に寄せる
+  // (追従(setFollowCurrentLocation)とは別系統なので recenterWithoutAnimation は触らない)。
+  // 寄せる前に大きさを測り直す(中央がずれるのを防ぐ。円の大きさも短辺から決めるため)。
+  ensureMapSize();
   map.setView(latlng, map.getZoom(), { animate: false });
-  spotTimerId = setTimeout(endCurrentLocationSpot, CURRENT_CIRCLE_DURATION_MS);
+  // 青丸は「現在地点をマーカー表示」に従う。OFF のときは出さない(3秒後も触らない)
+  if (showCurrentMarker) showOrUpdateCurrentMarker(latlng);
+  startSpotCircle(latlng);
+}
+
+// 現在地点を中心とする円を地図の短辺の70%の大きさで出し、
+// 3秒かけて10%まで一定の速さで縮めてから消す。
+function startSpotCircle(latlng) {
+  const map = getMap();
+  const size = map.getSize();
+  const shortSide = Math.min(size.x, size.y);
+  // L.circleMarker の radius は半径[px]。指定は直径なので半分にする
+  const startRadius = shortSide * SPOT_CIRCLE_START_RATIO / 2;
+  const endRadius = shortSide * SPOT_CIRCLE_END_RATIO / 2;
+  spotCircle = L.circleMarker(latlng, { ...SPOT_CIRCLE_STYLE, radius: startRadius }).addTo(map);
+
+  const startedAt = performance.now();
+  const step = (now) => {
+    if (!spotCircle) return;   // 連打・画面切替で片付け済み
+    const progress = Math.min(1, (now - startedAt) / SPOT_CIRCLE_DURATION_MS);
+    spotCircle.setRadius(startRadius + (endRadius - startRadius) * progress);
+    if (progress < 1) {
+      spotAnimFrameId = requestAnimationFrame(step);
+    } else {
+      // 縮みきったら円を消し、ボタンを灰色へ戻す
+      spotAnimFrameId = null;
+      endCurrentLocationSpot();
+    }
+  };
+  spotAnimFrameId = requestAnimationFrame(step);
 }
 
 // 3秒経過・測位失敗の後片付け。ボタンを灰色へ戻すため onEnd を必ず呼ぶ。
@@ -722,41 +746,16 @@ function endCurrentLocationSpot() {
   cb?.();
 }
 
-// このボタンが出した表示だけを消す(メニュー由来の青丸には触れない)
+// このボタンが出した円だけを消す(現在地マーカーには触れない)
 function clearCurrentLocationSpot() {
-  if (spotTimerId != null) {
-    clearTimeout(spotTimerId);
-    spotTimerId = null;
+  if (spotAnimFrameId != null) {
+    cancelAnimationFrame(spotAnimFrameId);
+    spotAnimFrameId = null;
   }
-  if (spotMarker) {
-    getMap()?.removeLayer(spotMarker);
-    spotMarker = null;
+  if (spotCircle) {
+    getMap()?.removeLayer(spotCircle);
+    spotCircle = null;
   }
-  // 精度円は3秒で消す(メニュー側の一時表示も3秒なので、共用のまま消してよい)。
-  // ここで消さないと、メニューの「現在地点をマーカー表示」が ON のときは
-  // 円に消すタイマーが付いておらず出しっぱなしになる。
-  removeCurrentCircle();
-}
-
-// ===== 現在地点を中心とする円の一時表示(3秒) =====
-// 円の一時表示を要求する。新しい位置が分かっていれば即表示し、
-// 未取得・古い位置しか無いなら次に位置を取得したとき(onGeoSuccess)に表示する。
-// マップ表示中でマーカー表示 ON のときのみ有効。
-function requestCurrentCircleFlash() {
-  if (!getMap() || !onMapView || !showCurrentMarker) return;
-  if (isLastFixFresh() && Number.isFinite(lastKnownAccuracy)) {
-    showTemporaryCircle(lastKnownLatLng, lastKnownAccuracy);
-  } else {
-    pendingCircleShow = true;
-  }
-}
-
-// 円を表示し、3秒後に自動で消すタイマーを(再)設定する
-function showTemporaryCircle(latlng, accuracy) {
-  pendingCircleShow = false;
-  if (circleHideTimerId != null) clearTimeout(circleHideTimerId);
-  showOrUpdateCurrentCircle(latlng, accuracy);
-  circleHideTimerId = setTimeout(removeCurrentCircle, CURRENT_CIRCLE_DURATION_MS);
 }
 
 // マップビューの出入りで現在地監視を制御する。
@@ -766,14 +765,10 @@ export function setLocationActiveForMapView(active, { onError } = {}) {
   onMapView = active;
   if (onError) locationErrorCb = onError;
   refreshLocationWatch();
-  // マップ表示に切り替えたら、現在地点を中心とする円を3秒間だけ表示する
-  // (マーカー表示 ON のときのみ。位置未取得なら初回取得時に表示)
-  if (active) requestCurrentCircleFlash();
 }
 
-// 「現在地点をマーカー表示」トグル。OFF で青丸・精度円を消す。
-// ON にした直後は、直近の取得位置が新しければ即座にマーカーを再表示し、
-// あわせて現在地点を中心とする円を3秒間だけ表示する。
+// 「現在地点をマーカー表示」トグル。OFF で青丸を消す。
+// ON にした直後は、直近の取得位置が新しければ即座にマーカーを再表示する。
 // 古い位置しか無いときは表示せず次の取得を待つ(実際とは違う地点に青丸を出さない)。
 // このトグルは地図追従の前提でもある(shouldFollowMap)。OFF のあいだは
 // 「現在地点は中央に表示」が ON でも地図は動かず、ON に戻した時点で追従を再開する。
@@ -781,14 +776,10 @@ export function setCurrentMarkerVisible(on) {
   showCurrentMarker = on;
   if (!on) {
     removeCurrentMarker();
-    removeCurrentCircle();
   } else {
     if (isLastFixFresh()) {
       showOrUpdateCurrentMarker(lastKnownLatLng);
     }
-    // ON にしたら現在地点を中心とする円を3秒間だけ表示する
-    // (マップ表示中のみ。位置未取得なら初回取得時に表示)
-    requestCurrentCircleFlash();
     // 追従が ON なら、ここで初めて条件がそろう。次の測位を待たずに寄せる
     // (「現在地点は中央に表示」を ON にしたときと同じ振る舞いにそろえる)。
     // OFF のあいだは地図を自由に動かせるため現在地が画面外のこともある。
