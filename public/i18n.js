@@ -158,8 +158,8 @@ const DICT = {
   // 起動画面のボタンとモーダル見出しで共用する
   'download.title': { ja: '地図データのダウンロード', en: 'Download Map Data' },
   'download.subtitle': {
-    ja: '箕面でのハイキング用の地図データを端末に保存し、オフライン状態で使用可能にします',
-    en: 'Saves map data for hiking in Minoh on your device so it can be used offline'
+    ja: '電波が届かない場所でも地図を表示できるよう、地図データを端末に保存します（オフライン対応）',
+    en: 'Saves map data on your device so the map works where there is no signal (offline support)'
   },
   // バージョン行: ラベルと、状態別の値(未ダウンロード / 最新 / 更新あり)。
   // 「保存済み ⇒ 最新」の形は版番号と矢印だけなので tiles.js 側で組み立てる
