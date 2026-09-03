@@ -802,6 +802,31 @@ body.view-state-map .leaflet-control-container {
   color: #666;
 }
 
+/* ===== QRコードモーダル ===== */
+/* QRコード本体。パネル幅いっぱいには広げず、正方形を中央に置く。
+   周囲の明色の余白(4モジュール)は SVG 側に含めている */
+.qr-code {
+  width: min(240px, 60vw);
+  margin: 0.25rem auto 0;
+}
+
+.qr-code svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* 読み取り対象のURL。長くても枠内に収まるよう途中でも折り返す */
+.qr-url {
+  margin: 0.6rem 0 0.25rem;
+  padding: 0 1rem;
+  font-size: 0.85rem;
+  color: #444;
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
 /* ===== 設定モーダル: セクション ===== */
 .settings-section {
   padding: 0.5rem 1rem 1rem;
@@ -1040,10 +1065,34 @@ body.view-state-map .leaflet-control-container {
   padding-right: 1.5rem;
 }
 
-/* 参照先URL: 長い URL は途中でも折り返して枠からはみ出さないようにする */
-#infoSettingsModal .info-value-url {
+/* 参照先URL: 長い URL は途中でも折り返して枠からはみ出さないようにする
+   (「このアプリについて」は設定/Settings モーダル側にあるため、モーダルを限定しない) */
+.info-value-url {
   overflow-wrap: anywhere;
   word-break: break-all;
+}
+
+/* このアプリについて: contributors の明細(役割ごとの担当者)。
+   見出し「contributors:」に属する明細のため左に段下げする。
+   段下げ・ラベルとの間隔は、スマホの幅(実質 287px 程度)で
+   「役割名: 担当者名」が1行に収まるよう 0.5rem に抑える */
+.info-contributors {
+  padding-left: 0.5rem;
+}
+
+/* 役割名は折り返さず、担当者名側で折り返す(枠からはみ出させない) */
+.info-contributors .info-label {
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+
+/* さらに幅が足りない端末で折り返すときも、氏名の途中では改行させず
+   区切り(読点・コロン)で折り返す */
+.info-contributors .info-value {
+  min-width: 0;
+  text-align: right;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* ===== バージョン情報・設定/Settings モーダル共通: セクション ===== */

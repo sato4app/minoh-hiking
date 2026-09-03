@@ -54,6 +54,7 @@
       <!-- 設定/Settings(設定モーダルを開く。設定中の言語が分からない人でもここから
            言語を変更できると分かるよう、ボタン名は日英併記とし翻訳対象外(言語切替で不変) -->
       <button type="button" class="home-btn" id="btnOpenAppSettings">設定/Settings</button>
+      <button type="button" class="home-btn" id="btnOpenQrCode" data-i18n="qr.title">QRコード</button>
     </nav>
   </section>
 
@@ -328,9 +329,24 @@
               <span class="info-label">URL:</span>
               <span class="info-value info-value-url">https://minoh-hiking.vercel.app/</span>
             </div>
+            <!-- contributors: 役割ごとの担当者。氏名・団体名は翻訳対象外のため
+                 data-i18n は付けず、日本語表記のままとする -->
             <div class="info-row">
               <span class="info-label">contributors:</span>
-              <span class="info-value" data-i18n="info.contributorsValue">仕様検討中</span>
+            </div>
+            <div class="info-contributors">
+              <div class="info-row">
+                <span class="info-label">アプリ企画・開発:</span>
+                <span class="info-value">佐藤（powered by AI）</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">マップのデータ構築:</span>
+                <span class="info-value">角山、岩崎、住川、安田</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">プロジェクト推進:</span>
+                <span class="info-value">箕面山麓保全委員会：成瀬</span>
+              </div>
             </div>
           </div>
 
@@ -348,6 +364,26 @@
             </select>
           </div>
         </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- QRコードモーダル(起動時画面の「QRコード」から表示)。
+       いま開いている URL をその場で QRコードにして見せ、近くの人がカメラで
+       読み取って同じページを開けるようにする。生成は qrcode.js(外部ライブラリ非依存) -->
+  <div class="modal" id="qrCodeModal" hidden role="dialog" aria-modal="true" aria-labelledby="qrCodeTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="qrCodeTitle" data-i18n="qr.title">QRコード</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      </header>
+      <div class="modal-body">
+        <p class="modal-subtitle" data-i18n="qr.subtitle">カメラで読み取ると、いま開いているページを表示できます</p>
+        <!-- QRコード本体(SVG を差し込む)。中の SVG は aria-hidden にし、
+             読み上げはこの入れ物の aria-label に任せる -->
+        <div class="qr-code" id="qrCodeImage" role="img" aria-label="QRコード" data-i18n-aria="qr.ariaImage"></div>
+        <p class="qr-url" id="qrCodeUrl"></p>
       </div>
     </div>
   </div>

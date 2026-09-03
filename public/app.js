@@ -11,6 +11,7 @@
 //   map.js            … Leaflet 地図・オーバーレイ
 //   geolocation.js    … 現在地表示・移動経路の記録
 //   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
+//   qrcode.js         … QRコードの生成(外部ライブラリ非依存)
 
 import {
   initMap, resizeMap,
@@ -49,6 +50,7 @@ import {
   migrateLegacyPackages, initTilesEvents, setStatus
 } from './tiles.js';
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
+import { renderQrSvg } from './qrcode.js';
 
 // ===== 状態 =====
 let currentView = 'home';
@@ -65,6 +67,12 @@ const el = {
   btnOpenDownload: document.getElementById('btnOpenDownload'),
   btnOpenSettingsInfo: document.getElementById('btnOpenSettingsInfo'),
   btnOpenAppSettings: document.getElementById('btnOpenAppSettings'),
+  btnOpenQrCode: document.getElementById('btnOpenQrCode'),
+
+  // QRコードモーダル(起動画面の「QRコード」から表示)
+  qrCodeModal: document.getElementById('qrCodeModal'),
+  qrCodeImage: document.getElementById('qrCodeImage'),
+  qrCodeUrl: document.getElementById('qrCodeUrl'),
 
   // バージョン情報モーダル(起動画面の「バージョン情報」から表示)
   infoSettingsModal: document.getElementById('infoSettingsModal'),
@@ -227,6 +235,8 @@ function bindEvents() {
   el.btnOpenSettingsInfo.addEventListener('click', openSettingsInfoModal);
   // 起動画面の「設定/Settings」ボタンは設定モーダルを表示
   el.btnOpenAppSettings.addEventListener('click', openAppSettingsModal);
+  // 起動画面の「QRコード」ボタンは、いま開いている URL の QRコードを表示
+  el.btnOpenQrCode.addEventListener('click', openQrCodeModal);
 
   // 言語/Language(設定モーダル): 現在の設定値を表示し、変更時は保存して
   // リロードし、選択言語で全文言を再表示する。
@@ -625,6 +635,25 @@ function openAppSettingsModal() {
   renderMessageList();
 
   el.appSettingsModal.hidden = false;
+}
+
+// QRコードモーダル(起動画面の「QRコード」から表示)。
+// いま開いている URL(location.href)をその場で QRコードにする。開くたびに作り直すのは、
+// クエリ付きで開いた場合や PWA の起動 URL でも実際のアドレスとずれないようにするため。
+function openQrCodeModal() {
+  const url = location.href;
+  el.qrCodeUrl.textContent = url;
+  try {
+    el.qrCodeImage.innerHTML = renderQrSvg(url);
+  } catch (e) {
+    // URL が長すぎる等で作れなかったとき。空欄のまま出さず理由を残す
+    el.qrCodeImage.replaceChildren();
+    const msg = t('qr.failed');
+    el.qrCodeUrl.textContent = `${msg} (${url})`;
+    logHistory(msg, 'error');
+    showToast(msg);
+  }
+  el.qrCodeModal.hidden = false;
 }
 
 // 「言語の設定/Language Settings」の変更でリロードした直後だけ、設定モーダルを

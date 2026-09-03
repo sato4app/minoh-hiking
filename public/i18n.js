@@ -234,7 +234,8 @@ const DICT = {
   // 接頭辞 info. は、両モーダルが1つの「バージョン情報等」モーダルだった頃の名残
   // (2026.9 で分離したがキー名は据え置き)。振り分けは次のとおり:
   //   設定/Settings … showClock / showZoomLevel / showMessages / ariaClearMessages /
-  //                    noMessages / about / appName / appNameValue / contributorsValue
+  //                    noMessages / about / appName / appNameValue
+  //                    (contributors の氏名・団体名は翻訳対象外のため辞書に持たない)
   //   バージョン情報 … startupUpdateCheck / versionInfo / 各 version 系 / データ件数系
   'info.showClock': { ja: '時刻を表示', en: 'Show clock' },
   'info.showZoomLevel': { ja: 'ズームレベルを表示', en: 'Show zoom level' },
@@ -257,7 +258,16 @@ const DICT = {
   'info.about': { ja: 'このアプリについて', en: 'About this app' },
   'info.appName': { ja: 'アプリ名:', en: 'App name:' },
   'info.appNameValue': { ja: '箕面ハイキングマップ', en: 'Minoh Hiking Map' },
-  'info.contributorsValue': { ja: '仕様検討中', en: 'TBD' },
+
+  // ----- QRコード(起動画面の「QRコード」) -----
+  'qr.title': { ja: 'QRコード', en: 'QR Code' },
+  'qr.subtitle': {
+    ja: 'カメラで読み取ると、いま開いているページを表示できます',
+    en: 'Scan with a camera to open the page you are viewing'
+  },
+  'qr.ariaImage': { ja: 'QRコード', en: 'QR code' },
+  'qr.failed': { ja: 'QRコードを作成できませんでした', en: 'Failed to create the QR code' },
+
   'messages.clearConfirm': { ja: 'メッセージ履歴を全て削除します。よろしいですか?', en: 'Delete all message history?' },
   'startup.versionCheck': {
     ja: '起動時のバージョン確認: 地図 {map} / アプリ {app}',
