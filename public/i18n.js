@@ -297,11 +297,11 @@ const DICT = {
   'guide.downloadTitle': { ja: '地図データのダウンロード', en: 'Download Map Data' },
   'guide.downloadBody': {
     ja: '山に入る前に、電波のある場所で地図データを端末に保存しておくと、電波が届かない場所でも地図を表示できます。\n' +
-        '標準(ズーム14〜17)で約8.5MB、「詳細地図データ(Z=18)を含む」を選ぶと合計約14.1MBです。\n' +
-        '「クリア」を押すと、保存した地図データをすべて消します。',
+        '標準(ズームレベル:Z=14〜17)で約8.5MB、「詳細地図データ(Z=18)を含む」を選ぶと合計約14.1MBです。\n' +
+        '「クリア」を押すと、ダウンロードした地図データをすべて消します。',
     en: 'Before heading into the mountains, save the map data while you still have a signal so the map works where there is none.\n' +
-        'The standard range (zoom 14-17) is about 8.5 MB; with "Include detailed map data (Z=18)" it is about 14.1 MB in total.\n' +
-        'Press "Clear" to delete all saved map data.'
+        'The standard range (zoom level: Z=14-17) is about 8.5 MB; with "Include detailed map data (Z=18)" it is about 14.1 MB in total.\n' +
+        'Press "Clear" to delete all downloaded map data.'
   },
 
   'guide.versionTitle': { ja: 'バージョン情報', en: 'Version Info' },
@@ -333,11 +333,11 @@ const DICT = {
   'guide.mapOverlayTitle': { ja: '地図に表示される情報', en: 'What the Map Shows' },
   'guide.mapOverlayBody': {
     ja: '緊急ポイント・ハイキングルート・スポット・通行止め地点は常に表示されます(切り替えスイッチはありません)。\n' +
-        'マーカーや線をタップすると、名称・ポイント番号・通行止めの理由などが吹き出しで出ます。\n' +
-        '初期設定では、赤い✖が通行止め、橙色の三角が通行困難です。',
+        'マーカーや線をタップすると、緊急ポイント番号・スポット名・通行止めの理由などが吹き出しで出ます。\n' +
+        '初期設定では、赤い✖が通行止め、オレンジの三角が通行困難地点です。',
     en: 'Emergency points, hiking routes, spots and closures are always shown (there is no switch to hide them).\n' +
-        'Tap a marker or a line to see its name, point number, or the reason for a closure in a popup.\n' +
-        'By default a red mark shows a closed point and an orange triangle shows a point that is difficult to pass.'
+        'Tap a marker or a line to see the emergency point number, the spot name, the reason for a closure and so on in a popup.\n' +
+        'By default a red ✖ shows a closed point and an orange triangle shows a point that is difficult to pass.'
   },
 
   'guide.mapControlsTitle': { ja: '画面の右下', en: 'The Bottom Right of the Screen' },
@@ -345,18 +345,18 @@ const DICT = {
     ja: '下から順に、国土地理院のクレジット・縮尺・ズームレベル・ズーム(＋/−)・現在地点表示ボタンです。\n' +
         '現在地点表示ボタンを押すと、現在地が画面の中央に来るように地図が動き、薄い青色の円が3秒かけて小さくなって消えます。\n' +
         '初めて使うときは位置情報の利用許可を聞かれます。「許可」を選んでください。',
-    en: 'From the bottom up: the GSI credit, the scale bar, the zoom level, the zoom buttons (+/-) and the show-current-location button.\n' +
+    en: 'From the bottom up: the GSI credit, the scale bar, the zoom level, the zoom buttons (+/−) and the show-current-location button.\n' +
         'Pressing the show-current-location button moves the map so you are centred, and a pale blue circle shrinks over three seconds and disappears.\n' +
         'The first time, you will be asked to allow access to your location. Please choose "Allow".'
   },
 
-  'guide.mapMenuTitle': { ja: 'メニュー(≡)と現在地の表示', en: 'The Menu and Your Location' },
+  'guide.mapMenuTitle': { ja: 'メニュー(≡)と現在地の表示', en: 'The Menu (≡) and Your Location' },
   'guide.mapMenuBody': {
     ja: '右上のメニューボタン(≡)で表示設定パネルを開きます(地図をタップすると閉じます)。\n' +
-        '「現在地点をマーカー表示」で現在地の青い丸を出し、「現在地点は中央に表示」で地図が現在地に追従します。どちらも最初からオンです。\n' +
+        '「現在地点をマーカー表示」で現在地の青い丸を出し、「現在地点は中央に表示」で地図が現在地に追従します。どちらも初期設定はオンです。\n' +
         '好きな場所を自由に見たいときは「現在地点は中央に表示」をオフにします。',
-    en: 'The menu button at the top right opens the display settings panel (tap the map to close it).\n' +
-        '"Show current location marker" displays the blue dot for your location, and "Keep current location centered" makes the map follow you. Both are on from the start.\n' +
+    en: 'The menu button (≡) at the top right opens the display settings panel (tap the map to close it).\n' +
+        '"Show current location marker" displays the blue dot for your location, and "Keep current location centered" makes the map follow you. Both are on by default.\n' +
         'Turn off "Keep current location centered" when you want to pan around freely.'
   },
 
@@ -365,8 +365,8 @@ const DICT = {
     ja: '「移動経路を記録」をオンにすると、メニューボタン(≡)の左に▶(記録開始)が出ます。押すと、歩いた道が線で地図に描かれます。\n' +
         '停止は■で、誤って止めないよう確認が出ます。記録中は、起動時画面に戻っても記録は続きます。\n' +
         '地点数と移動距離は経路ごとに表で出ます。「読み込み」でGPXファイルを表示、「出力」でGPXファイルに保存、「クリア」で表示中の経路をすべて消します。',
-    en: 'Turning on "Record track" puts a start-recording button to the left of the menu button. Press it and the path you walk is drawn on the map.\n' +
-        'Press the stop button to end it; a confirmation appears so you do not stop it by accident. Recording continues even if you go back to the start screen.\n' +
+    en: 'Turning on "Record track" puts a ▶ (start recording) button to the left of the menu button (≡). Press it and the path you walk is drawn on the map.\n' +
+        'Press ■ to stop it; a confirmation appears so you do not stop it by accident. Recording continues even if you go back to the start screen.\n' +
         'The number of points and the distance are listed per track. "Import" displays a GPX file, "Export" saves one, and "Clear" removes every track on the map.'
   },
 
