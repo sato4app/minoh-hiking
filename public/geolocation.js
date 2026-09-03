@@ -2,7 +2,8 @@
 // Geolocation API による現在地マーカー(青丸)。測位精度(accuracy)を半径とする
 // 精度円は表示しない(大きさが測位状況で変わり、意味が伝わらないため)。
 // 現在地点表示ボタンは、現在地を画面中央へ寄せたうえで現在地点を中心とする
-// 薄い青の円を出し、3秒かけて縮めてから消す(showCurrentLocationSpot)。
+// 薄い青の図形を出し、端末の向きが取れていれば扇形にしてから縮めて消す
+// (showCurrentLocationSpot。方位は orientation.js から受け取る)。
 // 監視(watchPosition)は、記録中は常に、それ以外はマップビュー表示中で
 // 「現在地点をマーカー表示」「現在地点は中央に表示」のいずれかが有効なときに動く
 // (refreshLocationWatch が制御)。記録中に起動時画面へ移動しても記録は継続する。
@@ -20,6 +21,7 @@
 import * as L from 'leaflet';
 import { getMap, buildMarkerIcon, ensureMapSize } from './map.js';
 import { t } from './i18n.js';
+import { getHeading } from './orientation.js';
 
 let currentLocationMarker = null;
 let geoWatchId = null;
@@ -634,33 +636,45 @@ function removeCurrentMarker() {
   }
 }
 
-// ===== 現在地点表示ボタン(ズームボタンの上)の単発表示(3秒) =====
-// 押すと現在地を画面中央へ寄せ、現在地点を中心とする薄い青の円を出して
-// 3秒かけて縮めてから消す、単発の操作。
+// ===== 現在地点表示ボタン(ズームボタンの上)の単発表示 =====
+// 押すと現在地を画面中央へ寄せ、現在地点を中心とする薄い青の図形を出して消す、単発の操作。
+// 図形は次の順に変わる:
+//   1. 円で出す
+//   2. 端末の向き(方位)が取れていれば、1秒かけて円をその方位の扇形へすぼめる(開き40度)
+//   3. 3秒かけて縮めてから消す
+// 方位が取れない端末(PC・許可が下りなかった場合)は 2 を飛ばし、円のまま 3 だけ行う。
 //
-// 円の大きさは地図の縮尺ではなく画面の大きさで決める(地図の短辺に対する割合)。
-// そのため半径をメートルで指定する L.circle ではなく、ピクセルで指定する
-// L.circleMarker を使う。直径は 短辺の70% から 短辺の10% まで一定の速さで縮む。
+// 大きさは地図の縮尺ではなく画面の大きさで決める(地図の短辺に対する割合)。直径は
+// 短辺の70% から 短辺の10% まで一定の速さで縮む。半径をメートルで指定する L.circle は
+// 使えないため、毎フレーム画面座標で頂点を作って緯度経度へ戻した L.polygon で描く
+// (円も「開き360度の扇形」として同じ経路で描くので、円 → 扇形が途切れずつながる)。
+//
+// 扇形は方位を**その場で**読み直しながら描くため、表示中に端末を回すと追従する。
 //
 // 青丸(現在地マーカー)はこのボタンでは出し分けない。メニューの
 // 「現在地点をマーカー表示」が ON なら現在地へ青丸を出し、OFF なら出さない
-// (このボタン専用の青丸を持つと、トグル OFF のときだけ青丸が出る・3秒で消えるといった
+// (このボタン専用の青丸を持つと、トグル OFF のときだけ青丸が出る・消えるといった
 //  トグルと食い違う見え方になるため、表示の可否はトグルに一本化する)。
-const SPOT_CIRCLE_DURATION_MS = 3000;   // 表示してから消えるまで(縮小にかける時間)
+const SPOT_CIRCLE_DURATION_MS = 3000;   // 縮小にかける時間
 const SPOT_CIRCLE_START_RATIO = 0.70;   // 表示開始時の直径 / 地図の短辺
 const SPOT_CIRCLE_END_RATIO = 0.10;     // 縮小後の直径 / 地図の短辺
+const SPOT_FAN_MORPH_MS = 1000;         // 円 → 扇形にすぼめるのにかける時間
+const SPOT_FAN_ANGLE_DEG = 40;          // 扇形の開き
+const SPOT_ARC_STEP_DEG = 4;            // 円弧を折れ線で描くきざみ
 // 薄い青の円。地図の記載が透けて読めるよう塗りは薄くする
 const SPOT_CIRCLE_STYLE = {
   color: '#60a5fa',
   weight: 2,
   opacity: 0.8,
   fillColor: '#93c5fd',
-  fillOpacity: 0.2
+  fillOpacity: 0.2,
+  // 地図上の他の線(ルート・移動経路)と見分けるための目印
+  className: 'current-spot-shape'
 };
 
-let spotCircle = null;          // 縮小中の円
-let spotAnimFrameId = null;     // 縮小アニメーションの requestAnimationFrame ID
-let spotEndCb = null;           // 終了(3秒経過・測位失敗)をボタンへ知らせる
+let spotShape = null;           // 表示中の円/扇形
+let spotAnimFrameId = null;     // アニメーションの requestAnimationFrame ID
+let spotEndCb = null;           // 終了(表示しきった・測位失敗)をボタンへ知らせる
 
 // 現在地点表示ボタンが押されたときの処理。
 // 直近の測位が新しければ即座に、そうでなければ1回だけ測位してから表示する
@@ -711,26 +725,74 @@ function renderCurrentLocationSpot(latlng) {
   startSpotCircle(latlng);
 }
 
-// 現在地点を中心とする円を地図の短辺の70%の大きさで出し、
-// 3秒かけて10%まで一定の速さで縮めてから消す。
+// 扇形(開きが360度なら円)の頂点を作る。
+// 大きさを画面の大きさで決めるため、いったん画面座標で頂点を置いてから緯度経度へ戻す。
+// headingDeg は扇形の中心が向く方位(真北=0・東回り)、sweepDeg は開き。
+function spotShapePoints(center, radiusPx, headingDeg, sweepDeg) {
+  const map = getMap();
+  const origin = map.latLngToLayerPoint(center);
+  const isFull = sweepDeg >= 360;
+  const steps = Math.max(8, Math.round(sweepDeg / SPOT_ARC_STEP_DEG));
+  const from = isFull ? 0 : headingDeg - sweepDeg / 2;
+  const points = [];
+  for (let i = 0; i <= steps; i++) {
+    const rad = (from + (sweepDeg * i) / steps) * Math.PI / 180;
+    // 方位(北=0・東回り)を画面座標へ。北は上(-y)、東は右(+x)
+    points.push(map.layerPointToLatLng(L.point(
+      origin.x + radiusPx * Math.sin(rad),
+      origin.y - radiusPx * Math.cos(rad)
+    )));
+  }
+  // 扇形は中心へ戻して閉じる(円は外周だけでよい)
+  if (!isFull) points.push(center);
+  return points;
+}
+
+// 現在地点を中心に、地図の短辺の70%の大きさで出す。
+// 方位が取れていれば 1秒かけて扇形へすぼめ、そのあと 3秒かけて10%まで縮めて消す。
 function startSpotCircle(latlng) {
   const map = getMap();
   const size = map.getSize();
   const shortSide = Math.min(size.x, size.y);
-  // L.circleMarker の radius は半径[px]。指定は直径なので半分にする
+  // 指定は直径なので半分にして半径[px]にする
   const startRadius = shortSide * SPOT_CIRCLE_START_RATIO / 2;
   const endRadius = shortSide * SPOT_CIRCLE_END_RATIO / 2;
-  spotCircle = L.circleMarker(latlng, { ...SPOT_CIRCLE_STYLE, radius: startRadius }).addTo(map);
+  const center = L.latLng(latlng);
+
+  // 方位が取れる端末でだけ扇形にする。取れなければ従来どおり円のまま縮める。
+  // 表示中に方位が失われることはない(受信を止めても直近の値は残る)ため、開始時に決めてよい
+  const useFan = getHeading() !== null;
+  const morphMs = useFan ? SPOT_FAN_MORPH_MS : 0;
+  const totalMs = morphMs + SPOT_CIRCLE_DURATION_MS;
+
+  spotShape = L.polygon(
+    spotShapePoints(center, startRadius, 0, 360),
+    SPOT_CIRCLE_STYLE
+  ).addTo(map);
 
   const startedAt = performance.now();
   const step = (now) => {
-    if (!spotCircle) return;   // 連打・画面切替で片付け済み
-    const progress = Math.min(1, (now - startedAt) / SPOT_CIRCLE_DURATION_MS);
-    spotCircle.setRadius(startRadius + (endRadius - startRadius) * progress);
-    if (progress < 1) {
+    if (!spotShape) return;   // 連打・画面切替で片付け済み
+    const elapsed = now - startedAt;
+    let radius;
+    let sweep;
+    if (elapsed < morphMs) {
+      // 1) 円 → 扇形。大きさは変えず、開きだけ 360度 から 40度 へすぼめる
+      radius = startRadius;
+      sweep = 360 + (SPOT_FAN_ANGLE_DEG - 360) * (elapsed / morphMs);
+    } else {
+      // 2) 縮小。扇形になっていれば開きは保ったまま小さくする
+      const progress = Math.min(1, (elapsed - morphMs) / SPOT_CIRCLE_DURATION_MS);
+      radius = startRadius + (endRadius - startRadius) * progress;
+      sweep = useFan ? SPOT_FAN_ANGLE_DEG : 360;
+    }
+    // 方位は毎フレーム読み直す(表示中に端末を回しても扇形が追従する)
+    const heading = useFan ? (getHeading() ?? 0) : 0;
+    spotShape.setLatLngs(spotShapePoints(center, radius, heading, sweep));
+    if (elapsed < totalMs) {
       spotAnimFrameId = requestAnimationFrame(step);
     } else {
-      // 縮みきったら円を消し、ボタンを灰色へ戻す
+      // 出しきったら消し、ボタンを灰色へ戻す
       spotAnimFrameId = null;
       endCurrentLocationSpot();
     }
@@ -746,15 +808,15 @@ function endCurrentLocationSpot() {
   cb?.();
 }
 
-// このボタンが出した円だけを消す(現在地マーカーには触れない)
+// このボタンが出した円/扇形だけを消す(現在地マーカーには触れない)
 function clearCurrentLocationSpot() {
   if (spotAnimFrameId != null) {
     cancelAnimationFrame(spotAnimFrameId);
     spotAnimFrameId = null;
   }
-  if (spotCircle) {
-    getMap()?.removeLayer(spotCircle);
-    spotCircle = null;
+  if (spotShape) {
+    getMap()?.removeLayer(spotShape);
+    spotShape = null;
   }
 }
 

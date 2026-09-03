@@ -13,6 +13,7 @@
 //   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
 //   qrcode.js         … QRコードの生成(外部ライブラリ非依存)
 //   guide.js          … 使い方ガイド(画面を順に案内するオーバーレイ)
+//   orientation.js    … 端末の向き(方位)の取得(現在地点表示ボタンの扇形に使う)
 
 import {
   initMap, resizeMap,
@@ -53,6 +54,7 @@ import {
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
 import { renderQrSvg } from './qrcode.js';
 import { initGuide, openGuide, maybeAutoOpenGuide } from './guide.js';
+import { prepareHeading, stopHeadingWatch } from './orientation.js';
 
 // ===== 状態 =====
 let currentView = 'home';
@@ -234,10 +236,30 @@ function applyCurrentMarkerVisible(on) {
 
 // 現在地点表示ボタン(ズームボタンの上)を押したとき。
 // メニューのトグルとは独立した単発の操作で、押している間だけボタンを青くする。
-// 表示が終わったら(3秒経過・測位失敗)灰色へ戻す。
-function handleCurrentSpotButton() {
+// 表示が終わったら(表示しきった・測位失敗)灰色へ戻す。
+//
+// 端末の向き(方位)は、iOS では利用許可を**タップの中から**求める必要があるため、
+// 位置の取得より先にここで用意する。方位が使えないときは扇形を出さず円のまま表示し、
+// 理由が分かるよう履歴に1回だけ残す。
+async function handleCurrentSpotButton() {
   setCurrentMarkerButtonState(true);
-  showCurrentLocationSpot({ onEnd: () => setCurrentMarkerButtonState(false) });
+  if (await prepareHeading() !== 'granted') logHeadingUnavailableOnce();
+  showCurrentLocationSpot({
+    onEnd: () => {
+      // 表示が終われば方位はもう使わない。受信を止めて電池の消費を抑える
+      stopHeadingWatch();
+      setCurrentMarkerButtonState(false);
+    }
+  });
+}
+
+// 方位を取得できなかったことを履歴に残す(起動ごとに1回だけ)。
+// 押すたびに出すと履歴が埋まるため、1回に留める
+let headingUnavailableLogged = false;
+function logHeadingUnavailableOnce() {
+  if (headingUnavailableLogged) return;
+  headingUnavailableLogged = true;
+  logHistory(t('geo.headingUnavailable'), 'warn');
 }
 
 function bindEvents() {
