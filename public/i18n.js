@@ -268,6 +268,118 @@ const DICT = {
   'qr.ariaImage': { ja: 'QRコード', en: 'QR code' },
   'qr.failed': { ja: 'QRコードを作成できませんでした', en: 'Failed to create the QR code' },
 
+  // ----- 使い方ガイド(起動画面の「使い方」・初回起動時の自動表示) -----
+  // guide.<ページのkey>Title / guide.<ページのkey>Body が1ページ分の文言。
+  // key は guide.js の GUIDE_STEPS と一致させる。本文の改行(\n)はそのまま表示される
+  'guide.title': { ja: '使い方', en: 'How to Use' },
+  'guide.prev': { ja: '戻る', en: 'Back' },
+  'guide.next': { ja: '次へ', en: 'Next' },
+  'guide.finish': { ja: '終わり', en: 'Done' },
+
+  'guide.introTitle': { ja: '箕面ハイキングマップの使い方', en: 'Using the Minoh Hiking Map' },
+  'guide.introBody': {
+    ja: '箕面エリアの地図に、緊急ポイント・ハイキングルート・スポット・通行止め地点を重ねて表示し、' +
+        '現在地の確認と、歩いた経路の記録ができます。\n' +
+        '画面の場所をひとつずつ光らせながら、ひと通り見ていきます。',
+    en: 'This app shows emergency points, hiking routes, spots and closures on a map of the Minoh area, ' +
+        'and lets you check where you are and record the route you walk.\n' +
+        'We will go through the screens one place at a time.'
+  },
+
+  'guide.showMapTitle': { ja: 'ハイキングマップ表示', en: 'Show Hiking Map' },
+  'guide.showMapBody': {
+    ja: '地図に緊急ポイント・ハイキングルート・スポット・通行止め地点と、現在地を重ねて表示します。\n' +
+        'この案内の後半では、実際にこの画面を開いて説明します。',
+    en: 'Shows emergency points, hiking routes, spots, closures and your current location on the map.\n' +
+        'The second half of this guide opens that screen and explains it there.'
+  },
+
+  'guide.downloadTitle': { ja: '地図データのダウンロード', en: 'Download Map Data' },
+  'guide.downloadBody': {
+    ja: '山に入る前に、電波のある場所で地図データを端末に保存しておくと、電波が届かない場所でも地図を表示できます。\n' +
+        '標準(ズーム14〜17)で約8.5MB、「詳細地図データ(Z=18)を含む」を選ぶと合計約14.1MBです。\n' +
+        '「クリア」を押すと、保存した地図データをすべて消します。',
+    en: 'Before heading into the mountains, save the map data while you still have a signal so the map works where there is none.\n' +
+        'The standard range (zoom 14-17) is about 8.5 MB; with "Include detailed map data (Z=18)" it is about 14.1 MB in total.\n' +
+        'Press "Clear" to delete all saved map data.'
+  },
+
+  'guide.versionTitle': { ja: 'バージョン情報', en: 'Version Info' },
+  'guide.versionBody': {
+    ja: 'アプリ・国土地理院地図タイル・ハイキングマップ・通行止めのバージョンと、表示中のデータ件数を確認できます。\n' +
+        '「起動時にアプリの更新版を確認」をオンにしておくと、新しい版が出たときに起動時に知らせます。',
+    en: 'Shows the versions of the app, the GSI map tiles, the hiking map and the closure data, together with how many items are loaded.\n' +
+        'Turn on "Check for app updates at startup" to be told at startup when a newer version is available.'
+  },
+
+  'guide.settingsTitle': { ja: '設定/Settings', en: 'Settings' },
+  'guide.settingsBody': {
+    ja: '時刻の表示・ズームレベルの表示・メッセージ履歴・このアプリについてと、マーカーの設定、言語の設定をまとめています。\n' +
+        'ボタン名を日英併記にしているのは、英語表示のままで分からなくなっても、ここから日本語に戻せるようにするためです。',
+    en: 'Groups together the clock, the zoom level display, the message history, About this app, marker settings and the language setting.\n' +
+        'The button is labelled in both Japanese and English so you can always come back here and switch the language.'
+  },
+
+  'guide.guideQrTitle': { ja: '使い方とQRコード', en: 'How to Use and QR Code' },
+  'guide.guideQrBody': {
+    ja: 'この案内は、いつでも「使い方」から見直せます。\n' +
+        '「QRコード」は、いま開いているページのQRコードを表示します。別の端末のカメラで読み取ると、同じアプリをすぐ開けます。\n' +
+        '「次へ」を押すと、ハイキングマップ表示に移って案内を続けます。',
+    en: 'You can reopen this guide at any time from "How to Use".\n' +
+        '"QR Code" shows a QR code for the page you are on. Scan it with another device with a camera to open the same app right away.\n' +
+        'Press "Next" to move on to the hiking map and continue the guide.'
+  },
+
+  'guide.mapOverlayTitle': { ja: '地図に表示される情報', en: 'What the Map Shows' },
+  'guide.mapOverlayBody': {
+    ja: '緊急ポイント・ハイキングルート・スポット・通行止め地点は常に表示されます(切り替えスイッチはありません)。\n' +
+        'マーカーや線をタップすると、名称・ポイント番号・通行止めの理由などが吹き出しで出ます。\n' +
+        '初期設定では、赤い✖が通行止め、橙色の三角が通行困難です。',
+    en: 'Emergency points, hiking routes, spots and closures are always shown (there is no switch to hide them).\n' +
+        'Tap a marker or a line to see its name, point number, or the reason for a closure in a popup.\n' +
+        'By default a red mark shows a closed point and an orange triangle shows a point that is difficult to pass.'
+  },
+
+  'guide.mapControlsTitle': { ja: '画面の右下', en: 'The Bottom Right of the Screen' },
+  'guide.mapControlsBody': {
+    ja: '下から順に、国土地理院のクレジット・縮尺・ズームレベル・ズーム(＋/−)・現在地点表示ボタンです。\n' +
+        '現在地点表示ボタンを押すと、現在地が画面の中央に来るように地図が動き、薄い青色の円が3秒かけて小さくなって消えます。\n' +
+        '初めて使うときは位置情報の利用許可を聞かれます。「許可」を選んでください。',
+    en: 'From the bottom up: the GSI credit, the scale bar, the zoom level, the zoom buttons (+/-) and the show-current-location button.\n' +
+        'Pressing the show-current-location button moves the map so you are centred, and a pale blue circle shrinks over three seconds and disappears.\n' +
+        'The first time, you will be asked to allow access to your location. Please choose "Allow".'
+  },
+
+  'guide.mapMenuTitle': { ja: 'メニュー(≡)と現在地の表示', en: 'The Menu and Your Location' },
+  'guide.mapMenuBody': {
+    ja: '右上のメニューボタン(≡)で表示設定パネルを開きます(地図をタップすると閉じます)。\n' +
+        '「現在地点をマーカー表示」で現在地の青い丸を出し、「現在地点は中央に表示」で地図が現在地に追従します。どちらも最初からオンです。\n' +
+        '好きな場所を自由に見たいときは「現在地点は中央に表示」をオフにします。',
+    en: 'The menu button at the top right opens the display settings panel (tap the map to close it).\n' +
+        '"Show current location marker" displays the blue dot for your location, and "Keep current location centered" makes the map follow you. Both are on from the start.\n' +
+        'Turn off "Keep current location centered" when you want to pan around freely.'
+  },
+
+  'guide.mapTrackTitle': { ja: '移動経路の記録', en: 'Recording Your Track' },
+  'guide.mapTrackBody': {
+    ja: '「移動経路を記録」をオンにすると、メニューボタン(≡)の左に▶(記録開始)が出ます。押すと、歩いた道が線で地図に描かれます。\n' +
+        '停止は■で、誤って止めないよう確認が出ます。記録中は、起動時画面に戻っても記録は続きます。\n' +
+        '地点数と移動距離は経路ごとに表で出ます。「読み込み」でGPXファイルを表示、「出力」でGPXファイルに保存、「クリア」で表示中の経路をすべて消します。',
+    en: 'Turning on "Record track" puts a start-recording button to the left of the menu button. Press it and the path you walk is drawn on the map.\n' +
+        'Press the stop button to end it; a confirmation appears so you do not stop it by accident. Recording continues even if you go back to the start screen.\n' +
+        'The number of points and the distance are listed per track. "Import" displays a GPX file, "Export" saves one, and "Clear" removes every track on the map.'
+  },
+
+  'guide.mapFinishTitle': { ja: 'マーカーの設定と、画面の戻り方', en: 'Marker Settings and Going Back' },
+  'guide.mapFinishBody': {
+    ja: '「マーカーの設定」では、地図の目印の色・形・大きさを種類ごとに変えられます。\n' +
+        '「起動時の画面に戻る」で最初の画面に戻ります。\n' +
+        '案内は以上です。この案内は、いつでも起動時画面の「使い方」から見直せます。',
+    en: 'In "Marker settings" you can change the colour, shape and size of each kind of marker on the map.\n' +
+        '"Back to start screen" returns you to the first screen.\n' +
+        'That is the whole tour. You can reopen this guide at any time from "How to Use" on the start screen.'
+  },
+
   'messages.clearConfirm': { ja: 'メッセージ履歴を全て削除します。よろしいですか?', en: 'Delete all message history?' },
   'startup.versionCheck': {
     ja: '起動時のバージョン確認: 地図 {map} / アプリ {app}',

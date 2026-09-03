@@ -12,6 +12,7 @@
 //   geolocation.js    … 現在地表示・移動経路の記録
 //   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
 //   qrcode.js         … QRコードの生成(外部ライブラリ非依存)
+//   guide.js          … 使い方ガイド(画面を順に案内するオーバーレイ)
 
 import {
   initMap, resizeMap,
@@ -51,6 +52,7 @@ import {
 } from './tiles.js';
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
 import { renderQrSvg } from './qrcode.js';
+import { initGuide, openGuide, maybeAutoOpenGuide } from './guide.js';
 
 // ===== 状態 =====
 let currentView = 'home';
@@ -68,6 +70,7 @@ const el = {
   btnOpenSettingsInfo: document.getElementById('btnOpenSettingsInfo'),
   btnOpenAppSettings: document.getElementById('btnOpenAppSettings'),
   btnOpenQrCode: document.getElementById('btnOpenQrCode'),
+  btnOpenGuide: document.getElementById('btnOpenGuide'),
 
   // QRコードモーダル(起動画面の「QRコード」から表示)
   qrCodeModal: document.getElementById('qrCodeModal'),
@@ -207,6 +210,18 @@ async function init() {
   // 言語変更によるリロード直後なら、設定モーダルを開いた状態に戻す。
   // showView() は開いているモーダルを閉じるため、その後に呼ぶ
   restoreAppSettingsModalAfterReload();
+
+  // 使い方ガイド。ページによって画面と表示設定パネルを切り替えるため、
+  // その操作だけを関数で渡す(guide.js から app.js を import すると相互参照になる)
+  initGuide({
+    showView,
+    getCurrentView: () => currentView,
+    isLayerPanelOpen: () => !el.mapLayerPanel.hidden,
+    setLayerPanelOpen: (open) => { el.mapLayerPanel.hidden = !open; }
+  });
+  // 初回起動時だけ自動で開く(2回目以降は起動画面の「使い方」ボタンから)
+  maybeAutoOpenGuide();
+
   requestAnimationFrame(() => resizeMap());
 }
 
@@ -237,6 +252,8 @@ function bindEvents() {
   el.btnOpenAppSettings.addEventListener('click', openAppSettingsModal);
   // 起動画面の「QRコード」ボタンは、いま開いている URL の QRコードを表示
   el.btnOpenQrCode.addEventListener('click', openQrCodeModal);
+  // 起動画面の「使い方」ボタンは、アプリの使い方を順に案内するガイドを開く
+  el.btnOpenGuide.addEventListener('click', openGuide);
 
   // 言語/Language(設定モーダル): 現在の設定値を表示し、変更時は保存して
   // リロードし、選択言語で全文言を再表示する。

@@ -48,19 +48,21 @@
   <section class="view view-home" id="viewHome">
     <img class="home-image" src="icons/Startup-1024x1836.webp" alt="" aria-hidden="true" />
     <nav class="home-menu" aria-label="メインメニュー" data-i18n-aria="home.ariaMainMenu">
-      <button type="button" class="home-btn" data-view="map" data-i18n="home.showMap">ハイキングマップ表示</button>
-      <button type="button" class="home-btn" id="btnOpenDownload" data-i18n="download.title">地図データのダウンロード</button>
-      <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-i18n="home.versionInfo">バージョン情報</button>
+      <button type="button" class="home-btn" data-view="map" data-guide="homeShowMap" data-i18n="home.showMap">ハイキングマップ表示</button>
+      <button type="button" class="home-btn" id="btnOpenDownload" data-guide="homeDownload" data-i18n="download.title">地図データのダウンロード</button>
+      <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-guide="homeVersion" data-i18n="home.versionInfo">バージョン情報</button>
       <!-- 設定/Settings(設定モーダルを開く。設定中の言語が分からない人でもここから
            言語を変更できると分かるよう、ボタン名は日英併記とし翻訳対象外(言語切替で不変) -->
-      <button type="button" class="home-btn" id="btnOpenAppSettings">設定/Settings</button>
-      <button type="button" class="home-btn" id="btnOpenQrCode" data-i18n="qr.title">QRコード</button>
+      <button type="button" class="home-btn" id="btnOpenAppSettings" data-guide="homeSettings">設定/Settings</button>
+      <!-- 使い方(アプリの使い方を1ページずつ案内するガイドを開く。初回起動時は自動で開く) -->
+      <button type="button" class="home-btn" id="btnOpenGuide" data-guide="homeGuide" data-i18n="guide.title">使い方</button>
+      <button type="button" class="home-btn" id="btnOpenQrCode" data-guide="homeQr" data-i18n="qr.title">QRコード</button>
     </nav>
   </section>
 
   <!-- ハイキングマップ表示(地図そのものは body 直下の #map を共有) -->
   <section class="view view-map" id="viewMap" hidden>
-    <button type="button" class="btn-float btn-menu-float" id="btnMapLayers" aria-label="表示設定" data-i18n-aria="map.ariaLayers">≡</button>
+    <button type="button" class="btn-float btn-menu-float" id="btnMapLayers" data-guide="mapMenuBtn" aria-label="表示設定" data-i18n-aria="map.ariaLayers">≡</button>
     <!-- メニューボタン(≡)の左に並べる上部操作群。右詰めで、右から順に
          記録開始/停止ボタン → 時刻表示。各要素は個別に hidden を切り替え、
          表示中のものだけがメニューボタンに隣接する(非表示分の隙間はできない)。 -->
@@ -80,17 +82,17 @@
       </button>
     </div>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
-      <label class="toggle toggle-switch">
+      <label class="toggle toggle-switch" data-guide="panelCurrentMarker">
         <input type="checkbox" id="toggleCurrentMarker" checked />
         <span class="toggle-slider" aria-hidden="true"></span>
         <span class="toggle-text" data-i18n="map.toggleCurrentMarker">現在地点をマーカー表示</span>
       </label>
-      <label class="toggle toggle-switch">
+      <label class="toggle toggle-switch" data-guide="panelCenterCurrent">
         <input type="checkbox" id="toggleCenterCurrent" checked />
         <span class="toggle-slider" aria-hidden="true"></span>
         <span class="toggle-text" data-i18n="map.toggleCenterCurrent">現在地点は中央に表示</span>
       </label>
-      <label class="toggle toggle-switch">
+      <label class="toggle toggle-switch" data-guide="panelTrackRecording">
         <input type="checkbox" id="toggleTrackRecording" />
         <span class="toggle-slider" aria-hidden="true"></span>
         <span class="toggle-text" data-i18n="map.toggleTrackRecording">移動経路を記録</span>
@@ -99,7 +101,7 @@
       <!-- 統計: 経路1本につき1行。ラベルと値を横に並べて表示し、経路が複数あるときは
            行の左に「経路 n」を添える。中身は app.js が経路の本数に応じて組み立てる -->
       <div class="track-stats" id="trackStats" role="group" aria-label="移動経路の統計" data-i18n-aria="track.ariaStats"></div>
-      <div class="track-inline-actions">
+      <div class="track-inline-actions" data-guide="panelTrackActions">
         <button type="button" class="btn-track-mini" id="btnTrackImport" data-i18n="track.import">読み込み</button>
         <button type="button" class="btn-track-mini" id="btnTrackExport" data-i18n="track.export">出力</button>
         <button type="button" class="btn-track-mini" id="btnTrackClear" data-i18n="common.clear">クリア</button>
@@ -107,9 +109,9 @@
       <!-- 「読み込み」で開くファイル選択(GPX)。ボタンから click() して呼び出す -->
       <input type="file" id="trackImportInput" accept=".gpx,application/gpx+xml" hidden />
       <hr class="panel-divider" />
-      <button type="button" class="panel-btn" id="btnMapOpenMarkerSettings" data-i18n="markerSettings.title">マーカーの設定</button>
+      <button type="button" class="panel-btn" id="btnMapOpenMarkerSettings" data-guide="panelMarkerSettings" data-i18n="markerSettings.title">マーカーの設定</button>
       <hr class="panel-divider" />
-      <button type="button" class="panel-btn panel-btn-back" data-view="home" data-i18n="map.backToHome">起動時の画面に戻る</button>
+      <button type="button" class="panel-btn panel-btn-back" data-view="home" data-guide="panelBack" data-i18n="map.backToHome">起動時の画面に戻る</button>
     </div>
   </section>
 
@@ -415,6 +417,43 @@
     <div class="blocking-overlay-panel" role="document">
       <div class="blocking-spinner" aria-hidden="true"></div>
       <p class="blocking-overlay-text" id="appUpdateOverlayText" data-i18n="update.downloading">アプリの更新版をダウンロードしています。完了までお待ちください。</p>
+    </div>
+  </div>
+
+  <!-- 使い方ガイド(起動時画面の「使い方」から表示。初回起動時は自動で開く)。
+       画面全体を暗くし、説明している場所だけを明るく残して1ページずつ案内する。
+       ページによっては起動時画面とハイキングマップ表示を行き来し、表示設定
+       パネル(≡)も開くため、閉じたときは開く前の状態に戻す。
+       案内中の操作は「戻る」「次へ」「閉じる」だけ(明るく残した場所も含め、
+       画面全体をこのオーバーレイがタップを受け止める)。説明と食い違う操作で
+       案内の位置がずれないようにするため。
+       文言は guide.js が i18n の翻訳キーから設定するため data-i18n は付けない。 -->
+  <div class="guide" id="guideOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+    <!-- 明るく残す場所の上下左右を覆う4枚の帯(位置と大きさは guide.js が設定)。
+         明るく残す場所が無いページでは、下の1枚が画面全体を覆う -->
+    <div class="guide-shade" id="guideShadeTop"></div>
+    <div class="guide-shade" id="guideShadeBottom"></div>
+    <div class="guide-shade" id="guideShadeLeft"></div>
+    <div class="guide-shade" id="guideShadeRight"></div>
+    <!-- 明るく残した場所の輪郭(場所が無いページでは非表示) -->
+    <div class="guide-ring" id="guideRing" hidden aria-hidden="true"></div>
+    <!-- 説明の吹き出し。縦位置は説明する場所と重ならないよう guide.js が決める -->
+    <div class="guide-tip" id="guideTip">
+      <div class="guide-tip-panel" id="guideTipPanel">
+        <div class="guide-tip-head">
+          <h2 class="guide-tip-title" id="guideTitle"></h2>
+          <span class="guide-tip-count" id="guideCount"></span>
+        </div>
+        <p class="guide-tip-body" id="guideBody"></p>
+        <div class="guide-tip-actions">
+          <button type="button" class="guide-tip-close" id="btnGuideClose" data-i18n="common.close">閉じる</button>
+          <div class="guide-tip-nav">
+            <button type="button" class="btn btn-neutral guide-nav-btn" id="btnGuidePrev" data-i18n="guide.prev">戻る</button>
+            <!-- 最後のページでは「終わり」に変わるため、文言は guide.js が設定する -->
+            <button type="button" class="btn btn-primary guide-nav-btn" id="btnGuideNext">次へ</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

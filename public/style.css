@@ -150,6 +150,130 @@ textarea {
   transform: translateX(-50%) translateY(0);
 }
 
+/* ===== 使い方ガイド(起動画面の「使い方」・初回起動時の自動表示) ===== */
+/* 画面全体を覆い、説明している場所だけを明るく残す。モーダル(1000)・トースト(1100)より
+   前面に置き、アプリ更新中のブロックオーバーレイ(2000)よりは後ろに置く。
+   明るく残した場所も含め全面でタップを受け止め(下の画面は操作させない)、
+   案内中の操作は吹き出しの「戻る」「次へ」「閉じる」だけにする。
+   body のセーフエリア余白の影響を受けないよう position: fixed で画面全体に広げる */
+.guide {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  touch-action: none;
+}
+
+.guide[hidden] {
+  display: none;
+}
+
+/* 明るく残す場所の上下左右を覆う帯(位置と大きさは guide.js が設定)。
+   4枚で囲むことで、真ん中の場所だけが元の明るさのまま見える */
+.guide-shade {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* 明るく残した場所の輪郭。枠自体はタップを受けない(下の .guide が受け止める) */
+.guide-ring {
+  position: absolute;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.guide-ring[hidden] {
+  display: none;
+}
+
+/* 説明の吹き出し。横は画面いっぱいの帯にして中の .guide-tip-panel を中央に置く
+   (帯を transform で動かさないため、縦位置の translateY と競合しない)。
+   縦位置(top / bottom / transform)は guide.js が説明する場所に合わせて設定する */
+.guide-tip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  padding-left: calc(0.75rem + var(--safe-area-left));
+  padding-right: calc(0.75rem + var(--safe-area-right));
+}
+
+.guide-tip-panel {
+  width: min(420px, 100%);
+  max-height: 70vh;
+  margin: 0 auto;
+  overflow-y: auto;
+  padding: 0.7rem 1rem 0.85rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.guide-tip-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.guide-tip-title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: #2c7a3d;
+}
+
+/* ページ番号(3 / 11)。見出しの邪魔をしないよう小さく薄く出す */
+.guide-tip-count {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: #999;
+}
+
+/* 本文。改行(\n)をそのまま活かすため pre-line にする */
+.guide-tip-body {
+  margin: 0.45rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #333;
+  white-space: pre-line;
+}
+
+.guide-tip-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+}
+
+/* 「閉じる」は途中でやめるための控えめな操作。文字だけのボタンにする */
+.guide-tip-close {
+  padding: 0.3rem 0.2rem;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.guide-tip-close:hover {
+  color: #333;
+}
+
+.guide-tip-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ページ送りのボタン。指で押せる高さ(48px)は保ったまま、横幅だけ抑える */
+.guide-nav-btn {
+  min-width: 84px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.95rem;
+}
+
 /* ===== 処理中のブロックオーバーレイ(アプリ更新版のダウンロード中) ===== */
 /* 全画面を覆って他の操作を受け付けないようにする。モーダル(1000)・
    トースト(1100)より前面に出し、タップ・スクロールは自身で受け止める。 */

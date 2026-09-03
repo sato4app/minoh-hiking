@@ -17,6 +17,10 @@ export const LANGUAGE_KEY = 'minoh-hiking.language';
 // 移動経路のGPX出力で使った連番。{ date: 'yyyymmdd', seq: n } の JSON で保存し、
 // 同日の次回出力ではデフォルトの連番を +1 して提示する(日付が変われば 01 に戻る)。
 export const TRACK_EXPORT_SEQ_KEY = 'minoh-hiking.track-export-seq';
+// 「使い方」ガイドを一度でも開いたかどうか。初回起動時だけ自動で表示するために使う
+// (2回目以降は起動画面の「使い方」ボタンから開く)。保存できない環境では
+// 「開いた」扱いとし、起動のたびに自動表示されないようにする。
+export const GUIDE_SEEN_KEY = 'minoh-hiking.guide-seen';
 
 // ===== sessionStorage キー =====
 // アプリ更新(updateAppToLatest)による再読み込み直後であることを示すフラグ。
