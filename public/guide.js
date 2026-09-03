@@ -59,7 +59,7 @@ const GUIDE_STEPS = [
   {
     key: 'guideQr',
     view: 'home',
-    targets: ['[data-guide="homeGuide"]', '[data-guide="homeQr"]']
+    targets: ['[data-guide="homeQr"]', '[data-guide="homeGuide"]']
   },
   {
     // 地図に重なる情報の説明。特定の場所ではなく地図全体の話なので枠は出さない
