@@ -323,13 +323,13 @@ const DICT = {
         'The button is labelled in both Japanese and English so you can always come back here and switch the language.'
   },
 
-  'guide.guideQrTitle': { ja: 'QRと使い方', en: 'QR and How to Use' },
+  'guide.guideQrTitle': { ja: '使い方とQR', en: 'How to Use and QR' },
   'guide.guideQrBody': {
-    ja: '「QR」は、いま開いているページのQRコードを表示します。別の端末のカメラで読み取ると、同じアプリをすぐ開けます。\n' +
-        'この案内は、いつでも「使い方」から見直せます。\n' +
+    ja: 'この案内は、いつでも「使い方」から見直せます。\n' +
+        '「QR」は、いま開いているページのQRコードを表示します。別の端末のカメラで読み取ると、同じアプリをすぐ開けます。\n' +
         '「次へ」を押すと、ハイキングマップ表示に移って案内を続けます。',
-    en: '"QR" shows a QR code for the page you are on. Scan it with another device with a camera to open the same app right away.\n' +
-        'You can reopen this guide at any time from "How to Use".\n' +
+    en: 'You can reopen this guide at any time from "How to Use".\n' +
+        '"QR" shows a QR code for the page you are on. Scan it with another device with a camera to open the same app right away.\n' +
         'Press "Next" to move on to the hiking map and continue the guide.'
   },
 
