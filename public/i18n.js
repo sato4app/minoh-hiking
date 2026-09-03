@@ -41,6 +41,9 @@ const DICT = {
   'home.ariaMainMenu': { ja: 'メインメニュー', en: 'Main menu' },
   'home.showMap': { ja: 'ハイキングマップ表示', en: 'Show Hiking Map' },
   'home.versionInfo': { ja: 'バージョン情報', en: 'Version Info' },
+  // 起動時画面のボタンは幅を取らないよう短く「QR」とする。
+  // QRコードモーダルの見出し(qr.title)は、何を出す画面か分かるよう「QRコード」のまま
+  'home.qr': { ja: 'QR', en: 'QR' },
   // 「設定/Settings」(起動画面のボタン・設定モーダルの見出し)は日英併記の固定文言のため
   // 翻訳キーを持たない(index.html に直接記述し、言語切替でも変えない)
 
@@ -259,7 +262,7 @@ const DICT = {
   'info.appName': { ja: 'アプリ名:', en: 'App name:' },
   'info.appNameValue': { ja: '箕面ハイキングマップ', en: 'Minoh Hiking Map' },
 
-  // ----- QRコード(起動画面の「QRコード」) -----
+  // ----- QRコード(起動画面の「QR」) -----
   'qr.title': { ja: 'QRコード', en: 'QR Code' },
   'qr.subtitle': {
     ja: 'カメラで読み取ると、いま開いているページを表示できます',
@@ -320,12 +323,12 @@ const DICT = {
         'The button is labelled in both Japanese and English so you can always come back here and switch the language.'
   },
 
-  'guide.guideQrTitle': { ja: 'QRコードと使い方', en: 'QR Code and How to Use' },
+  'guide.guideQrTitle': { ja: 'QRと使い方', en: 'QR and How to Use' },
   'guide.guideQrBody': {
-    ja: '「QRコード」は、いま開いているページのQRコードを表示します。別の端末のカメラで読み取ると、同じアプリをすぐ開けます。\n' +
+    ja: '「QR」は、いま開いているページのQRコードを表示します。別の端末のカメラで読み取ると、同じアプリをすぐ開けます。\n' +
         'この案内は、いつでも「使い方」から見直せます。\n' +
         '「次へ」を押すと、ハイキングマップ表示に移って案内を続けます。',
-    en: '"QR Code" shows a QR code for the page you are on. Scan it with another device with a camera to open the same app right away.\n' +
+    en: '"QR" shows a QR code for the page you are on. Scan it with another device with a camera to open the same app right away.\n' +
         'You can reopen this guide at any time from "How to Use".\n' +
         'Press "Next" to move on to the hiking map and continue the guide.'
   },

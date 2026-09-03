@@ -4,7 +4,7 @@
 **最終更新日:** 2026年8月23日
 **対象:** minoh-hiking `api/` — 実装側 / MapPublisher — 呼び出し側
 **関連:**
-[機能仕様 `funcspec-202608.md`](funcspec-202608.md) §10（契約 1.0 の §10.2 は**本書で置き換えた**） /
+[機能仕様 `funcspec-202609.md`](funcspec-202609.md) §10（契約 1.0 の §10.2 は**本書で置き換えた**） /
 MapPublisher `docs/migration-plan-202608.md`（移行の実装計画）
 
 ---

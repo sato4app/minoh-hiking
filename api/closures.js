@@ -4,7 +4,7 @@
 // - POST /api/closures: 公開トークン(x-publish-token)を検証し、全置換で公開する
 //
 // 実装は _lib/publish.js に集約している(mapdata と共通)。
-// 仕様: docs/publish-api-202608.md(契約バージョン 2.0・本書が正本)
+// 仕様: docs/publish-api-202609.md(契約バージョン 2.0・本書が正本)
 //
 // 契約 1.0 からの変更点(呼び出し側に影響する):
 // - version はサーバーが採番する(送られても無視する)

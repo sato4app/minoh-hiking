@@ -1,4 +1,4 @@
-// 公開データセットの定義(公開API 仕様書 docs/publish-api-202608.md §2.1・§6・§7.1)
+// 公開データセットの定義(公開API 仕様書 docs/publish-api-202609.md §2.1・§6・§7.1)
 //
 // エンドポイント(api/mapdata.js / api/closures.js)は、この定義を渡すだけで
 // GET 配信・POST 公開・検証を共通実装(_lib/publish.js)に委ねる。

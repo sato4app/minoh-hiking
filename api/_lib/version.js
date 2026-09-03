@@ -1,4 +1,4 @@
-// version の検証(公開API 仕様書 docs/publish-api-202608.md §4)
+// version の検証(公開API 仕様書 docs/publish-api-202609.md §4)
 //
 // 契約 3.0 で採番は送信側(MapPublisher)へ移した。サーバーは送られてきた
 // version を検証して採用するだけで、値を作らない。

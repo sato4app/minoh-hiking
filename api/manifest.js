@@ -2,7 +2,7 @@
 //
 // 利用者アプリは起動時にまずこれを読み、保存済み version と相違があるときだけ
 // 本体(数百KB)を取りに行く。応答は数百バイト。
-// 仕様: docs/publish-api-202608.md §5.2
+// 仕様: docs/publish-api-202609.md §5.2
 
 import { DATASETS } from './_lib/datasets.js';
 import { applyCors } from './_lib/http.js';

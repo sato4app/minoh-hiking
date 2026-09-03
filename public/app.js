@@ -72,7 +72,7 @@ const el = {
   btnOpenQrCode: document.getElementById('btnOpenQrCode'),
   btnOpenGuide: document.getElementById('btnOpenGuide'),
 
-  // QRコードモーダル(起動画面の「QRコード」から表示)
+  // QRコードモーダル(起動画面の「QR」から表示)
   qrCodeModal: document.getElementById('qrCodeModal'),
   qrCodeImage: document.getElementById('qrCodeImage'),
   qrCodeUrl: document.getElementById('qrCodeUrl'),
@@ -250,7 +250,7 @@ function bindEvents() {
   el.btnOpenSettingsInfo.addEventListener('click', openSettingsInfoModal);
   // 起動画面の「設定/Settings」ボタンは設定モーダルを表示
   el.btnOpenAppSettings.addEventListener('click', openAppSettingsModal);
-  // 起動画面の「QRコード」ボタンは、いま開いている URL の QRコードを表示
+  // 起動画面の「QR」ボタンは、いま開いている URL の QRコードを表示
   el.btnOpenQrCode.addEventListener('click', openQrCodeModal);
   // 起動画面の「使い方」ボタンは、アプリの使い方を順に案内するガイドを開く
   el.btnOpenGuide.addEventListener('click', openGuide);
@@ -654,7 +654,7 @@ function openAppSettingsModal() {
   el.appSettingsModal.hidden = false;
 }
 
-// QRコードモーダル(起動画面の「QRコード」から表示)。
+// QRコードモーダル(起動画面の「QR」から表示)。
 // いま開いている URL(location.href)をその場で QRコードにする。開くたびに作り直すのは、
 // クエリ付きで開いた場合や PWA の起動 URL でも実際のアドレスとずれないようにするため。
 function openQrCodeModal() {

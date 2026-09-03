@@ -25,7 +25,7 @@
 // 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
 // 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
 
-const SHELL_CACHE = 'app-shell-2026-09-03.5';
+const SHELL_CACHE = 'app-shell-2026-09-03.6';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 
@@ -78,7 +78,7 @@ const SHELL_LOCAL_PATHS = [
 // なお起動画像の元データ(LibreOffice Draw の .odg)は public/ ではなく assets/ に置く。
 //   public/ は Vercel の outputDirectory で全ファイルが配信されるため、
 //   配信不要の作業用ファイルは入れない。差し替えと再変換の手順は
-//   docs/deployGuide-202608.md の 5.3 を参照。
+//   docs/deployGuide-202609.md の 5.3 を参照。
 // 注2: public/data/ は 2026-08-23 に廃止した(tile_manifest.json / tile_buffers.geojson を削除)。
 //   タイル一覧は公開API 配信に移したため、現行シェルは参照しない。移行前のシェルを
 //   キャッシュしたままの端末は旧 tiles.js が 404 を受けるが、取得失敗のメッセージが

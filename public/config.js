@@ -37,7 +37,7 @@ export const REOPEN_APP_SETTINGS_KEY = 'minoh-hiking.reopen-app-settings';
 // ===== 公開API(Vercel Function + Blob) =====
 // 地図データ(ポイント・ルート・スポット)と通行止め・通行困難地点は、外部の運用アプリ
 // MapPublisher が公開したものを配信で受け取る。本アプリは表示専用のため GET のみ利用する。
-// 契約は docs/publish-api-202608.md(契約バージョン 2.0)。
+// 契約は docs/publish-api-202609.md(契約バージョン 2.0)。
 // 公開ストアは Vercel 側にあるため、GitHub Pages 版アプリからは Vercel 本番の
 // 絶対 URL を参照して同じデータソースに一本化する(API 側で CORS 許可済み)。
 // Vercel・ローカル(vercel dev)では同一オリジンの相対パスで良い。

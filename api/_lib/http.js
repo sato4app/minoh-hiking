@@ -1,5 +1,5 @@
 // HTTP まわりの共通処理: CORS と公開トークンの検証
-// 仕様: docs/publish-api-202608.md §8(認証)・§9(CORS)
+// 仕様: docs/publish-api-202609.md §8(認証)・§9(CORS)
 
 import { createHash, timingSafeEqual } from 'node:crypto';
 

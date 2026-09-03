@@ -1,4 +1,4 @@
-// 公開ストア(Vercel Blob)の読み書き(公開API 仕様書 docs/publish-api-202608.md §7)
+// 公開ストア(Vercel Blob)の読み書き(公開API 仕様書 docs/publish-api-202609.md §7)
 //
 // 必要な Vercel 設定: Blob ストアをプロジェクトに接続(BLOB_READ_WRITE_TOKEN が自動設定される)
 
