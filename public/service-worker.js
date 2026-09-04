@@ -25,7 +25,7 @@
 // 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
 // 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
 
-const SHELL_CACHE = 'app-shell-2026-09-03.8';
+const SHELL_CACHE = 'app-shell-2026-09-04.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 
@@ -59,7 +59,6 @@ const SHELL_LOCAL_PATHS = [
   './marker-settings.js',
   './qrcode.js',
   './guide.js',
-  './orientation.js',
   './manifest.webmanifest',
   './icons/icon-192-v2.png',
   './icons/icon-512-v2.png',
@@ -76,6 +75,8 @@ const SHELL_LOCAL_PATHS = [
 //   - icons/Startup-512x918.png     … その WebP 化前の版。2026-08-15 より前の index.html が直接参照
 //   - icons/Startup-v2-512x906.webp … v2 の 512px 版。2026-08-25 に 555px 版へ差し替えた
 //   - closures.js                … 公開データ取得を published-data.js に統合する前の版
+//   - orientation.js             … 現在地点表示ボタンで方角(扇形)を出していた版の app.js が
+//                                  import している。方角は示す向きが安定しないため 2026-09-04 に廃止した
 // なお起動画像の元データ(LibreOffice Draw の .odg)は public/ ではなく assets/ に置く。
 //   public/ は Vercel の outputDirectory で全ファイルが配信されるため、
 //   配信不要の作業用ファイルは入れない。差し替えと再変換の手順は
