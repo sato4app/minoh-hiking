@@ -283,7 +283,7 @@ const DICT = {
   'guide.introBody': {
     ja: '箕面エリアの地図に、緊急ポイント・ハイキングルート・スポット・通行止め地点を重ねて表示し、' +
         '現在地の確認と、歩いた経路の記録ができます。\n' +
-        '課金なし、広告なし、システムへのデータ送信もしません。\n' +
+        '課金なし、広告なし、システムへのデータ送信なしです。\n' +
         '画面の場所をひとつずつ光らせながら、ひと通り見ていきます。',
     en: 'This app shows emergency points, hiking routes, spots and closures on a map of the Minoh area, ' +
         'and lets you check where you are and record the route you walk.\n' +
