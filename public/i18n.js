@@ -146,12 +146,6 @@ const DICT = {
   // ----- 位置情報 -----
   'geo.notSupported': { ja: 'この端末は位置情報に対応していません', en: 'This device does not support geolocation' },
   'geo.fetchFailed': { ja: '位置情報の取得に失敗: {message}', en: 'Failed to get location: {message}' },
-  // 現在地点表示ボタンの扇形(端末の向き)。取得できなかったときに履歴へ残す
-  // (センサーが無い・利用を許可されていない・校正できていない、のいずれか)
-  'geo.headingUnavailable': {
-    ja: '端末の向きを取得できないため、方角(扇形)は表示しません',
-    en: 'Device orientation is unavailable, so the direction (fan) is not shown'
-  },
 
   // ----- 更新バナー -----
   'banner.tilesUpdated': {
@@ -352,13 +346,11 @@ const DICT = {
   'guide.mapControlsTitle': { ja: '画面の右下', en: 'The Bottom Right of the Screen' },
   'guide.mapControlsBody': {
     ja: '下から順に、国土地理院のクレジット・縮尺・ズームレベル・ズーム(＋/−)・現在地点表示ボタンです。\n' +
-        '現在地点表示ボタンを押すと、現在地が画面の中央に来るように地図が動き、薄い青色の円が出ます。'
-        + '円は1秒かけて、端末が向いている方角の扇形(開き40度)にすぼまり、そのあと3秒かけて小さくなって消えます。\n' +
-        '初めて使うときは位置情報の利用許可を聞かれます。「許可」を選んでください。端末を水平に持つと方角が安定します。',
+        '現在地点表示ボタンを押すと、現在地が画面の中央に来るように地図が動き、薄い青色の円が3秒かけて小さくなって消えます。\n' +
+        '初めて使うときは位置情報の利用許可を聞かれます。「許可」を選んでください。',
     en: 'From the bottom up: the GSI credit, the scale bar, the zoom level, the zoom buttons (+/−) and the show-current-location button.\n' +
-        'Pressing the show-current-location button moves the map so you are centred and a pale blue circle appears. '
-        + 'Over one second it closes into a 40-degree fan pointing the way the device faces, then shrinks away over three seconds.\n' +
-        'The first time, you will be asked to allow access to your location. Please choose "Allow". Hold the device flat for a steady direction.'
+        'Pressing the show-current-location button moves the map so you are centred, and a pale blue circle shrinks over three seconds and disappears.\n' +
+        'The first time, you will be asked to allow access to your location. Please choose "Allow".'
   },
 
   'guide.mapMenuTitle': { ja: 'メニュー(≡)と現在地の表示', en: 'The Menu (≡) and Your Location' },
