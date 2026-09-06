@@ -25,7 +25,7 @@
 // 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
 // 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
 
-const SHELL_CACHE = 'app-shell-2026-09-04.4';
+const SHELL_CACHE = 'app-shell-2026-09-06.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 
@@ -59,6 +59,8 @@ const SHELL_LOCAL_PATHS = [
   './marker-settings.js',
   './qrcode.js',
   './guide.js',
+  './faq.js',
+  './faq-text.js',
   './manifest.webmanifest',
   './icons/icon-192-v2.png',
   './icons/icon-512-v2.png',

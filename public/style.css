@@ -1288,6 +1288,80 @@ body.view-state-map .leaflet-control-container {
   display: none;
 }
 
+/* ===== ご利用の注意とよくある質問(設定/Settings のトグルから表示) ===== */
+/* 中身は faq.js が faq-text.js から組み立てる。分量が多いため、
+   見出し・質問・答えの区別を色と余白ではっきり付け、拾い読みできるようにする */
+.faq-title {
+  margin: 0.25rem 0 0.5rem;
+  padding: 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #2c7a3d;
+  line-height: 1.4;
+}
+
+/* 「ご利用の注意」と、質問のまとまりの見出し */
+.faq-section-title {
+  margin: 0.9rem 0 0.35rem;
+  padding: 0 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0c4a6e;
+  border-left: 3px solid #2c7a3d;
+}
+
+/* 「ご利用の注意」の見出しだけは、山に入る前に読む部分として目立たせる */
+.faq-notice-title {
+  margin-top: 0.35rem;
+  color: #b91c1c;
+  border-left-color: #b91c1c;
+}
+
+.faq-notice-list {
+  margin: 0;
+  padding: 0 1rem 0 2rem;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #333;
+}
+
+.faq-notice-list li {
+  margin: 0.3rem 0;
+}
+
+/* 詳しい説明のある質問への参照(→Q5 など) */
+.faq-ref {
+  white-space: nowrap;
+  color: #2c7a3d;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.faq-lead {
+  margin: 0.5rem 0 0;
+  padding: 0 1rem;
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.faq-q {
+  margin: 0.7rem 0 0.2rem;
+  padding: 0 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.5;
+}
+
+.faq-a {
+  margin: 0.2rem 0;
+  padding: 0 1rem;
+  font-size: 0.85rem;
+  color: #444;
+  line-height: 1.6;
+}
+
 .info-collapse .placeholder-message {
   padding: 0.5rem 1.5rem;
 }

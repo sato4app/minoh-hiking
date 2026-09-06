@@ -13,6 +13,7 @@
 //   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
 //   qrcode.js         … QRコードの生成(外部ライブラリ非依存)
 //   guide.js          … 使い方ガイド(画面を順に案内するオーバーレイ)
+//   faq.js / faq-text.js … ご利用の注意とよくある質問(設定/Settings で表示)
 
 import {
   initMap, resizeMap,
@@ -53,6 +54,7 @@ import {
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
 import { renderQrSvg } from './qrcode.js';
 import { initGuide, openGuide, maybeAutoOpenGuide } from './guide.js';
+import { buildFaq } from './faq.js';
 
 // ===== 状態 =====
 let currentView = 'home';
@@ -90,6 +92,9 @@ const el = {
   appSettingsModal: document.getElementById('appSettingsModal'),
   languageSelect: document.getElementById('languageSelect'),
   toggleInfoMessages: document.getElementById('toggleInfoMessages'),
+  toggleInfoFaq: document.getElementById('toggleInfoFaq'),
+  infoFaqBody: document.getElementById('infoFaqBody'),
+  faqContent: document.getElementById('faqContent'),
   infoMessagesBody: document.getElementById('infoMessagesBody'),
   toggleInfoAbout: document.getElementById('toggleInfoAbout'),
   infoAboutBody: document.getElementById('infoAboutBody'),
@@ -277,6 +282,12 @@ function bindEvents() {
   });
   el.toggleInfoAbout.addEventListener('change', (e) => {
     el.infoAboutBody.hidden = !e.target.checked;
+  });
+  // ご利用の注意とよくある質問: 初めて開いたときだけ中身を組み立てる
+  // (内容は変わらないため、2回目以降は表示を戻すだけでよい)
+  el.toggleInfoFaq.addEventListener('change', (e) => {
+    el.infoFaqBody.hidden = !e.target.checked;
+    if (e.target.checked) buildFaq(el.faqContent);
   });
 
   // モーダル閉じる(各モーダル内の [data-close-modal] が、その親モーダルを閉じる)

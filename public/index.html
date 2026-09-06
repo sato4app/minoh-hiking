@@ -302,6 +302,18 @@
             <span class="toggle-text" data-i18n="info.showZoomLevel">ズームレベルを表示</span>
           </label>
 
+          <!-- ご利用の注意とよくある質問(既定オフ)。中身は faq.js が faq-text.js から
+               組み立てる(初回に開いたときの1回だけ)。文言の正本は public/faq-text.js -->
+          <label class="toggle toggle-switch">
+            <input type="checkbox" id="toggleInfoFaq" />
+            <span class="toggle-slider" aria-hidden="true"></span>
+            <span class="toggle-text" data-i18n="info.showFaq">ご利用の注意とよくある質問</span>
+          </label>
+          <div class="info-collapse" id="infoFaqBody" hidden>
+            <h3 class="faq-title" data-i18n="faq.title">箕面ハイキングマップ ご利用の注意とよくある質問</h3>
+            <div id="faqContent"></div>
+          </div>
+
           <!-- メッセージ履歴の表示(既定オフ) -->
           <label class="toggle toggle-switch">
             <input type="checkbox" id="toggleInfoMessages" />
