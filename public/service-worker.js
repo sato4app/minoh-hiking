@@ -25,7 +25,7 @@
 // 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
 // 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
 
-const SHELL_CACHE = 'app-shell-2026-09-06.1';
+const SHELL_CACHE = 'app-shell-2026-09-06.2';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 

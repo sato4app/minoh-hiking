@@ -325,9 +325,11 @@ const DICT = {
 
   'guide.settingsTitle': { ja: '設定/Settings', en: 'Settings' },
   'guide.settingsBody': {
-    ja: '時刻の表示・ズームレベルの表示・メッセージ履歴・このアプリについてと、マーカーの設定、言語の設定をまとめています。\n' +
+    ja: '時刻の表示・ズームレベルの表示・ご利用の注意とよくある質問・メッセージ履歴・このアプリについてと、マーカーの設定、言語の設定をまとめています。\n' +
+        '「ご利用の注意とよくある質問」には、ルートや現在地のずれ、通行止めの見方など、山に入る前に知っておいていただきたいことをまとめています。\n' +
         'ボタン名を日英併記にしているのは、英語表示のままで分からなくなっても、ここから日本語に戻せるようにするためです。',
-    en: 'Groups together the clock, the zoom level display, the message history, About this app, marker settings and the language setting.\n' +
+    en: 'Groups together the clock, the zoom level display, notes and FAQ, the message history, About this app, marker settings and the language setting.\n' +
+        '"Notes and FAQ" covers what to know before you set off: gaps in the routes and in your location, how to read closures, and more.\n' +
         'The button is labelled in both Japanese and English so you can always come back here and switch the language.'
   },
 

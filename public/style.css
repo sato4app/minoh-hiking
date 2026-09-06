@@ -202,7 +202,11 @@ textarea {
   width: min(420px, 100%);
   max-height: 70vh;
   margin: 0 auto;
-  overflow-y: auto;
+  /* 縦に積み、あふれたぶんは本文だけがスクロールする(下記 .guide-tip-body)。
+     吹き出し全体をスクロールさせると、収まらないときに「戻る」「次へ」が
+     見えなくなり、案内を先へ進められなくなる */
+  display: flex;
+  flex-direction: column;
   padding: 0.7rem 1rem 0.85rem;
   background: #fff;
   border-radius: 12px;
@@ -214,6 +218,7 @@ textarea {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.5rem;
+  flex-shrink: 0;
 }
 
 .guide-tip-title {
@@ -237,6 +242,10 @@ textarea {
   line-height: 1.6;
   color: #333;
   white-space: pre-line;
+  /* 縮む側はここだけ。min-height: 0 が無いと flex 要素は本文の高さより縮まない */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .guide-tip-actions {
@@ -245,6 +254,7 @@ textarea {
   justify-content: space-between;
   gap: 0.5rem;
   margin-top: 0.7rem;
+  flex-shrink: 0;
 }
 
 /* 「閉じる」は途中でやめるための控えめな操作。文字だけのボタンにする */

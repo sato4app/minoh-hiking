@@ -653,7 +653,11 @@ async function openSettingsInfoModal() {
 // 時刻を表示・メッセージ履歴・このアプリについて・マーカーの設定・言語/Language をまとめる。
 // 時刻表示トグルは現在の表示状態を保持したまま表示する。
 function openAppSettingsModal() {
-  // メッセージ履歴・このアプリについては既定状態(オフ)にリセット
+  // 内容を開くタイプのトグル(ご利用の注意とよくある質問・メッセージ履歴・このアプリについて)は
+  // 開くたびに必ずオフへ戻す。開いたままだと、次に設定を開いたときに長い内容が広がった状態で
+  // 始まり、その下にある「マーカーの設定」「言語の設定」までスクロールが必要になるため
+  el.toggleInfoFaq.checked = false;
+  el.infoFaqBody.hidden = true;
   el.toggleInfoMessages.checked = false;
   el.infoMessagesBody.hidden = true;
   el.toggleInfoAbout.checked = false;
