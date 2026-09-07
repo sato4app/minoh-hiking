@@ -18,6 +18,14 @@ const INITIAL_ZOOM = 15;
 const MIN_ZOOM = 10;
 const MAX_ZOOM = 18;
 
+// 線(ハイキングルート等)をタップしたと判定する余裕[px]。
+// SVG で描くとブラウザが「線の太さちょうど」で当たり判定するため、既定の太さ3px では
+// 中心から±1.5px に当てないと反応せず、指(直径およそ34px)ではまず当たらない。
+// Canvas レンダラは weight/2 + tolerance で判定するので、見た目の太さは変えずに
+// 判定だけ広げられる。12 で当たり幅はおよそ 28px(実測)。
+// 大きくしすぎると、近くを走る別のルートを拾ってしまうため 12 としている。
+const TAP_TOLERANCE = 12;
+
 let mapInstance = null;
 
 // 地図データ(mapdata): 緊急ポイント・ルート・スポットを1本の FeatureCollection で受け取り、
@@ -44,7 +52,10 @@ export function initMap(containerId) {
     minZoom: MIN_ZOOM,
     maxZoom: MAX_ZOOM,
     zoomControl: false,
-    attributionControl: false
+    attributionControl: false,
+    // 線をタップしやすくするため、ベクタ図形は Canvas で描く(→ TAP_TOLERANCE)。
+    // マーカー(divIcon)はこの指定の対象外で、従来どおり markerPane に置かれる
+    renderer: L.canvas({ tolerance: TAP_TOLERANCE })
   });
 
   L.tileLayer(GSI_TILE_URL, {
@@ -429,17 +440,19 @@ function buildHikingLayer() {
       opacity: 0.85
     }),
     pointToLayer: (feature, latlng) => createPointMarker(latlng, hikingSpotStyle),
-    // ポップアップは「スポット」と「ルートの中間点どうしを結ぶ区間」に付ける。
+    // ポップアップは「スポット」と「ルートの全区間」に付ける。
     // 配信データのスポットは名称と座標だけを持つ(id は編集用のため公開されない)。
     // ルートは名称を持たないため、id から区間表記を組み立てて表示する。
-    // 端点をつなぐ区間(cap)には付けない(緊急ポイントのマーカーと重なる位置のため)。
+    // 端点をつなぐ区間(cap)にも付ける。以前は「緊急ポイントのマーカーと重なるから」と
+    // 外していたが、マーカーは元々線より上の層にあり重なった場所ではマーカーが勝つ。
+    // 付けないと端点寄りがどこを押しても反応しない領域になってしまうため、付ける。
     onEachFeature: (feature, layer) => {
       const p = feature.properties || {};
       if (p.type === 'spot') {
         layer.bindPopup(`<strong>${escapeHtml(p.name ?? '')}</strong>`);
         return;
       }
-      if (p.type === 'route' && p[ROUTE_PART] === 'middle') {
+      if (p.type === 'route') {
         layer.bindPopup(`<strong>${escapeHtml(routeSectionLabel(p.id))}</strong>`);
       }
     }

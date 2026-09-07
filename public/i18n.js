@@ -138,6 +138,11 @@ const DICT = {
     en: 'Stop recording the track?'
   },
   'track.cleared': { ja: '移動経路をクリアしました', en: 'Track cleared' },
+  // 起動時に、端末に保存してある前回の移動経路を読み出して表示したときの履歴
+  'track.restored': {
+    ja: '保存済みの移動経路を表示しました({summary})',
+    en: 'Showed the saved track ({summary})'
+  },
   'track.wakeLockUnavailable': {
     ja: 'この端末では記録中の画面消灯を止められません。画面が消えると記録が途切れることがあります',
     en: 'This device cannot keep the screen on while recording. Recording may pause when the screen turns off'

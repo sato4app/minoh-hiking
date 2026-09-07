@@ -72,14 +72,14 @@ export const FAQ_NOTICES = [
       ja: '地図のダウンロード対象は、緊急ポイントやハイキングルートの周辺のみです。',
       en: 'Only the area around the emergency points and hiking routes is available for download.'
     },
-    refs: ['Q18']
+    refs: ['Q17']
   },
   {
     text: {
-      ja: '移動経路の記録中は画面が消えないため、電池の消耗が早くなります。予備の電源をご用意ください。',
-      en: 'While recording a track the screen stays on, so the battery drains faster. Bring a power bank.'
+      ja: '移動経路の記録中はスリープしないため、電池の消耗が早くなります。予備の電源をご用意ください。',
+      en: 'While recording a track the device is kept from sleeping, so the battery drains faster. Bring a power bank.'
     },
-    refs: ['Q20']
+    refs: ['Q19']
   }
 ];
 
@@ -258,8 +258,8 @@ export const FAQ_SECTIONS = [
       {
         id: 'Q10',
         q: {
-          ja: '青い丸(現在地)が、道の外に表示されます。',
-          en: 'The blue dot for my location appears off the trail.'
+          ja: '現在地が、道の外に表示されます。',
+          en: 'My location appears off the trail.'
         },
         a: [
           {
@@ -277,12 +277,12 @@ export const FAQ_SECTIONS = [
         q: { ja: '現在地がなかなか表示されません。', en: 'My location is slow to appear.' },
         a: [
           {
-            ja: '表示設定パネルの「現在地点をマーカー表示」がオンになっているか、位置情報の利用を許可しているか、https:// のページで開いているかをご確認ください。',
-            en: 'Check that "Show current location marker" is on in the display settings panel, that you have allowed access to your location, and that you opened the page over https://.'
+            ja: '表示設定パネルの「現在地点をマーカー表示」がオンになっているか、位置情報の利用を許可しているかをご確認ください。',
+            en: 'Check that "Show current location marker" is on in the display settings panel, and that you have allowed access to your location.'
           },
           {
-            ja: '谷や樹林の中、屋内では位置の取得に時間がかかります。空が見える場所で少しお待ちください。',
-            en: 'Fixing a position takes longer in valleys, under trees and indoors. Please wait a moment somewhere with a view of the sky.'
+            ja: '谷や樹林の中、屋内では位置の取得に時間がかかります。空が見える場所で少しお待ちください。端末を再起動すると、表示できるようになる場合があります。',
+            en: 'Fixing a position takes longer in valleys, under trees and indoors. Please wait a moment somewhere with a view of the sky. Restarting the device sometimes makes it appear.'
           }
         ]
       },
@@ -384,23 +384,6 @@ export const FAQ_SECTIONS = [
       {
         id: 'Q17',
         q: {
-          ja: 'ズームを引いたら、オフラインで地図が真っ白になりました。',
-          en: 'When I zoomed out, the map went blank offline.'
-        },
-        a: [
-          {
-            ja: '端末に保存できる地図は z=14 から z=18 の範囲です。それより引いたズーム(z=10〜13)は保存の対象に含まれないため、オフラインでは表示されません。',
-            en: 'Only zoom levels z=14 to z=18 can be saved to your device. Wider zoom levels (z=10 to z=13) are not included, so they do not appear offline.'
-          },
-          {
-            ja: 'ズームを z=14 以上に戻してください。現在のズームは画面右下に z=NN で表示されます。',
-            en: 'Please zoom back in to z=14 or closer. The current zoom is shown as z=NN at the bottom right.'
-          }
-        ]
-      },
-      {
-        id: 'Q18',
-        q: {
           ja: 'オフラインで、地図の一部が白く抜けます。',
           en: 'Parts of the map are blank when offline.'
         },
@@ -420,7 +403,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q19',
+        id: 'Q18',
         q: {
           ja: 'ポイントやルートが、まったく表示されません。',
           en: 'No points or routes appear at all.'
@@ -442,15 +425,15 @@ export const FAQ_SECTIONS = [
     title: { ja: '移動経路の記録と電池', en: 'Track Recording and Battery' },
     items: [
       {
-        id: 'Q20',
+        id: 'Q19',
         q: {
           ja: '記録中に、電池の減りが早いです。',
           en: 'The battery drains quickly while recording.'
         },
         a: [
           {
-            ja: '移動経路の記録中は、位置の取得が止まらないよう画面が消えないようにしています。そのぶん電池の消耗が早くなります。',
-            en: 'While a track is being recorded the screen is kept on, so that position updates do not stop. That is what makes the battery drain faster.'
+            ja: '移動経路の記録中は、位置の取得が止まらないようスリープしないようにしています。そのぶん電池の消耗が早くなります。',
+            en: 'While a track is being recorded the device is kept from sleeping, so that position updates do not stop. That is what makes the battery drain faster.'
           },
           {
             ja: '記録が終わったら停止してください。山中での電池切れは、地図も現在地も使えなくなることを意味します。予備の電源の携行をおすすめします。',
@@ -459,15 +442,15 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q21',
+        id: 'Q20',
         q: {
           ja: '記録した経路は、アプリに保存されますか。',
           en: 'Is the recorded track saved in the app?'
         },
         a: [
           {
-            ja: '保存されません。アプリを再読み込みすると失われます。',
-            en: 'No. It is lost when the app is reloaded.'
+            ja: '最新の経路のみ、端末のアプリ内にデータとして保存されます。アプリを削除すると、データも削除します。',
+            en: 'Only the most recent track is stored as data inside the app on your device. Deleting the app also deletes that data.'
           },
           {
             ja: '残しておきたいときは、「出力」で GPX ファイルに保存してください。保存したファイルは「読み込み」で地図に戻せます。',
@@ -476,7 +459,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q22',
+        id: 'Q21',
         q: {
           ja: '記録中に画面が消えて、経路が飛んでしまいました。',
           en: 'The screen went off while recording and the track has a gap.'
@@ -489,7 +472,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q23',
+        id: 'Q22',
         q: {
           ja: '前に記録した経路と、今日歩いた経路を並べて見たいです。',
           en: 'I want to see a previously recorded track alongside the one from today.'
@@ -511,7 +494,7 @@ export const FAQ_SECTIONS = [
     title: { ja: 'その他', en: 'Other' },
     items: [
       {
-        id: 'Q24',
+        id: 'Q23',
         q: {
           ja: '地図やルートは、誰が作っているのですか。',
           en: 'Who makes the map and the routes?'
@@ -522,13 +505,13 @@ export const FAQ_SECTIONS = [
             en: 'The map is made of tiles from the Geospatial Information Authority of Japan (GSI). The hiking routes, spots, emergency points and closures are created and published by volunteers involved in running this app.'
           },
           {
-            ja: '担当者は「設定/Settings」の「このアプリについて」に記載しています。',
-            en: 'The people responsible are listed under "About this app" in 設定/Settings.'
+            ja: '詳細は「設定/Settings」の「このアプリについて」をご参照ください。',
+            en: 'For details, see "About this app" in 設定/Settings.'
           }
         ]
       },
       {
-        id: 'Q25',
+        id: 'Q24',
         q: {
           ja: '地図やアプリのバージョンを確認したいです。',
           en: 'I want to check the map and app versions.'
@@ -541,7 +524,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q26',
+        id: 'Q25',
         q: {
           ja: '端末の空き容量を増やしたいです。',
           en: 'I want to free up space on my device.'
@@ -554,7 +537,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q27',
+        id: 'Q26',
         q: {
           ja: '英語表示にしたら、戻し方が分からなくなりました。',
           en: 'I switched to English and cannot find my way back.'

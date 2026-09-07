@@ -16,9 +16,12 @@
 // それぞれ1本の経路になり、経路ごとに開始点・終了点のマーカーを持つ。
 // 記録中は画面スリープを防止し(Screen Wake Lock API)、他アプリへの切替などで
 // ページが非表示になった場合は、復帰時に監視の張り直しと現在地の取得を行う。
+// 表示中の経路は変化のたびに端末(IndexedDB)へ保存し、起動時に復元する
+// (最新の1件のみ。→ 「移動経路の保存」の節)。
 // 地図インスタンスは map.js の getMap() を通じて共有する。
 import * as L from 'leaflet';
 import { getMap, buildMarkerIcon, ensureMapSize } from './map.js';
+import { saveLatestTrack, loadLatestTrack, clearLatestTrack } from './db.js';
 import { t } from './i18n.js';
 
 let currentLocationMarker = null;
@@ -272,6 +275,8 @@ export function stopTrackRecording() {
   }
   removeTrackLeadLine();
   recordingTrack = null;
+  // 地点数0の経路を破棄した場合に備え、保存内容を現在の表示に合わせ直す
+  saveTrackToStorage();
   // マーカー表示 ON なら現在地(青丸)を最新位置に合わせておく
   // (記録中も出しているので通常は既にあるが、無ければここで出す)。
   if (showCurrentMarker && lastKnownLatLng) showOrUpdateCurrentMarker(lastKnownLatLng);
@@ -344,6 +349,7 @@ export function loadTrackSegments(segments, { append = false } = {}) {
     loaded += seg.length;
   }
   onTrackPointAppended?.();
+  saveTrackToStorage();
   return loaded;
 }
 
@@ -367,6 +373,52 @@ export function clearTrack() {
   removeTrackLeadLine();
   lastTrackLatLng = null;
   lastTrackTimeMs = 0;
+  // 表示が空になったので、端末の保存も消す
+  saveTrackToStorage();
+}
+
+// ===== 移動経路の保存(端末内・IndexedDB) =====
+// 表示中の経路を、変化のたびに端末へ上書き保存する。保存するのは常に最新の
+// 内容1件だけで、過去の記録は残さない(→ db.js の tracks ストア)。
+// これが無いと、再読み込みやアプリの終了で記録が黙って消える。Web ページは
+// 離脱時に破棄され、メモリ上の経路も一緒に失われるためである。
+// 保存できなくても記録・表示はそのまま続けられるので、失敗は握りつぶす
+// (プライベートウィンドウ等、IndexedDB を使えない環境でも動かすため)。
+//
+// 保存を呼ぶのは経路が変わる4か所: 記録点の追加・記録の停止・GPXの読み込み・クリア。
+// 記録点は「20m 以上移動」または「60秒以上経過」でしか増えないため、
+// 書き込みの頻度は数分に1回程度で、まとめ書き(デバウンス)は要らない。
+
+// 復元中は保存しない。復元は loadTrackSegments 経由で clearTrack を通るため、
+// そのままだと読み出したばかりの内容をいったん消して書き直すことになる。
+let restoringTrack = false;
+
+function saveTrackToStorage() {
+  if (restoringTrack) return;
+  // 地点0の経路(記録開始直後で1点も取れていない経路)は保存しない
+  const segments = getTrackSegments().filter((seg) => seg.length > 0);
+  const saving = segments.length > 0 ? saveLatestTrack(segments) : clearLatestTrack();
+  saving.catch(() => { /* 保存できなくても記録は続ける */ });
+}
+
+// 起動時に1回だけ呼ぶ。端末に保存済みの経路を読み出して地図に描く。
+// 記録は再開しない(ページが動いていない間の位置は取得できず、途切れた経路を
+// 記録中として続けると実際の移動と食い違うため)。常に停止した状態で戻す。
+// 描いた地点数の合計を返す(0 なら保存が無かった、または読めなかった)。
+export async function restoreSavedTrack() {
+  let segments = [];
+  try {
+    segments = await loadLatestTrack();
+  } catch {
+    return 0;
+  }
+  if (segments.length === 0) return 0;
+  restoringTrack = true;
+  try {
+    return loadTrackSegments(segments);
+  } finally {
+    restoringTrack = false;
+  }
 }
 
 // 記録点追加時の通知先(app.js がパネル内の統計表の更新に使用)
@@ -393,6 +445,7 @@ function appendTrackPoint(track, latlng) {
   lastTrackTimeMs = Date.now();
   track.times.push(lastTrackTimeMs);
   onTrackPointAppended?.();
+  saveTrackToStorage();
 }
 
 // ===== 画面スリープの防止(Screen Wake Lock API) =====

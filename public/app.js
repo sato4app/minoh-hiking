@@ -9,7 +9,7 @@
 //   messages.js       … メッセージ履歴・トースト
 //   marker-settings.js… マーカーの色・形状・サイズ設定
 //   map.js            … Leaflet 地図・オーバーレイ
-//   geolocation.js    … 現在地表示・移動経路の記録
+//   geolocation.js    … 現在地表示・移動経路の記録と端末への保存
 //   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
 //   qrcode.js         … QRコードの生成(外部ライブラリ非依存)
 //   guide.js          … 使い方ガイド(画面を順に案内するオーバーレイ)
@@ -28,7 +28,7 @@ import {
   showCurrentLocationSpot,
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
   startTrackRecording, stopTrackRecording, getTrackStats, getTrackStatsList,
-  getTrackSegments, clearTrack, loadTrackSegments, fitMapToTrack,
+  getTrackSegments, clearTrack, loadTrackSegments, fitMapToTrack, restoreSavedTrack,
   setOnTrackPointAppended, setOnTrackNotice
 } from './geolocation.js';
 import {
@@ -205,10 +205,14 @@ async function init() {
   setTrackStyle(markerSettings.track);
   setTrackStartStyle(markerSettings.trackStart);
   setTrackCurrentStyle(markerSettings.trackCurrent);
+  // 前回の記録が停止操作を経ずに終わっていたら履歴に残す(起動ごとに1回)。
+  // 経路の復元より先に出して、履歴が起きた順(中断 → 復元)に並ぶようにする
+  logInterruptedTrackRecording();
+  // 端末に保存してある移動経路を読み出して表示する。スタイルの設定より後に呼ぶこと
+  // (復元時に線・マーカーを作るため、先に呼ぶと既定の見た目で描かれてしまう)
+  await restoreTrackFromStorage();
   // 統計表の中身は経路の本数に応じて組み立てるため、初期状態(0件の1行)を描画しておく
   updateTrackStatsDisplay();
-  // 前回の記録が停止操作を経ずに終わっていたら履歴に残す(起動ごとに1回)
-  logInterruptedTrackRecording();
 
   // 初期表示はホーム(オーバーレイは非表示のまま)
   showView('home');
@@ -756,15 +760,28 @@ function writeTrackRecordingFlag(on) {
 }
 
 // 起動時に1回だけ呼ぶ。前回の記録が停止操作を経ずに終わっていたら履歴に残す。
-// 記録データはメモリ上にしか無いため、アプリが再読み込み・破棄されると記録は
-// 黙って消える。「■ を押していないのに止まっていた」の切り分けに使う
-// (この行があれば操作ではなくアプリの中断が原因)。
+// 経路そのものは端末に保存してあり起動時に復元されるが、記録は再開されないため、
+// 中断していたあいだに歩いた区間は残らない。「■ を押していないのに止まっていた」
+// の切り分けに使う(この行があれば操作ではなくアプリの中断が原因)。
 function logInterruptedTrackRecording() {
   let interrupted = false;
   try { interrupted = localStorage.getItem(TRACK_RECORDING_FLAG_KEY) === '1'; } catch { /* noop */ }
   if (!interrupted) return;
   writeTrackRecordingFlag(false);
   logHistory(t('track.interrupted'), 'error');
+}
+
+// 端末に保存してある移動経路を読み出して地図に表示する(起動時に1回)。
+// 記録は再開しない(→ geolocation.js の restoreSavedTrack)ため、続きを記録するには
+// 改めて記録開始ボタンを押し、「追加」を選ぶ。
+// 何が表示されているのかが分かるよう、復元したときは履歴に残す。
+// 地図は初期表示のまま(箕面大滝・z=15)にしておく。経路の位置へ勝手に飛ぶと、
+// 起動画面の地図が前回の場所に変わってしまうため。
+async function restoreTrackFromStorage() {
+  const restored = await restoreSavedTrack();
+  if (restored === 0) return;
+  const stats = getTrackStats();
+  logHistory(t('track.restored', { summary: formatTrackSummary(stats, 0, 1) }), '');
 }
 
 // 記録地点数・移動距離の統計文言(記録終了時のメッセージに使用)。
