@@ -84,7 +84,7 @@ export function getMap() {
 }
 
 // ===== 現在のズームレベル表示(ズームボタンの左に配置) =====
-// 表示/非表示は設定の「ズームレベルを表示」トグルで切り替える(既定は表示)。
+// 表示/非表示は表示設定パネル(≡)の「ズームレベルを表示」トグルで切り替える(既定は表示)。
 let zoomDisplayEl = null;
 
 const ZoomDisplayControl = L.Control.extend({
@@ -98,7 +98,7 @@ const ZoomDisplayControl = L.Control.extend({
   }
 });
 
-// ズームレベル表示の ON/OFF(設定モーダルの「ズームレベルを表示」から呼ぶ)
+// ズームレベル表示の ON/OFF(表示設定パネルの「ズームレベルを表示」から呼ぶ)
 export function setZoomDisplayVisible(on) {
   if (zoomDisplayEl) zoomDisplayEl.hidden = !on;
 }

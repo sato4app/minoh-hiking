@@ -80,6 +80,8 @@ const GUIDE_STEPS = [
     panel: true,
     targets: [
       '[data-guide="mapMenuBtn"]',
+      '[data-guide="panelClock"]',
+      '[data-guide="panelZoomDisplay"]',
       '[data-guide="panelCurrentMarker"]',
       '[data-guide="panelCenterCurrent"]'
     ]
@@ -238,6 +240,29 @@ function renderStep() {
   requestAnimationFrame(layoutGuide);
 }
 
+// 表示設定パネルが入りきらずスクロールしているとき、明るく残す場所が見えている範囲の
+// 外にあると、何も無い所を囲んでしまう。測る前にパネルを動かして見える位置へ出す。
+// パネル自身の scrollTop だけを動かす(scrollIntoView は画面ごと動かすことがあるため)。
+function scrollTargetsIntoPanel(selectors) {
+  const panel = document.getElementById('mapLayerPanel');
+  if (!panel || panel.hidden || panel.scrollHeight <= panel.clientHeight) return;
+  const inside = [];
+  for (const selector of selectors || []) {
+    for (const target of document.querySelectorAll(selector)) {
+      if (panel.contains(target)) inside.push(target);
+    }
+  }
+  if (inside.length === 0) return;
+  const panelTop = panel.getBoundingClientRect().top;
+  // パネルの中身を基準にした上端・下端(スクロール量を足して位置をそろえる)
+  const rects = inside.map((n) => n.getBoundingClientRect());
+  const top = Math.min(...rects.map((r) => r.top - panelTop + panel.scrollTop));
+  const bottom = Math.max(...rects.map((r) => r.bottom - panelTop + panel.scrollTop));
+  // 下がはみ出していれば下に合わせ、そのうえで上がはみ出していれば上を優先する
+  if (bottom > panel.scrollTop + panel.clientHeight) panel.scrollTop = bottom - panel.clientHeight;
+  if (top < panel.scrollTop) panel.scrollTop = top;
+}
+
 // 明るく残す場所を測る。複数を指定したときは、全部を囲む1つの枠にまとめる。
 // 見つからない・大きさが無い(非表示)ときは null を返し、画面全体を暗くする
 function measureTargets(selectors) {
@@ -263,6 +288,7 @@ function measureTargets(selectors) {
 // 4枚の帯・輪郭・吹き出しを、いまの画面に合わせて置き直す
 function layoutGuide() {
   if (stepIndex === null) return;
+  scrollTargetsIntoPanel(GUIDE_STEPS[stepIndex].targets);
   const box = measureTargets(GUIDE_STEPS[stepIndex].targets);
   const vw = window.innerWidth;
   const vh = window.innerHeight;

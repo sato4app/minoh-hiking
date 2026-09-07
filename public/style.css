@@ -605,6 +605,13 @@ body.view-state-map .leaflet-control-container {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   padding: 0.4rem 0.6rem;
   z-index: 500;
+  /* 画面の高さが足りないとき(横向きなど)に下端が画面外へ出ないよう、入りきらない分は
+     パネルの中でスクロールさせる。出さないと「起動時の画面に戻る」等が画面外に置かれ、
+     押せなくなる。上限は、上端(top: 64px)と下の余白を親(.view-map)の高さから引いた分。
+     overscroll-behavior: contain で、端まで送ったスクロールが地図へ伝わらないようにする */
+  max-height: calc(100% - 64px - 0.75rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .map-layer-panel[hidden] {

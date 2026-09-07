@@ -210,8 +210,8 @@ export const FAQ_SECTIONS = [
             en: 'The same 20-metre gap looks different at different zoom levels. At z=15, the startup zoom, it is about 5 pixels; at z=18, the maximum, it is about 41 pixels (approximate, at the latitude of Minoh). What looks like a fingertip at z=15 can look like nearly a quarter of the screen at z=18.'
           },
           {
-            ja: 'ルートと道の関係を大まかに確かめたいときは、ズームを下げた方が実態に近く見えます。現在のズームは画面右下に z=NN で表示されます(「設定/Settings」で表示を消せます)。',
-            en: 'To get a general sense of how a route relates to the trail, zooming out gives a truer picture. The current zoom is shown as z=NN at the bottom right (you can hide it from 設定/Settings).'
+            ja: 'ルートと道の関係を大まかに確かめたいときは、ズームを下げた方が実態に近く見えます。現在のズームは画面右下に z=NN で表示されます(表示設定パネルの「ズームレベルを表示」で消せます)。',
+            en: 'To get a general sense of how a route relates to the trail, zooming out gives a truer picture. The current zoom is shown as z=NN at the bottom right (you can hide it with "Show zoom level" in the display settings panel).'
           }
         ]
       },

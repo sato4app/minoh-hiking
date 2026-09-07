@@ -82,6 +82,21 @@
       </button>
     </div>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
+      <!-- 画面に重ねて出す表示の切替。どちらもマップ画面にしか効かないため、
+           起動画面の「設定/Settings」ではなくここに置く -->
+      <!-- 時刻を表示(メニューボタン(≡)の左に現在時刻を表示) -->
+      <label class="toggle toggle-switch" data-guide="panelClock">
+        <input type="checkbox" id="toggleClock" checked />
+        <span class="toggle-slider" aria-hidden="true"></span>
+        <span class="toggle-text" data-i18n="map.toggleClock">時刻を表示</span>
+      </label>
+      <!-- ズームレベルを表示(画面右下・ズームボタンの下に表示) -->
+      <label class="toggle toggle-switch" data-guide="panelZoomDisplay">
+        <input type="checkbox" id="toggleZoomDisplay" checked />
+        <span class="toggle-slider" aria-hidden="true"></span>
+        <span class="toggle-text" data-i18n="map.toggleZoomLevel">ズームレベルを表示</span>
+      </label>
+      <hr class="panel-divider" />
       <label class="toggle toggle-switch" data-guide="panelCurrentMarker">
         <input type="checkbox" id="toggleCurrentMarker" checked />
         <span class="toggle-slider" aria-hidden="true"></span>
@@ -274,8 +289,10 @@
   </div>
 
   <!-- 設定モーダル(起動画面の「設定/Settings」から表示)。
-       時刻を表示・ズームレベルを表示・メッセージ履歴の表示・このアプリについてと、
-       マーカーの設定・言語の設定をまとめる。 -->
+       ご利用の注意とよくある質問・メッセージ履歴の表示・このアプリについてと、
+       マーカーの設定・言語の設定をまとめる。
+       「時刻を表示」「ズームレベルを表示」は、効果が出るのがマップ画面だけのため
+       表示設定パネル(≡)側に置いている。 -->
   <div class="modal" id="appSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="appSettingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
@@ -287,20 +304,6 @@
       </header>
       <div class="modal-body">
         <section class="info-section">
-
-          <!-- 時刻を表示(マップ画面のメニューボタン左に現在時刻を表示) -->
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleClock" checked />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text" data-i18n="info.showClock">時刻を表示</span>
-          </label>
-
-          <!-- ズームレベルを表示(マップ画面の右下・ズームボタンの下に表示) -->
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleZoomDisplay" checked />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text" data-i18n="info.showZoomLevel">ズームレベルを表示</span>
-          </label>
 
           <!-- ご利用の注意とよくある質問(既定オフ)。中身は faq.js が faq-text.js から
                組み立てる(初回に開いたときの1回だけ)。文言の正本は public/faq-text.js -->

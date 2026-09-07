@@ -337,9 +337,9 @@ function bindEvents() {
       }
     });
   }
-  // 時刻表示トグル(設定モーダル内): ON でメニューボタンの左に現在時刻を表示
+  // 時刻表示トグル(表示設定パネル内): ON でメニューボタンの左に現在時刻を表示
   el.toggleClock.addEventListener('change', (e) => setClockVisible(e.target.checked));
-  // ズームレベル表示トグル(設定モーダル内): ON で地図右下に現在のズームレベルを表示。
+  // ズームレベル表示トグル(表示設定パネル内): ON で地図右下に現在のズームレベルを表示。
   // 表示要素は地図コントロール内にあり、マップ画面でのみ出るためビュー切替の反映は不要。
   el.toggleZoomDisplay.addEventListener('change', (e) => setZoomDisplayVisible(e.target.checked));
   // 現在地点をマーカー表示: 現在地マーカー(青丸)の表示/非表示を切替。
@@ -654,8 +654,8 @@ async function openSettingsInfoModal() {
 }
 
 // 設定モーダル(起動画面の「設定/Settings」から表示)。
-// 時刻を表示・メッセージ履歴・このアプリについて・マーカーの設定・言語/Language をまとめる。
-// 時刻表示トグルは現在の表示状態を保持したまま表示する。
+// ご利用の注意とよくある質問・メッセージ履歴・このアプリについて・マーカーの設定・
+// 言語/Language をまとめる。
 function openAppSettingsModal() {
   // 内容を開くタイプのトグル(ご利用の注意とよくある質問・メッセージ履歴・このアプリについて)は
   // 開くたびに必ずオフへ戻す。開いたままだと、次に設定を開いたときに長い内容が広がった状態で

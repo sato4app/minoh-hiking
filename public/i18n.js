@@ -50,6 +50,9 @@ const DICT = {
   // ----- マップ画面 -----
   'map.ariaMap': { ja: '箕面エリア地理院地図', en: 'GSI map of the Minoh area' },
   'map.ariaLayers': { ja: '表示設定', en: 'Display settings' },
+  // 表示設定パネル(≡)のトグル。上から、画面に重ねる表示2つ・現在地2つ・移動経路1つの順
+  'map.toggleClock': { ja: '時刻を表示', en: 'Show clock' },
+  'map.toggleZoomLevel': { ja: 'ズームレベルを表示', en: 'Show zoom level' },
   'map.toggleCurrentMarker': { ja: '現在地点をマーカー表示', en: 'Show current location marker' },
   // 現在地点表示ボタン(ズームボタンの上)。メニューのトグルとは独立した単発の操作
   'map.showCurrentSpot': { ja: '現在地点表示', en: 'Show current location' },
@@ -241,12 +244,12 @@ const DICT = {
   // ----- バージョン情報モーダル / 設定/Settings モーダル -----
   // 接頭辞 info. は、両モーダルが1つの「バージョン情報等」モーダルだった頃の名残
   // (2026.9 で分離したがキー名は据え置き)。振り分けは次のとおり:
-  //   設定/Settings … showClock / showZoomLevel / showMessages / ariaClearMessages /
+  //   設定/Settings … showFaq / showMessages / ariaClearMessages /
   //                    noMessages / about / appName / appNameValue
   //                    (contributors の氏名・団体名は翻訳対象外のため辞書に持たない)
   //   バージョン情報 … startupUpdateCheck / versionInfo / 各 version 系 / データ件数系
-  'info.showClock': { ja: '時刻を表示', en: 'Show clock' },
-  'info.showZoomLevel': { ja: 'ズームレベルを表示', en: 'Show zoom level' },
+  // 「時刻を表示」「ズームレベルを表示」は 2026.37 で表示設定パネルへ移したため、
+  // map.toggleClock / map.toggleZoomLevel に改名した(上の map. 群)。
   'info.startupUpdateCheck': { ja: '起動時にアプリの更新版を確認', en: 'Check for app updates at startup' },
   'info.versionInfo': { ja: 'バージョン情報', en: 'Version information' },
   'info.appVersion': { ja: 'アプリバージョン：', en: 'App version:' },
@@ -330,10 +333,10 @@ const DICT = {
 
   'guide.settingsTitle': { ja: '設定/Settings', en: 'Settings' },
   'guide.settingsBody': {
-    ja: '時刻の表示・ズームレベルの表示・ご利用の注意とよくある質問・メッセージ履歴・このアプリについてと、マーカーの設定、言語の設定をまとめています。\n' +
+    ja: 'ご利用の注意とよくある質問・メッセージ履歴・このアプリについてと、マーカーの設定、言語の設定をまとめています。\n' +
         '「ご利用の注意とよくある質問」には、ルートや現在地のずれ、通行止めの見方など、山に入る前に知っておいていただきたいことをまとめています。\n' +
         'ボタン名を日英併記にしているのは、英語表示のままで分からなくなっても、ここから日本語に戻せるようにするためです。',
-    en: 'Groups together the clock, the zoom level display, notes and FAQ, the message history, About this app, marker settings and the language setting.\n' +
+    en: 'Groups together notes and FAQ, the message history, About this app, marker settings and the language setting.\n' +
         '"Notes and FAQ" covers what to know before you set off: gaps in the routes and in your location, how to read closures, and more.\n' +
         'The button is labelled in both Japanese and English so you can always come back here and switch the language.'
   },
@@ -371,10 +374,12 @@ const DICT = {
   'guide.mapMenuTitle': { ja: 'メニュー(≡)と現在地の表示', en: 'The Menu (≡) and Your Location' },
   'guide.mapMenuBody': {
     ja: '右上のメニューボタン(≡)で表示設定パネルを開きます(地図をタップすると閉じます)。\n' +
-        '「現在地点をマーカー表示」で現在地の青い丸を出し、「現在地点は中央に表示」で地図が現在地に追従します。どちらも初期設定はオンです。\n' +
+        '「時刻を表示」はメニューボタンの左に、「ズームレベルを表示」は画面の右下に出ます。\n' +
+        '「現在地点をマーカー表示」で現在地の青い丸を出し、「現在地点は中央に表示」で地図が現在地に追従します。いずれも初期設定はオンです。\n' +
         '好きな場所を自由に見たいときは「現在地点は中央に表示」をオフにします。',
     en: 'The menu button (≡) at the top right opens the display settings panel (tap the map to close it).\n' +
-        '"Show current location marker" displays the blue dot for your location, and "Keep current location centered" makes the map follow you. Both are on by default.\n' +
+        '"Show clock" appears to the left of the menu button, and "Show zoom level" at the bottom right.\n' +
+        '"Show current location marker" displays the blue dot for your location, and "Keep current location centered" makes the map follow you. All of them are on by default.\n' +
         'Turn off "Keep current location centered" when you want to pan around freely.'
   },
 
