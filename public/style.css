@@ -1243,6 +1243,19 @@ body.view-state-map .leaflet-control-container {
   padding-top: 0;
 }
 
+/* Credits 内の外部リンク(ポートフォリオ・リポジトリ)。
+   周りの太字の黒と区別できるよう、FAQ の参照リンクと同じテーマ色+下線にする。
+   上下に余白を足して指で押せる範囲を広げる(行の高さは変えない)。
+   sato4app は値の列の右端に来るため、左右には広げない(広げると枠から数px はみ出す) */
+.info-link {
+  display: inline-block;
+  padding: 0.2rem 0;
+  margin: -0.2rem 0;
+  color: #2c7a3d;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 /* ===== 設定・情報/Settings & Info モーダル: セクション ===== */
 .info-section {
   padding: 0.5rem 1rem 1rem;

@@ -334,14 +334,20 @@
                  そのため data-i18n は付けない。
                  担当が2行になるもの(プロジェクト統括 / 地図の出典)は、2行目を
                  ラベル無しの続き行(info-row-cont)として値の列に右寄せで置く。
-                 幅が足りない端末では語句の区切り(wbr)で折り返す -->
+                 幅が足りない端末では語句の区切り(wbr)で折り返す。
+                 アプリの企画・開発の sato4app は作者のポートフォリオ、2行目の GitHub は
+                 このアプリのリポジトリへのリンク(リンクの文字を行き先の名前にそろえ、
+                 どこへ行くか押す前に分かるようにする)。外部サイトのため別タブで開く -->
             <div class="info-row">
               <span class="info-label">Credits：</span>
             </div>
             <div class="info-contributors">
               <div class="info-row">
                 <span class="info-label">アプリの企画・開発：</span>
-                <span class="info-value">さとう</span>
+                <span class="info-value">さとう <a class="info-link" href="https://sato4app.github.io/Portfolio/" target="_blank" rel="noopener">sato4app</a></span>
+              </div>
+              <div class="info-row info-row-cont">
+                <span class="info-value">Open Source（<a class="info-link" href="https://github.com/sato4app/minoh-hiking" target="_blank" rel="noopener">GitHub</a>）</span>
               </div>
               <div class="info-row">
                 <span class="info-label">ハイキングマップ情報：</span>
