@@ -15,18 +15,63 @@ function pick(entry) {
 
 let built = false;
 
-// 「ご利用の注意」(9項目)。各項目に、詳しい説明のある質問への参照を添える
+// 質問の要素の id(参照リンク「→Q5」の飛び先)。画面内の他の id と重ならないよう接頭辞を付ける
+const questionDomId = (id) => `faq-${id}`;
+
+// よくある質問に実在する番号(参照先が無い番号はリンクにしない)
+const questionIds = new Set(FAQ_SECTIONS.flatMap((section) => section.items.map((item) => item.id)));
+
+// 参照リンクから該当する質問へ移る。
+// location.hash は変えない(URL に #faq-Q5 が付くと、「QR」で出すQRコードにも入ってしまうため)。
+// 動かすのはモーダルの本文(スクロールする枠)だけにし、画面全体はスクロールさせない。
+function jumpToQuestion(id) {
+  const target = document.getElementById(questionDomId(id));
+  if (!target) return;
+  const scroller = target.closest('.modal-body');
+  if (scroller) {
+    const top = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
+    // 質問の上に少し余白を残す(枠の上端に貼り付くと見出しと区別しにくい)。
+    // なめらかにスクロールさせると、後ろの方の質問(本文で 4,500px ほど先)では着くまでに
+    // 1秒以上かかり、下の色付けが着く前に消えてしまうため、一度で移す
+    scroller.scrollTop = Math.max(0, top - 8);
+  }
+  // どの質問に移ったか分かるよう、少しの間だけ色を付ける(続けて押しても毎回光らせる)
+  target.classList.remove('faq-q-target');
+  void target.offsetWidth;
+  target.classList.add('faq-q-target');
+  // 読み上げを移った先から続けられるようにする。スクロールは上で済ませているので動かさない
+  target.focus({ preventScroll: true });
+}
+
+// 「ご利用の注意」(9項目)。各項目に、詳しい説明のある質問への参照を添える。
+// 参照の番号(Q5 など)は、押すとその質問へ移るリンクにする
 function buildNotices() {
   const list = document.createElement('ul');
   list.className = 'faq-notice-list';
+  // 番号が複数のときの区切りは言語で変える(日本語は中黒、英語はカンマ)
+  const separator = getLang() === 'en' ? ', ' : '・';
   for (const notice of FAQ_NOTICES) {
     const li = document.createElement('li');
     li.textContent = pick(notice.text);
     const ref = document.createElement('span');
     ref.className = 'faq-ref';
-    // 番号が複数のときの区切りは言語で変える(日本語は中黒、英語はカンマ)
-    const separator = getLang() === 'en' ? ', ' : '・';
-    ref.textContent = `→${notice.refs.join(separator)}`;
+    ref.append('→');
+    notice.refs.forEach((id, i) => {
+      if (i > 0) ref.append(separator);
+      if (!questionIds.has(id)) {
+        ref.append(id);
+        return;
+      }
+      const link = document.createElement('a');
+      link.className = 'faq-ref-link';
+      link.href = `#${questionDomId(id)}`;
+      link.textContent = id;
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        jumpToQuestion(id);
+      });
+      ref.append(link);
+    });
     li.append(' ', ref);
     list.append(li);
   }
@@ -45,6 +90,9 @@ function buildQuestions() {
     for (const item of section.items) {
       const q = document.createElement('p');
       q.className = 'faq-q';
+      q.id = questionDomId(item.id);
+      // 参照リンクから移ったときにフォーカスを受け取れるようにする(Tab 移動の対象にはしない)
+      q.tabIndex = -1;
       q.textContent = `${item.id}. ${pick(item.q)}`;
       fragment.append(q);
       for (const paragraph of item.a) {
@@ -71,8 +119,8 @@ export function buildFaq(container) {
   const lead = document.createElement('p');
   lead.className = 'faq-lead';
   lead.textContent = pick({
-    ja: '各項目の詳しい説明は、下の「よくある質問」の該当する番号にあります。',
-    en: 'Details for each item are in the numbered questions below.'
+    ja: '各項目の詳しい説明は、下の「よくある質問」にあります。番号を押すと、その質問へ移ります。',
+    en: 'Details for each item are in the questions below. Tap a number to jump to it.'
   });
   container.append(lead);
 

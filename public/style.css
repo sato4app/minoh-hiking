@@ -1347,6 +1347,32 @@ body.view-state-map .leaflet-control-container {
   font-weight: 600;
 }
 
+/* 参照の番号(Q5 など)は、押すとその質問へ移るリンク。
+   文字が小さいため、上下左右に余白を足して指で押せる範囲を広げる(行の高さは変えない) */
+.faq-ref-link {
+  display: inline-block;
+  padding: 0.2rem 0.15rem;
+  margin: -0.2rem -0.05rem;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* 参照リンクから移った先の質問: どれに移ったか分かるよう、少しの間だけ背景に色を付ける。
+   フォーカスは読み上げのために移すだけなので、枠線は出さない(色で示す) */
+.faq-q:focus {
+  outline: none;
+}
+
+.faq-q-target {
+  animation: faq-q-flash 1.8s ease-out;
+}
+
+@keyframes faq-q-flash {
+  0%, 35% { background: #fde68a; }
+  100% { background: transparent; }
+}
+
 .faq-lead {
   margin: 0.5rem 0 0;
   padding: 0 1rem;
