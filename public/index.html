@@ -328,30 +328,38 @@
               <span class="info-label">URL:</span>
               <span class="info-value info-value-url">https://minoh-hiking.vercel.app/</span>
             </div>
-            <!-- Credits: 役割ごとの担当者。
-                 見出し「Credits:」・役割・氏名を含めブロック全体を翻訳対象外とし、
-                 言語切替でも変えない(役割は英語、氏名はローマ字で固定。団体名
-                 「みのお山麓保全委員会」は固有名詞のため日本語のまま)。
-                 そのため data-i18n は付けない -->
+            <!-- Credits: 役割ごとの担当。
+                 見出し「Credits:」・役割・担当を含めブロック全体を翻訳対象外とし、
+                 言語切替でも変えない(役割は英語、担当は日本語で固定)。
+                 そのため data-i18n は付けない。
+                 担当が2行になるもの(Project Sponsor / Base Map Source)は、2行目を
+                 ラベル無しの続き行(info-row-cont)として値の列に右寄せで置く。
+                 幅が足りない端末では語句の区切り(wbr)で折り返す -->
             <div class="info-row">
               <span class="info-label">Credits:</span>
             </div>
             <div class="info-contributors">
               <div class="info-row">
-                <span class="info-label">Planning and development:</span>
-                <span class="info-value">Sato</span>
+                <span class="info-label">Planning and Development:</span>
+                <span class="info-value">さとう</span>
               </div>
               <div class="info-row">
-                <span class="info-label">Hiking map data:</span>
-                <span class="info-value">Kakuyama, Iwasaki, Sumikawa, Yasuda</span>
+                <span class="info-label">Hiking Map Data:</span>
+                <span class="info-value">山麓アプリ部会</span>
               </div>
               <div class="info-row">
-                <span class="info-label">Project coordination:</span>
-                <span class="info-value">Naruse</span>
+                <span class="info-label">Project Sponsor:</span>
+                <span class="info-value">みのお山麓<wbr>保全委員会</span>
+              </div>
+              <div class="info-row info-row-cont">
+                <span class="info-value">明治の森<wbr>箕面自然休養林<wbr>管理運営協議会</span>
               </div>
               <div class="info-row">
-                <span class="info-label">Project sponsor:</span>
-                <span class="info-value">みのお山麓保全委員会</span>
+                <span class="info-label">Base Map Source:</span>
+                <span class="info-value">国土地理院<wbr>ウェブサイト</span>
+              </div>
+              <div class="info-row info-row-cont">
+                <span class="info-value">地理院タイルに<wbr>ハイキングマップ情報を<wbr>追記して作成</span>
               </div>
             </div>
           </div>

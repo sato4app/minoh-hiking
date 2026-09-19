@@ -1213,10 +1213,10 @@ body.view-state-map .leaflet-control-container {
   word-break: break-all;
 }
 
-/* このアプリについて: contributors の明細(役割ごとの担当者)。
-   見出し「contributors:」に属する明細のため左に段下げする。
+/* このアプリについて: Credits の明細(役割ごとの担当)。
+   見出し「Credits:」に属する明細のため左に段下げする。
    段下げ・ラベルとの間隔は、スマホの幅(実質 287px 程度)で
-   「役割名: 担当者名」が1行に収まるよう 0.5rem に抑える */
+   「役割名: 担当」が1行に収まるよう 0.5rem に抑える */
 .info-contributors {
   padding-left: 0.5rem;
 }
@@ -1227,13 +1227,20 @@ body.view-state-map .leaflet-control-container {
   margin-right: 0.5rem;
 }
 
-/* さらに幅が足りない端末で折り返すときも、氏名の途中では改行させず
-   区切り(読点・コロン)で折り返す */
+/* さらに幅が足りない端末で折り返すときも、語の途中では改行させず
+   区切り(HTML 側の wbr・読点・コロン)で折り返す */
 .info-contributors .info-value {
   min-width: 0;
   text-align: right;
   word-break: keep-all;
   overflow-wrap: break-word;
+}
+
+/* 担当が2行になるものの2行目(ラベル無し)。値の列に右寄せし、
+   1行目との間を詰めて同じ項目の続きと分かるようにする */
+.info-contributors .info-row-cont {
+  justify-content: flex-end;
+  padding-top: 0;
 }
 
 /* ===== 設定・情報/Settings & Info モーダル: セクション ===== */
