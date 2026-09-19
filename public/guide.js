@@ -130,6 +130,24 @@ function writeGuideSeen() {
   } catch { /* 保存できなくてもガイド自体は動く */ }
 }
 
+// 以前からアプリを使っている端末かどうか(本アプリの保存データが既にあるか)。
+// 自動表示は「初めて起動したとき」の1度だけで、アプリを更新しても出さない。
+// 使い方ガイドを入れる前(2026-09-03 より前)の版から更新した端末には「開いた」記録が無いため、
+// これで見分けないと、更新後の起動で初回と同じように自動表示してしまう。
+// 起動処理の途中で履歴などが保存される前に調べる必要があるため、読み込み時に1回だけ判定する
+function hasSavedAppData() {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('minoh-hiking.') && key !== GUIDE_SEEN_KEY) return true;
+    }
+    return false;
+  } catch {
+    return true; // 調べられない環境では自動表示しない(readGuideSeen と同じ扱い)
+  }
+}
+const usedBefore = hasSavedAppData();
+
 // ===== 初期化 =====
 // hooks で app.js の画面切替を借りる(guide.js から app.js を import すると
 // 相互参照になるため、必要な操作だけ関数で受け取る)。
@@ -191,9 +209,14 @@ export function openGuide() {
 
 // 初回起動時だけ自動で開く。開いた時点で「見た」ことにするので、
 // 途中で閉じても次回からは自動で出さない(「使い方」ボタンからは何度でも開ける)。
+// アプリの更新では出さない(以前から使っている端末は、開かずに「見た」ことにする)。
 // モーダルが開いているときは、その操作を邪魔しないよう見送る
 export function maybeAutoOpenGuide() {
   if (readGuideSeen()) return;
+  if (usedBefore) {
+    writeGuideSeen();
+    return;
+  }
   if (document.querySelector('.modal:not([hidden])')) return;
   openGuide();
 }

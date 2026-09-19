@@ -19,6 +19,8 @@ export const TRACK_EXPORT_SEQ_KEY = 'minoh-hiking.track-export-seq';
 // 「使い方」ガイドを一度でも開いたかどうか。初回起動時だけ自動で表示するために使う
 // (2回目以降は起動画面の「使い方」ボタンから開く)。保存できない環境では
 // 「開いた」扱いとし、起動のたびに自動表示されないようにする。
+// ガイドの内容を変えても、キー名は変えないこと(変えると、アプリを更新した全端末で
+// 再び自動表示される。自動表示は初回の1度だけで、更新では出さない決まり)。
 export const GUIDE_SEEN_KEY = 'minoh-hiking.guide-seen';
 
 // ===== sessionStorage キー =====
