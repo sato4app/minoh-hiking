@@ -1301,15 +1301,6 @@ body.view-state-map .leaflet-control-container {
 /* ===== ご利用の注意とよくある質問(設定・情報/Settings & Info のトグルから表示) ===== */
 /* 中身は faq.js が faq-text.js から組み立てる。分量が多いため、
    見出し・質問・答えの区別を色と余白ではっきり付け、拾い読みできるようにする */
-.faq-title {
-  margin: 0.25rem 0 0.5rem;
-  padding: 0 1rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #2c7a3d;
-  line-height: 1.4;
-}
-
 /* 「ご利用の注意」と、質問のまとまりの見出し */
 .faq-section-title {
   margin: 0.9rem 0 0.35rem;

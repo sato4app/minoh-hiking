@@ -267,11 +267,8 @@ const DICT = {
   'info.countClosures': { ja: '通行止め', en: 'Closures' },
   'info.showMessages': { ja: 'メッセージ履歴の表示', en: 'Show message history' },
   // ご利用の注意とよくある質問(設定・情報/Settings & Info のトグル)。中身の文言は faq-text.js
+  // 開いた中身は「ご利用の注意」の見出しから始まる(全体の見出しは、トグル名と重なるため置かない)
   'info.showFaq': { ja: 'ご利用の注意とよくある質問', en: 'Notes and FAQ' },
-  'faq.title': {
-    ja: '箕面ハイキングマップ ご利用の注意とよくある質問',
-    en: 'Minoh Hiking Map - Notes and FAQ'
-  },
   'info.ariaClearMessages': { ja: '履歴を消去', en: 'Clear history' },
   'info.noMessages': { ja: '履歴はありません。', en: 'No messages.' },
   'info.about': { ja: 'このアプリについて', en: 'About this app' },
