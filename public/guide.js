@@ -36,6 +36,8 @@ const GUIDE_STEPS = [
     view: 'home',
     targets: []
   },
+  // 起動時画面のボタンは、画面に並ぶ順(上から)に案内する。
+  // ただし一番上の「QR」だけは案内の最後に回す(末尾のページで起動時画面に戻して説明する)
   {
     key: 'showMap',
     view: 'home',
@@ -52,9 +54,10 @@ const GUIDE_STEPS = [
     targets: ['[data-guide="homeSettings"]']
   },
   {
-    key: 'guideQr',
+    // 起動時画面の最後のページ。「次へ」でハイキングマップ表示に移ることもここで伝える
+    key: 'howTo',
     view: 'home',
-    targets: ['[data-guide="homeGuide"]', '[data-guide="homeQr"]']
+    targets: ['[data-guide="homeGuide"]']
   },
   {
     // 地図に重なる情報の説明。特定の場所ではなく地図全体の話なので枠は出さない
@@ -96,6 +99,12 @@ const GUIDE_STEPS = [
     view: 'map',
     panel: true,
     targets: ['[data-guide="panelMarkerSettings"]', '[data-guide="panelBack"]']
+  },
+  {
+    // 案内の最後のページ。起動時画面に戻して「QR」を説明し、案内を締めくくる
+    key: 'qr',
+    view: 'home',
+    targets: ['[data-guide="homeQr"]']
   }
 ];
 

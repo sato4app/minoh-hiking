@@ -292,7 +292,9 @@ const DICT = {
   // key は guide.js の GUIDE_STEPS と一致させる。本文の改行(\n)はそのまま表示される。
   // 本文は、幅 360px 以上の画面(360×640 など)で吹き出し内のスクロールが出ない長さにする
   // (日英とも。収まらないと本文だけがスクロールし、続きに気づかれにくい)。
-  // 余裕が最も少ないのは settings・mapMenu(英語)・mapTrack のページ
+  // 余裕が最も少ないのは download・settings・mapMenu(英語)・mapTrack のページ。
+  // 起動時画面のページは、説明するボタンの位置で吹き出しに使える高さが変わるため、
+  // ボタンの並びを変えたときも測り直すこと
   'guide.title': { ja: '使い方', en: 'How to Use' },
   'guide.prev': { ja: '戻る', en: 'Back' },
   'guide.next': { ja: '次へ', en: 'Next' },
@@ -320,11 +322,11 @@ const DICT = {
 
   'guide.downloadTitle': { ja: '地図データのダウンロード', en: 'Download Map Data' },
   'guide.downloadBody': {
-    ja: '山に入る前に、電波のある場所で地図データを端末に保存しておくと、電波が届かない場所でも地図を表示できます。\n' +
-        '標準(ズームレベル:Z=14〜17)で約8.5MB、「詳細地図データ(Z=18)を含む」を選ぶと合計約14.1MBです。\n' +
+    ja: '山に入る前に地図データを保存しておくと、電波が届かない場所でも地図を表示できます。\n' +
+        '標準(Z=14〜17)で約8.5MB、「詳細地図データ(Z=18)を含む」で合計約14.1MBです。\n' +
         '「クリア」を押すと、ダウンロードした地図データをすべて消します。',
-    en: 'Before heading into the mountains, save the map data while you still have a signal so the map works where there is none.\n' +
-        'The standard range (zoom level: Z=14-17) is about 8.5 MB; with "Include detailed map data (Z=18)" it is about 14.1 MB in total.\n' +
+    en: 'Save the map data before heading into the mountains so the map works with no signal.\n' +
+        'Standard (Z=14-17) is about 8.5 MB; with "Include detailed map data (Z=18)", about 14.1 MB in total.\n' +
         'Press "Clear" to delete all downloaded map data.'
   },
 
@@ -338,13 +340,11 @@ const DICT = {
         'The label is in both Japanese and English so you can always switch the language here.'
   },
 
-  'guide.guideQrTitle': { ja: '使い方とQR', en: 'How to Use and QR' },
-  'guide.guideQrBody': {
+  'guide.howToTitle': { ja: '使い方', en: 'How to Use' },
+  'guide.howToBody': {
     ja: 'この案内は、いつでも「使い方」から見直せます。\n' +
-        '「QR」は、いま開いているページのQRコードを表示します。別の端末のカメラで読み取ると、同じアプリをすぐ開けます。\n' +
         '「次へ」を押すと、ハイキングマップ表示に移って案内を続けます。',
     en: 'You can reopen this guide at any time from "How to Use".\n' +
-        '"QR" shows a QR code for the page you are on. Scan it with another device with a camera to open the same app right away.\n' +
         'Press "Next" to move on to the hiking map and continue the guide.'
   },
 
@@ -392,10 +392,19 @@ const DICT = {
   'guide.mapFinishBody': {
     ja: '「マーカーの設定」では、地図の目印の色・形・大きさを種類ごとに変えられます。\n' +
         '「起動時の画面に戻る」で最初の画面に戻ります。\n' +
-        '案内は以上です。この案内は、いつでも起動時画面の「使い方」から見直せます。',
+        '「次へ」を押すと、起動時画面に戻って最後のご案内をします。',
     en: 'In "Marker settings" you can change the colour, shape and size of each kind of marker on the map.\n' +
         '"Back to start screen" returns you to the first screen.\n' +
-        'That is the whole tour. You can reopen this guide at any time from "How to Use" on the start screen.'
+        'Press "Next" to return to the start screen for the last page.'
+  },
+
+  // 案内の最後のページ(起動時画面に戻して説明する)
+  'guide.qrTitle': { ja: 'QR', en: 'QR' },
+  'guide.qrBody': {
+    ja: 'いま開いているページのQRコードを表示します。別の端末のカメラで読み取ると、同じアプリをすぐ開けます。\n' +
+        '案内は以上です。この案内は、いつでも「使い方」から見直せます。',
+    en: 'Shows a QR code for the page you are on. Scan it with another device with a camera to open the same app right away.\n' +
+        'That is the whole tour. You can reopen this guide at any time from "How to Use".'
   },
 
   'messages.clearConfirm': { ja: 'メッセージ履歴を全て削除します。よろしいですか?', en: 'Delete all message history?' },
