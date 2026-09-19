@@ -1213,6 +1213,14 @@ body.view-state-map .leaflet-control-container {
   word-break: break-all;
 }
 
+/* ソースコード(Open Source (GitHub))。幅が足りず折り返すときも右寄せのまま、
+   語の途中ではなく空白で折り返す */
+.info-value-source {
+  min-width: 0;
+  text-align: right;
+  word-break: keep-all;
+}
+
 /* このアプリについて: Credits の明細(役割ごとの担当)。
    見出し「Credits:」に属する明細のため左に段下げする。
    段下げ・ラベルとの間隔は、スマホの幅(実質 287px 程度)で
@@ -1243,7 +1251,7 @@ body.view-state-map .leaflet-control-container {
   padding-top: 0;
 }
 
-/* Credits 内の外部リンク(ポートフォリオ・リポジトリ)。
+/* 「このアプリについて」の外部リンク(ソースコードのリポジトリ・Credits のポートフォリオ)。
    周りの太字の黒と区別できるよう、FAQ の参照リンクと同じテーマ色+下線にする。
    上下に余白を足して指で押せる範囲を広げる(行の高さは変えない)。
    sato4app は値の列の右端に来るため、左右には広げない(広げると枠から数px はみ出す) */

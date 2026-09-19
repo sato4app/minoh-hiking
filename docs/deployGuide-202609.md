@@ -1,6 +1,6 @@
 # 箕面ハイキングマップ デプロイ手順書
 
-**バージョン:** 1.6
+**バージョン:** 1.7
 **最終更新日:** 2026年9月19日
 **対象:** 運用・開発担当者
 **関連:**
@@ -13,37 +13,56 @@
 
 本アプリの**配信のしかた**と、変更の種類ごとに**何をすればユーザーに届くか**をまとめる。
 
-配信先が2つ（Vercel / GitHub Pages）あり、さらに地図データは**デプロイを伴わない公開**で
-更新されるため、「どれを直したときに何が必要か」を取り違えやすい。判断はここに一本化する。
+配信先が2つ（Vercel / GitHub Pages）あり、**GitHub Pages で確認してから Vercel（本番）に出す**
+2段階の運用をしている。さらに地図データは**デプロイを伴わない公開**で更新されるため、
+「どれを直したときに何が必要か」を取り違えやすい。判断はここに一本化する。
 
 ---
 
 ## 2. 配信先と役割
 
-| 配信先 | 配信するもの | 反映のきっかけ |
-|---|---|---|
-| **Vercel** | アプリ（`public/`）+ **公開API**（`api/`）+ 公開ストア（Vercel Blob） | `main` への push（リポジトリ連携）／環境変数の変更後は再デプロイ |
-| **GitHub Pages** | アプリ（`public/`）のみ | `main` への push（`.github/workflows/pages.yml` が自動実行） |
+| 配信先 | 位置づけ | 配信するもの | 反映のきっかけ |
+|---|---|---|---|
+| **GitHub Pages** | **確認用**（先行公開） | アプリ（`public/`）のみ | `main` への push（`.github/workflows/pages.yml` が自動実行） |
+| **Vercel**（Production） | **本番** | アプリ（`public/`）+ **公開API**（`api/`）+ 公開ストア（Vercel Blob） | **`release` ブランチへの push**（リポジトリ連携）／環境変数の変更後は再デプロイ |
+| Vercel（Preview） | 確認用（API） | 同上（Blob は**本番と共用**） | `main` への push（コミットごとに Preview が作られる。本番は変わらない） |
 
-- 公開API は **Vercel にしか無い**。GitHub Pages 版アプリは `https://minoh-hiking.vercel.app/api/*` を
-  クロスオリジンで参照する（[`config.js`](../public/config.js) が `github.io` を判定して切り替える。
-  API 側は CORS を全許可）。
+- **流れ:** `main` に push → **GitHub Pages で確認** → 確認したコミットを **`release` に push** →
+  Vercel の本番（`https://minoh-hiking.vercel.app/`）に出る（手順は [5.1](#51-手順)）。
+  `main` に push しただけでは、Vercel の本番は変わらない。
+- 公開API は **Vercel にしか無い**。GitHub Pages 版アプリは `https://minoh-hiking.vercel.app/api/*`
+  （**本番の API、つまり `release` の `api/`**）をクロスオリジンで参照する（[`config.js`](../public/config.js) が
+  `github.io` を判定して切り替える。API 側は CORS を全許可）。
+  そのため **`api/` の変更は GitHub Pages では確認できない**（→ [5.4](#54-api-を変更するとき)）。
 - したがって **API を止めると両方のアプリでデータが出なくなる**。
+- GitHub Pages は確認用だが、**URL を知っていれば誰でも開ける**。確認前の変更を利用者が使うこともある
+  「先行公開版」と考えておく（GitHub Pages で開いた画面の QR コードは GitHub Pages の URL になり、
+  ホーム画面に追加した端末には確認前の更新も届く）。アプリ内の URL 表示・README・ポートフォリオは
+  Vercel の本番を指している。
 
 ```
 push (main)
   |
-  +--> Vercel        :  public/ (app) + api/ (publish API) + Blob (store)
+  +--> GitHub Pages     :  public/ (app) only          ... 確認用（先行公開）
+  |                            |
+  |                            +-- GET --> https://minoh-hiking.vercel.app/api/*  (本番 API)
   |
-  +--> GitHub Pages  :  public/ (app) only
-                              |
-                              +-- GET --> https://minoh-hiking.vercel.app/api/*
+  +--> Vercel Preview   :  public/ + api/              ... API の確認用（Blob は本番と共用）
+
+  (GitHub Pages で確認)
+
+push (<確認したコミット>:release)
+  |
+  +--> Vercel Production:  public/ (app) + api/ (publish API) + Blob (store)
+                           https://minoh-hiking.vercel.app/
 
 MapPublisher -- POST /api/mapdata, /api/closures --> Blob -- GET --> 両方のアプリ
 ```
 
-> Vercel の Production Branch（既定は `main`）は Vercel の管理画面で確認できる。
-> 本書は `main` を前提に書いている。
+> Vercel の本番のブランチは、管理画面の **Settings → Environments → Production → Branch Tracking** で
+> **`release`** に設定している。`main` に戻すと、`main` への push がそのまま本番に出る
+> （GitHub Pages での確認を経なくなる）ため変えないこと。
+> `release` は `main` の後を追うだけのブランチで、**直接コミットしない**（→ [5.1](#51-手順) ⑩）。
 
 ---
 
@@ -53,10 +72,10 @@ MapPublisher -- POST /api/mapdata, /api/closures --> Blob -- GET --> 両方の�
 |---|---|---|
 | **地図データ・通行止めの内容** | MapPublisher で公開する | **不要** |
 | **オフライン地図のタイル範囲** | DownloadArea で出力 → MapPublisher で公開する | **不要** |
-| `public/` のコード・画像 | `SHELL_CACHE` をバンプ → push（→ [5章](#5-通常のデプロイアプリの更新)） | 要 |
-| `api/` のコード | push | 要 |
+| `public/` のコード・画像 | `SHELL_CACHE` をバンプ → `main` に push → GitHub Pages で確認 → `release` に push（→ [5章](#5-通常のデプロイアプリの更新)） | 要 |
+| `api/` のコード | `main` に push → **Vercel の Preview で確認** → `release` に push（→ [5.4](#54-api-を変更するとき)） | 要 |
 | **Vercel の環境変数** | 値を設定 → **再デプロイ**（設定だけでは反映されない） | 要 |
-| `docs/` のみ | push（`.md` を直したら `.pdf` も作り直す） | 影響なし |
+| `docs/` のみ | `main` に push（`.md` を直したら `.pdf` も作り直す）。`release` への push は不要 | 影響なし |
 
 `public/shell-revisions.json`（シェルの内容ハッシュ一覧）は**デプロイ時に自動生成**される。
 手で書き換えるファイルではなく、リポジトリにも置かない（Vercel は `vercel.json` の
@@ -93,6 +112,10 @@ Vercel プロジェクト **minoh-hiking** に必要なのは、**Blob ストア
 6. **Settings → Environment Variables** に **`BLOB_READ_WRITE_TOKEN`** が
    自動追加されたことを確認する（**値は開かない・コピーしない・Git に入れない**）
 
+> **Preview・Development も本番と同じストアを使う。** 5 ですべての Environment に接続するため、
+> `main` への push で作られる Preview の API や `vercel dev` も、**本番のデータを読み書きする**
+> （確認用の別データは無い）。Preview での確認は読み取り（GET）に留める（→ [5.4](#54-api-を変更するとき)）。
+
 > **変数名は既定のままにする。** 接続時に Environment Variables のプレフィックスを付けて
 > `〇〇_READ_WRITE_TOKEN` にすると、`@vercel/blob` が読むのは `BLOB_READ_WRITE_TOKEN` だけなので
 > 公開時に `500` になる（[`api/_lib/store.js`](../api/_lib/store.js) は token を渡していない）。
@@ -116,7 +139,7 @@ Vercel プロジェクト **minoh-hiking** に必要なのは、**Blob ストア
 > 管理画面がフォルダのように見せているだけ。すでに運用している `closures/` はそのまま使い
 > （本体のパスは旧方式から変えていない）、`mapdata/` と `manifest.json` は**初回公開のときにできる**。
 > `previous.geojson` は退避元ができる2回目の公開から作られる。
-> 旧方式の `closures/history/` は新方式では使わない（削除は [6.3](#63-リリース後の後始末次のリリースで行う)）。
+> 旧方式の `closures/history/` は新方式では使わない（削除は [6.3](#63-リリース後の後始末)）。
 
 > ストアはプロジェクトではなく**アカウント（チーム）に属する**。作り直すと中身は空になり、
 > `manifest.json` が無くなるため version の採番も 1 からやり直しになる。
@@ -152,7 +175,7 @@ $b = [byte[]]::new(32)
    |---|---|
    | Key | `MAP_PUBLISH_TOKEN` |
    | Value | 1 で作った文字列（**32文字以上**） |
-   | Environments | **Production**（必須）。Preview でも公開を試すなら Preview も |
+   | Environments | **Production**（必須）。Preview にも設定できるが、Preview の API も本番と同じ Blob を読み書きする（4.1）ため、**Preview への公開は本番のデータを書き換える**（試しの公開にはならない） |
    | Sensitive | 選べるならオン（登録後は値を読み出せなくなる） |
 
 4. **Save** する
@@ -164,7 +187,8 @@ $b = [byte[]]::new(32)
 **環境変数は、すでに動いているデプロイには入らない。** 設定したら必ず出し直す。
 
 1. **Deployments** タブを開く
-2. 最新の **Production** デプロイの右端 **⋯** → **Redeploy**
+2. 最新の **Production** デプロイ（`release` のコミット。`main` の push で並ぶ Preview ではない）の
+   右端 **⋯** → **Redeploy**
 3. ダイアログの **Redeploy** を押す（Build Cache の使用有無はどちらでもよい）
 4. Status が **Ready** になるまで待つ
 
@@ -217,7 +241,13 @@ curl.exe -s https://minoh-hiking.vercel.app/api/manifest
 `public/` または `api/` を変更したときの手順。
 **データの内容だけを直したときは、この章は不要**（MapPublisher からの公開で届く → [3章](#3-変更の種類とやること早見表)）。
 
+**`main` に push して GitHub Pages で確認し（①〜⑨）、確認したコミットを `release` に push して
+Vercel の本番に出す（⑩〜⑪）**という2段階で進める。本書で「**リリース**」と言うときは、
+`release` への push（Vercel の本番への反映）を指す。
+
 ### 5.1 手順
+
+#### 確認用に出す（`main` への push → GitHub Pages）
 
 **① 変更内容とブランチを確認する**
 
@@ -233,7 +263,10 @@ Select-String -Path public/service-worker.js -Pattern "SHELL_CACHE = "
 # 例: const SHELL_CACHE = 'app-shell-2026-08-19.1';
 ```
 
-- 命名は `app-shell-yyyy-mm-dd.n`。**日付は出す日**、`n` はその日の連番（初回 `.1`、同じ日の2回目は `.2`）
+- 命名は `app-shell-yyyy-mm-dd.n`。**日付は `main` にコミットする日**、`n` はその日の連番
+  （初回 `.1`、同じ日の2回目は `.2`、10回目以降は `.10`）。リリースする日に合わせる必要はない。
+  確認中に何度バンプしても、Vercel 版の利用者にはリリースしたときの名前が1回届くだけ
+  （判定は名前が違うかどうかだけで、大小は比べない）
 - **⚠ 忘れると、端末は旧 UI のまま更新されない。**
   更新の確認（`SHELL_CACHE` 比較 → confirm）はキャッシュ名の違いで判定するため、
   名前が同じだと新しいシェルを出しても端末は気づかない
@@ -249,7 +282,8 @@ Select-String -Path public/service-worker.js -Pattern "SHELL_CACHE = "
 - 端末には旧 `index.html` / 旧 `app.js` がキャッシュされたまま残ることがあり、
   消すと 404 になって画像が出ない・モジュールが読めない、といった壊れ方をする
 - 削除待ちの一覧は `service-worker.js` の `SHELL_LOCAL_PATHS` 直下の注記にまとめてある
-- 全端末が更新を通したと判断できる次のリリース以降に消す
+- 全端末が更新を通したと判断できる次のリリース以降に消す。待つ期間は**差し替えを `release` に
+  push した日から**数える（GitHub Pages に出た日ではない。利用者の多い Vercel 版に届くのはリリース時）
 
 **⑤ ローカルで表示を確認する**
 
@@ -261,7 +295,9 @@ cd public; python -m http.server 8123    # → http://localhost:8123/
   「設定・情報/Settings & Info」の「バージョン情報」の該当行と件数は `-` になる
 - API 込みで見たいときだけ `vercel dev`
 
-**⑥ コミットして push する**
+**⑥ `docs/*.md` を直したときは `docs/*.pdf` も作り直す**
+
+**⑦ コミットして `main` に push する**
 
 ```powershell
 git add -A
@@ -269,19 +305,56 @@ git commit -m "変更内容の要約"
 git push origin main
 ```
 
-**⑦ 2つの配信先が更新されたか見る**
+**⑧ 確認用の配信が更新されたか見る**
 
 | 配信先 | 見る場所 | 正常 |
 |---|---|---|
-| Vercel | Deployments タブ | 当該コミットの Production が **Ready** |
 | GitHub Pages | リポジトリの Actions → **Deploy to GitHub Pages** | 緑（失敗なら `workflow_dispatch` で再実行） |
+| Vercel（Preview） | Deployments タブ | 当該コミットの **Preview** が **Ready**（本番はまだ変わらない。`api/` の確認に使う → 5.4） |
 
-**⑧ [7章](#7-動作確認)の動作確認を行う**（Vercel 版・GitHub Pages 版の両方）
+**⑨ GitHub Pages 版で [7.2](#72-アプリ側ブラウザ) の動作確認を行う**
 
-**⑨ `docs/*.md` を直したときは `docs/*.pdf` も作り直す**
+- `https://sato4app.github.io/minoh-hiking/` を開く。更新の確認が出たら OK で最新にする
+- 「設定・情報/Settings & Info」→「バージョン情報」の**アプリバージョンが ② で付けた版**
+  （キャッシュ名の `app-shell-` より後ろ。例: `2026-09-19.12`）になっていることを確かめる
+- 直すところが見つかったら ② に戻る（`release` には出さない）
+
+#### 本番に出す（`release` への push → Vercel）
+
+**⑩ GitHub Pages で確認したコミットを `release` に push する**
+
+```powershell
+git fetch origin
+git log --oneline -1 origin/main           # GitHub Pages に出ているコミット（確認したものと同じか見る）
+git log --oneline origin/release..origin/main   # 今回のリリースに入るコミットの一覧
+git push origin <確認したコミット>:release    # 例: git push origin 231cfaf:release
+```
+
+- **確認したコミットを指定して push する。** `git push origin main:release` は**手元の** `main` を
+  送るため、確認していないコミットが手元にあると一緒に本番に出る
+- `release` は `main` を追いかけるだけ（fast-forward）。**`release` に直接コミットしない**
+- push が non-fast-forward で断られたときは、`release` に `main` に無いコミットがある。
+  `--force` で上書きせず、`git log origin/main..origin/release` で中身を調べる
+
+**⑪ 本番が更新されたか見て、[7章](#7-動作確認)の確認を行う**
+
+| 配信先 | 見る場所 | 正常 |
+|---|---|---|
+| Vercel（Production） | Deployments タブ | ⑩ のコミットの **Production** が **Ready** |
+
+- `https://minoh-hiking.vercel.app/` で [7.2](#72-アプリ側ブラウザ) を確認する（アプリバージョンが ⑨ と同じ版）
+- `api/` を変えたリリースなら [7.1](#71-api-単体curl) も行う
+- 本番に出ている版は、次のコマンドでも確かめられる
+
+```powershell
+curl.exe -s https://minoh-hiking.vercel.app/service-worker.js | Select-String "SHELL_CACHE = "
+git ls-remote origin main release   # 2つが同じコミットなら、確認用と本番が揃っている
+```
 
 ### 5.2 ユーザーへの反映
 
+- **GitHub Pages 版の利用者には `main` への push で、Vercel 版（本番）の利用者には `release` への
+  push で届く。** 以下は、それぞれの版に届いた後の端末での動き
 - 起動時画面のボタン（どれでも）をタップしたときに「新しいバージョンのアプリが利用可能です」の
   確認が出る（起動しただけでは出ない）
 - OK を押すと最新を取得して再読み込みする。**ダウンロード済みの地図タイルは消えない**
@@ -343,6 +416,33 @@ python scripts/odg-to-webp.py assets/Startup-20260825.odg 1024
 > 透過について: 現行の素材は全画素が不透明なため、スクリプトは RGB（アルファ無し）で保存している。
 > 透過が要る画像に差し替えるときは `scripts/odg-to-webp.py` の `convert('RGB')` を外す。
 
+### 5.4 `api/` を変更するとき
+
+GitHub Pages 版アプリは**いつも Vercel の本番の API（= `release` の `api/`）**を使う（→ [2章](#2-配信先と役割)）。
+そのため `api/` の変更は、`release` に出すまで GitHub Pages 版からは見えない。
+
+**① API は Vercel の Preview で確認する**
+
+- `main` に push すると、そのコミットの **Preview** が Vercel にできる（Deployments タブ →
+  当該コミットの Preview → **Visit** で URL が分かる）。Preview の `/api/*` はそのコミットの `api/` で動く
+- Preview に保護（Vercel Authentication など）が掛かっているときは、Vercel にログインしたブラウザで開く
+- **⚠ Preview の API も本番と同じ Blob を読み書きする**（→ [4.1](#41-blob-ストアを接続する)）。
+  確認は**読み取り（GET）に留める**。Preview に `MAP_PUBLISH_TOKEN` を設定している場合、
+  Preview への公開（POST）は本番のデータを書き換える
+
+**② アプリの変更が新しい API に頼るときは、出す順番を考える**
+
+GitHub Pages で確認している間、新しいアプリは**古い（本番の）API** に対して動く。
+新しい API が無いと動かない変更だと、GitHub Pages では正しく確認できない。次のどちらかにする。
+
+- **アプリを、古い API でも動くように作る**（新しい項目が無ければ従来どおりに振る舞う、など）
+- **API を先にリリースする。** `api/` だけのコミットを `main` に push → Preview で確認 → `release` に
+  push した後で、アプリ側のコミットを `main` に push して GitHub Pages で確認する
+  （2026.12 の移行と同じ考え方 → [6章](#6-今回の移行デプロイ2026121回限り)）
+
+API の契約（エンドポイント・応答・公開スキーマ）を変えるときは、
+[`publish-api-202609.md`](publish-api-202609.md) の契約バージョンを更新し、MapPublisher 側にも反映する。
+
 ---
 
 ## 6. 今回の移行デプロイ（2026.12・1回限り）
@@ -357,6 +457,10 @@ python scripts/odg-to-webp.py assets/Startup-20260825.odg 1024
 
 `main` への push は Vercel と GitHub Pages の両方を同時に更新するため、
 **2つのコミットに分け、間隔を空けて push する**。
+
+> 上記は移行当時の運用（`main` への push が Vercel の本番にも出ていた）での記述。
+> 現在は `release` への push で本番に出る（→ [2章](#2-配信先と役割)）。API を先に出す必要がある
+> リリースでは、API のコミットを先に `release` に出してからアプリ側を進める（→ [5.4](#54-api-を変更するとき)）。
 
 ### 6.2 手順
 
@@ -403,6 +507,8 @@ python scripts/odg-to-webp.py assets/Startup-20260825.odg 1024
 #### 「全端末が更新を通した」の判断
 
 テレメトリは持たないため、期間で判断するほかない。
+期間は、**その変更を `release` に push した日（Vercel の本番に出た日）から**数える。
+GitHub Pages に出た日からではない（→ 5.1 ④）。
 **端末がオンラインでアプリを開き、起動時画面のボタンをタップすれば**、`service-worker.js` を
 読んで `SHELL_CACHE` を比較し、更新確認（confirm）が出る。取り残されるのは、長期間まったく
 開かなかった端末と、更新確認をキャンセルし続けている端末。いずれもブラウザのキャッシュを
@@ -418,6 +524,9 @@ python scripts/odg-to-webp.py assets/Startup-20260825.odg 1024
 ### 7.1 API 単体（curl）
 
 Windows PowerShell では `curl` が別のコマンドの別名になっているため、**`curl.exe`** と書く。
+
+以下は**本番の API**（`release` の `api/`）に対する確認。`main` に push しただけでは変わらない。
+リリース前の `api/` を確かめるときは、URL を Vercel の Preview のものに置き換え、GET だけを行う（→ [5.4](#54-api-を変更するとき)）。
 
 ```powershell
 # version と件数（数百バイト）
@@ -440,7 +549,8 @@ curl.exe -s -o NUL -w "%{http_code}\n" -X POST -H "Content-Type: application/jso
 
 ### 7.2 アプリ側（ブラウザ）
 
-Vercel 版・GitHub Pages 版の**両方**で確認する。
+**GitHub Pages 版**（`main` に push した後。[5.1](#51-手順) ⑨）と **Vercel 版**（`release` に push した後。
+5.1 ⑪）の**両方**で確認する。
 
 - 「ハイキングマップ表示」で緊急ポイント・ルート・スポット・通行止めが描画される
 - ルート線が端点（開始・終了ポイント）まで伸びている
@@ -458,8 +568,10 @@ Vercel 版・GitHub Pages 版の**両方**で確認する。
 |---|---|
 | 誤ったデータを公開した | **正しいデータをもう一度公開する**（全置換）。直前の内容は Blob の `previous.geojson` に1世代だけ残っている |
 | 公開が `500` で失敗した | **もう一度公開する。** `manifest.json` が進んでいないため同じ version が採番される（冪等）。二重に version が飛ぶことはない |
-| アプリの不具合を出してしまった | Vercel の Instant Rollback で前のデプロイに戻す。**あわせて `main` を `git revert` する**（戻さないと次の push で再発する） |
+| GitHub Pages で不具合を見つけた（リリース前） | `main` で直す（`git revert` か修正）→ GitHub Pages で確認し直す。**`release` には出さない**。本番は変わっていないので利用者への影響は GitHub Pages 版だけ |
+| 本番（Vercel）に不具合を出してしまった | Vercel の Instant Rollback で前のデプロイに戻す（すぐ効く）。**あわせて `main` を `git revert`** → GitHub Pages で確認 → **`release` に push** する（`release` を戻さないと、次のリリースで再発する）。`release` を `--force` で巻き戻さない（`main` と食い違い、次の push が断られる） |
 | GitHub Pages 側だけ古い | Actions の `Deploy to GitHub Pages` が失敗していないか確認し、`workflow_dispatch` で再実行する |
+| Vercel の本番だけ古い（GitHub Pages は新しい） | `release` に push していない（`main` への push は Preview になるだけ）。`git ls-remote origin main release` で差を確かめ、GitHub Pages で確認済みのコミットを `release` に push する（→ [5.1](#51-手順) ⑩） |
 
 > ロールバックしても、端末のキャッシュは `SHELL_CACHE` の名前で判断される。
 > 戻した版のキャッシュ名が新しい版と同じだと更新が検知されないため、
@@ -479,17 +591,30 @@ Vercel 版・GitHub Pages 版の**両方**で確認する。
 | 起動画面の画像やモジュールが 404 | 差し替えた旧ファイルを同じリリースで消した | ファイルを戻し、次のリリース以降に削除する |
 | オフラインで地図データが出ない | Service Worker の掃除で `mapdata-cache` / `closures-cache` を消している | `service-worker.js` の `APP_MANAGED_CACHES` に入っているか確認する |
 | GitHub Pages 版だけデータが出ない | Vercel 側の API が落ちている／CORS 設定の変更 | `curl.exe` で Vercel の API を直接確認する |
+| push したのに Vercel 版が変わらない | `main` にしか push していない（Vercel の本番は `release` を見ている） | 確認後に `release` へ push する（→ [5.1](#51-手順) ⑩） |
+| GitHub Pages 版で、新しい API を使う機能だけ動かない | `api/` の変更がまだ本番（`release`）に出ていない。GitHub Pages 版は本番の API を使う | API を先にリリースする（→ [5.4](#54-api-を変更するとき)） |
+| `release` への push が non-fast-forward で断られる | `release` に `main` に無いコミットがある | `--force` で上書きせず、`git log origin/main..origin/release` で中身を調べる |
 
 ---
 
 ## 10. デプロイ前チェックリスト
 
+**`main` に push する前**
+
 - [ ] `public/` を変更した → `SHELL_CACHE` をバンプした
 - [ ] JS ファイルを追加した → `SHELL_LOCAL_PATHS` に追加した
-- [ ] 差し替えた旧ファイルを**このリリースでは消していない**
+- [ ] 差し替えた旧ファイルを**このリリースでは消していない**（消すのは、前回それを `release` に出してから十分に期間が経ったとき）
+- [ ] `api/` を変更した → アプリが古い API でも動くか、API を先にリリースする段取りになっている（→ 5.4）
 - [ ] 環境変数を変えた → 再デプロイする段取りになっている
 - [ ] `docs/*.md` を直した → `docs/*.pdf` を作り直した
 - [ ] データの内容だけの変更なら、**デプロイではなく MapPublisher からの公開**で足りると確認した
+
+**`release` に push する前**
+
+- [ ] GitHub Pages 版で [7.2](#72-アプリ側ブラウザ) の確認をした（アプリバージョンが今回の `SHELL_CACHE`）
+- [ ] `api/` を変更した → Vercel の Preview で GET の確認をした
+- [ ] push するのは **GitHub Pages で確認したコミット**（`git log --oneline -1 origin/main` と一致）
+- [ ] `git log --oneline origin/release..<確認したコミット>` で、今回本番に出るコミットを見た
 
 ---
 
@@ -504,3 +629,4 @@ Vercel 版・GitHub Pages 版の**両方**で確認する。
 | 1.4 | 2026-08-25 | 5.3「起動画面の画像を差し替えるとき」を追加。元画像（PNG）は配信対象の `public/` ではなく `assets/` に置くこと、WebP は非可逆のため必ずマスターから変換し直すこと、解像度がファイル名に入るため差し替え時は参照と `SHELL_CACHE` の更新が要ることを明記した |
 | 1.5 | 2026-08-25 | 5.3 を、元データを PNG から LibreOffice Draw の `.odg` に改めた手順へ全面的に書き直した。`scripts/odg-to-webp.py`（用紙寸法と作品の外接矩形から逆算して書き出し・切り抜く）の使い方、書き出し幅 1024px の根拠、切れの確認方法を追記 |
 | 1.6 | 2026-09-19 | アプリ 2026.40 に追随。アプリの更新確認が「起動時（設定 ON のとき）／「バージョン情報等」を開いたとき」から「起動時画面のボタンをタップしたとき」に変わり、「起動時にアプリの更新版を確認」の設定が無くなったため、5.2 と 6章「全端末が更新を通した」の判断の説明を改めた。「バージョン情報」がホームのボタンから「設定/Settings」内のトグルへ移ったため、5.1・7.2 の確認箇所の書き方を合わせた。あわせて 2026.41 の改称（「設定/Settings」→「設定・情報/Settings & Info」）に合わせた |
+| 1.7 | 2026-09-19 | **Vercel の本番を `release` ブランチから出す運用に合わせて全体を改めた**（Vercel の Production の Branch Tracking を `release` にし、`main` への push で GitHub Pages に出して確認した後、確認したコミットを `release` に push して本番に出す）。本書は「`main` への push で Vercel の本番にも出る」前提のままだった。2章の表・図・流れ（GitHub Pages は確認用＝誰でも開ける先行公開版、`main` の push で作られる Vercel の Preview、Branch Tracking の設定場所、`release` に直接コミットしない）、3章の早見表、5.1 を「確認用に出す（①〜⑨）」と「本番に出す（⑩〜⑪）」の2段に分け、確認したコミットを指定して `release` に push する手順と確認方法を追加。`SHELL_CACHE` の日付は `main` にコミットする日とした。5.2 に版ごとの届くきっかけを追記。**5.4「`api/` を変更するとき」を新設**（GitHub Pages 版はいつも本番の API を使うため `api/` は Preview で確認する、Preview の API も本番と同じ Blob を読み書きするので GET に留める、新しい API に頼るアプリの変更は API を先にリリースする）。4.1・4.2 に Preview も本番のストアを使う注意、4.3 に再デプロイするのは Production であることを追記。旧ファイル削除の待ち期間（5.1 ④・6.3）は `release` に push した日から数えるとした。6.1 に移行当時の運用である旨を注記。7章・8章・9章・10章を2段階の運用に合わせて改め、8章に「GitHub Pages で不具合を見つけた」「Vercel の本番だけ古い」、9章に3件を追加。あわせて 4.1 の 6.3 へのリンク切れ（見出し名の変更に追随していなかった）を直した |
