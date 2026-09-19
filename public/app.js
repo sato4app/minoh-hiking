@@ -52,7 +52,7 @@ import {
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
 import { renderQrSvg } from './qrcode.js';
 import { initGuide, openGuide, maybeAutoOpenGuide } from './guide.js';
-import { buildFaq } from './faq.js';
+import { showFaq } from './faq.js';
 
 // ===== 状態 =====
 let currentView = 'home';
@@ -285,11 +285,11 @@ function bindEvents() {
     el.infoVersionBody.hidden = !e.target.checked;
     if (e.target.checked) showVersionInfo();
   });
-  // ご利用の注意とよくある質問: 初めて開いたときだけ中身を組み立てる
-  // (内容は変わらないため、2回目以降は表示を戻すだけでよい)
+  // ご利用の注意とよくある質問: 初めて開いたときだけ中身を組み立てる。
+  // 開くたびに、よくある質問は答えを閉じた最初の表示(見出しと質問だけ)に戻す
   el.toggleInfoFaq.addEventListener('change', (e) => {
     el.infoFaqBody.hidden = !e.target.checked;
-    if (e.target.checked) buildFaq(el.faqContent);
+    if (e.target.checked) showFaq(el.faqContent);
   });
 
   // モーダル閉じる(各モーダル内の [data-close-modal] が、その親モーダルを閉じる)

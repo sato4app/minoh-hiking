@@ -1358,12 +1358,7 @@ body.view-state-map .leaflet-control-container {
   text-underline-offset: 2px;
 }
 
-/* 参照リンクから移った先の質問: どれに移ったか分かるよう、少しの間だけ背景に色を付ける。
-   フォーカスは読み上げのために移すだけなので、枠線は出さない(色で示す) */
-.faq-q:focus {
-  outline: none;
-}
-
+/* 参照リンクから移った先の質問: どれに移ったか分かるよう、少しの間だけ背景に色を付ける */
 .faq-q-target {
   animation: faq-q-flash 1.8s ease-out;
 }
@@ -1381,13 +1376,55 @@ body.view-state-map .leaflet-control-container {
   line-height: 1.5;
 }
 
+/* よくある質問の1問(質問と答え)。質問を押すと答えを開閉する(details / summary)。
+   開いているあいだは答えの下に余白を取り、次の質問と区切る */
+.faq-item[open] {
+  padding-bottom: 0.5rem;
+}
+
+/* 質問。行全体が押せる。押せる範囲を広げるため、上下の間隔は margin ではなく padding で取る。
+   既定の三角(▶)は消し、右端に開閉の印(下向き / 上向き)を出す */
 .faq-q {
-  margin: 0.7rem 0 0.2rem;
-  padding: 0 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.45rem 1rem;
   font-size: 0.85rem;
   font-weight: 600;
   color: #222;
   line-height: 1.5;
+  list-style: none;
+  cursor: pointer;
+}
+
+.faq-q::-webkit-details-marker {
+  display: none;
+}
+
+.faq-q-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.faq-q::after {
+  content: '';
+  flex-shrink: 0;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin: 0.35rem 0.15rem 0 0;
+  border-right: 2px solid #888;
+  border-bottom: 2px solid #888;
+  transform: rotate(45deg);
+}
+
+.faq-item[open] > .faq-q::after {
+  margin-top: 0.55rem;
+  transform: rotate(-135deg);
+}
+
+/* タップや参照リンクから移ったときは枠線を出さず、キーボードで選んだときだけ出す */
+.faq-q:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .faq-a {
