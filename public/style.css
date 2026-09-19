@@ -625,7 +625,7 @@ body.view-state-map .leaflet-control-container {
 }
 
 /* データ件数(ポイント/ルート/スポット/通行止め):
-   設定/Settings モーダルの「バージョン情報」内に、横一列・中央寄せで表示する。
+   設定・情報/Settings & Info モーダルの「バージョン情報」内に、横一列・中央寄せで表示する。
    ラベル行(1行目)+値行(2行目)の2行表・罫線なし。
    margin-left: auto で表を右に寄せ、右余白は info-value の
    padding-right(1.5rem)と同じにして、表の右端を上の info-row の
@@ -1177,7 +1177,7 @@ body.view-state-map .leaflet-control-container {
   font-variant-numeric: tabular-nums;
 }
 
-/* バージョン情報(設定/Settings モーダル内): ラベルを左、値を右寄せに配置 */
+/* バージョン情報(設定・情報/Settings & Info モーダル内): ラベルを左、値を右寄せに配置 */
 #infoVersionBody .info-row {
   justify-content: space-between;
   align-items: baseline;
@@ -1207,7 +1207,7 @@ body.view-state-map .leaflet-control-container {
 }
 
 /* 参照先URL: 長い URL は途中でも折り返して枠からはみ出さないようにする
-   (「このアプリについて」は設定/Settings モーダル側にあるため、モーダルを限定しない) */
+   (「このアプリについて」は設定・情報/Settings & Info モーダル側にあるため、モーダルを限定しない) */
 .info-value-url {
   overflow-wrap: anywhere;
   word-break: break-all;
@@ -1236,7 +1236,7 @@ body.view-state-map .leaflet-control-container {
   overflow-wrap: break-word;
 }
 
-/* ===== 設定/Settings モーダル: セクション ===== */
+/* ===== 設定・情報/Settings & Info モーダル: セクション ===== */
 .info-section {
   padding: 0.5rem 1rem 1rem;
   border-bottom: 1px solid #eee;
@@ -1298,7 +1298,7 @@ body.view-state-map .leaflet-control-container {
   display: none;
 }
 
-/* ===== ご利用の注意とよくある質問(設定/Settings のトグルから表示) ===== */
+/* ===== ご利用の注意とよくある質問(設定・情報/Settings & Info のトグルから表示) ===== */
 /* 中身は faq.js が faq-text.js から組み立てる。分量が多いため、
    見出し・質問・答えの区別を色と余白ではっきり付け、拾い読みできるようにする */
 .faq-title {
@@ -1376,7 +1376,7 @@ body.view-state-map .leaflet-control-container {
   padding: 0.5rem 1.5rem;
 }
 
-/* 「設定/Settings」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
+/* 「設定・情報/Settings & Info」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
 .info-collapse .message-list {
   flex: none;
   max-height: 240px;

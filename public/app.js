@@ -13,7 +13,7 @@
 //   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
 //   qrcode.js         … QRコードの生成(外部ライブラリ非依存)
 //   guide.js          … 使い方ガイド(画面を順に案内するオーバーレイ)
-//   faq.js / faq-text.js … ご利用の注意とよくある質問(設定/Settings で表示)
+//   faq.js / faq-text.js … ご利用の注意とよくある質問(設定・情報/Settings & Info で表示)
 
 import {
   initMap, resizeMap,
@@ -76,7 +76,7 @@ const el = {
   qrCodeImage: document.getElementById('qrCodeImage'),
   qrCodeUrl: document.getElementById('qrCodeUrl'),
 
-  // 設定モーダル(起動画面の「設定/Settings」から表示)
+  // 設定モーダル(起動画面の「設定・情報/Settings & Info」から表示)
   appSettingsModal: document.getElementById('appSettingsModal'),
   languageSelect: document.getElementById('languageSelect'),
   toggleInfoMessages: document.getElementById('toggleInfoMessages'),
@@ -249,7 +249,7 @@ function bindEvents() {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
   el.btnOpenDownload.addEventListener('click', openDownloadModal);
-  // 起動画面の「設定/Settings」ボタンは設定モーダルを表示
+  // 起動画面の「設定・情報/Settings & Info」ボタンは設定モーダルを表示
   el.btnOpenAppSettings.addEventListener('click', openAppSettingsModal);
   // 起動画面の「QR」ボタンは、いま開いている URL の QRコードを表示
   el.btnOpenQrCode.addEventListener('click', openQrCodeModal);
@@ -629,21 +629,21 @@ function showView(name) {
 }
 
 // ===== モーダル =====
-// 設定モーダル(起動画面の「設定/Settings」から表示)。
-// ご利用の注意とよくある質問・メッセージ履歴・このアプリについて・バージョン情報・
+// 設定モーダル(起動画面の「設定・情報/Settings & Info」から表示)。
+// ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・このアプリについて・
 // マーカーの設定・言語/Language をまとめる。
 function openAppSettingsModal() {
-  // 内容を開くタイプのトグル(ご利用の注意とよくある質問・メッセージ履歴・このアプリについて・
-  // バージョン情報)は開くたびに必ずオフへ戻す。開いたままだと、次に設定を開いたときに長い内容が
+  // 内容を開くタイプのトグル(ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・
+  // このアプリについて)は開くたびに必ずオフへ戻す。開いたままだと、次に設定を開いたときに長い内容が
   // 広がった状態で始まり、その下にある「マーカーの設定」「言語の設定」までスクロールが必要になるため
   el.toggleInfoFaq.checked = false;
   el.infoFaqBody.hidden = true;
   el.toggleInfoMessages.checked = false;
   el.infoMessagesBody.hidden = true;
-  el.toggleInfoAbout.checked = false;
-  el.infoAboutBody.hidden = true;
   el.toggleInfoVersion.checked = false;
   el.infoVersionBody.hidden = true;
+  el.toggleInfoAbout.checked = false;
+  el.infoAboutBody.hidden = true;
 
   // 履歴はトグルを開いたときにすぐ見えるよう事前に描画しておく
   renderMessageList();
@@ -697,7 +697,7 @@ async function showVersionInfo() {
   // (オフライン地図を未ダウンロードの場合は saved が無く、対象外)。
   // 新しければ「地図データのダウンロード」からの手動更新を案内する(自動更新はしない)。
   // アプリ本体の更新確認はここでは行わない(起動時画面のボタンのタップで行う。
-  // この画面を開く「設定/Settings」もその1つ)
+  // この画面を開く「設定・情報/Settings & Info」もその1つ)
   const savedMap = getSavedManifestVersion();
   const latestMap = getManifestVersion();
   if (savedMap && latestMap && savedMap !== latestMap) {

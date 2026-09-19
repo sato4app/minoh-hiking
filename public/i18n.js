@@ -43,7 +43,7 @@ const DICT = {
   // 起動時画面のボタンは幅を取らないよう短く「QR」とする。
   // QRコードモーダルの見出し(qr.title)は、何を出す画面か分かるよう「QRコード」のまま
   'home.qr': { ja: 'QR', en: 'QR' },
-  // 「設定/Settings」(起動画面のボタン・設定モーダルの見出し)は日英併記の固定文言のため
+  // 「設定・情報/Settings & Info」(起動画面のボタン・設定モーダルの見出し)は日英併記の固定文言のため
   // 翻訳キーを持たない(index.html に直接記述し、言語切替でも変えない)
 
   // ----- マップ画面 -----
@@ -240,10 +240,11 @@ const DICT = {
   'download.cleared': { ja: 'キャッシュを削除しました', en: 'Cache cleared' },
   'download.clearFailed': { ja: '削除失敗: {message}', en: 'Failed to delete: {message}' },
 
-  // ----- 設定/Settings モーダル -----
+  // ----- 設定・情報/Settings & Info モーダル -----
   // 接頭辞 info. は、「バージョン情報等」モーダルだった頃の名残(キー名は据え置き)。
   // 2026.9 で「バージョン情報」「設定/Settings」の2モーダルに分けたのち、2026.40 で
-  // バージョン情報を設定/Settings 内のトグルへ移し、再び1つのモーダルに戻った。内訳は次のとおり:
+  // バージョン情報を設定/Settings 内のトグルへ移し、再び1つのモーダルに戻った。
+  // 情報表示の項目が多くなったため、2026.41 で「設定・情報/Settings & Info」に改称した。内訳は次のとおり:
   //   showFaq / showMessages / ariaClearMessages / noMessages /
   //   about / appName / appNameValue
   //     (contributors の氏名・団体名は翻訳対象外のため辞書に持たない)
@@ -265,7 +266,7 @@ const DICT = {
   'info.countSpots': { ja: 'スポット', en: 'Spots' },
   'info.countClosures': { ja: '通行止め', en: 'Closures' },
   'info.showMessages': { ja: 'メッセージ履歴の表示', en: 'Show message history' },
-  // ご利用の注意とよくある質問(設定/Settings のトグル)。中身の文言は faq-text.js
+  // ご利用の注意とよくある質問(設定・情報/Settings & Info のトグル)。中身の文言は faq-text.js
   'info.showFaq': { ja: 'ご利用の注意とよくある質問', en: 'Notes and FAQ' },
   'faq.title': {
     ja: '箕面ハイキングマップ ご利用の注意とよくある質問',
@@ -324,12 +325,12 @@ const DICT = {
         'Press "Clear" to delete all downloaded map data.'
   },
 
-  'guide.settingsTitle': { ja: '設定/Settings', en: 'Settings' },
+  'guide.settingsTitle': { ja: '設定・情報/Settings & Info', en: 'Settings & Info' },
   'guide.settingsBody': {
-    ja: 'ご利用の注意とよくある質問・メッセージ履歴・このアプリについて・バージョン情報と、マーカーの設定、言語の設定をまとめています。\n' +
+    ja: 'ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・このアプリについてと、マーカーの設定、言語の設定をまとめています。\n' +
         '「ご利用の注意とよくある質問」には、ルートや現在地のずれ、通行止めの見方など、山に入る前に知っておいていただきたいことをまとめています。\n' +
         'ボタン名を日英併記にしているのは、英語表示のままで分からなくなっても、ここから日本語に戻せるようにするためです。',
-    en: 'Groups together notes and FAQ, the message history, About this app, version information, marker settings and the language setting.\n' +
+    en: 'Groups together notes and FAQ, the message history, version information, About this app, marker settings and the language setting.\n' +
         '"Notes and FAQ" covers what to know before you set off: gaps in the routes and in your location, how to read closures, and more.\n' +
         'The button is labelled in both Japanese and English so you can always come back here and switch the language.'
   },
