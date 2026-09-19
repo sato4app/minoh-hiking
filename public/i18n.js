@@ -246,8 +246,10 @@ const DICT = {
   // バージョン情報を設定/Settings 内のトグルへ移し、再び1つのモーダルに戻った。
   // 情報表示の項目が多くなったため、2026.41 で「設定・情報/Settings & Info」に改称した。内訳は次のとおり:
   //   showFaq / showMessages / ariaClearMessages / noMessages /
-  //   about / appName / appNameValue
-  //     (contributors の氏名・団体名は翻訳対象外のため辞書に持たない)
+  //   about / appName / appNameValue / url
+  //     (Credits の役割名・担当は翻訳対象外のため辞書に持たない)
+  //     区切りは日本語が全角「：」、英語が半角「:」。URL は語そのものは訳さないが、
+  //     区切りを言語に合わせるため辞書に持つ
   //   versionInfo(トグル名) / 各 version 系 / データ件数系 … バージョン情報
   // 「起動時にアプリの更新版を確認」(info.startupUpdateCheck)は 2026.40 で廃止した
   // (更新版の確認は起動時画面のボタンのタップで行う)。
@@ -272,8 +274,9 @@ const DICT = {
   'info.ariaClearMessages': { ja: '履歴を消去', en: 'Clear history' },
   'info.noMessages': { ja: '履歴はありません。', en: 'No messages.' },
   'info.about': { ja: 'このアプリについて', en: 'About this app' },
-  'info.appName': { ja: 'アプリ名:', en: 'App name:' },
+  'info.appName': { ja: 'アプリ名：', en: 'App name:' },
   'info.appNameValue': { ja: '箕面ハイキングマップ', en: 'Minoh Hiking Map' },
+  'info.url': { ja: 'URL：', en: 'URL:' },
 
   // ----- QRコード(起動画面の「QR」) -----
   'qr.title': { ja: 'QRコード', en: 'QR Code' },
