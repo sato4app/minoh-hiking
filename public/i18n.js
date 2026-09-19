@@ -289,7 +289,10 @@ const DICT = {
 
   // ----- 使い方ガイド(起動画面の「使い方」・初回起動時の自動表示) -----
   // guide.<ページのkey>Title / guide.<ページのkey>Body が1ページ分の文言。
-  // key は guide.js の GUIDE_STEPS と一致させる。本文の改行(\n)はそのまま表示される
+  // key は guide.js の GUIDE_STEPS と一致させる。本文の改行(\n)はそのまま表示される。
+  // 本文は、幅 360px 以上の画面(360×640 など)で吹き出し内のスクロールが出ない長さにする
+  // (日英とも。収まらないと本文だけがスクロールし、続きに気づかれにくい)。
+  // 余裕が最も少ないのは settings・mapMenu(英語)・mapTrack のページ
   'guide.title': { ja: '使い方', en: 'How to Use' },
   'guide.prev': { ja: '戻る', en: 'Back' },
   'guide.next': { ja: '次へ', en: 'Next' },
@@ -327,12 +330,12 @@ const DICT = {
 
   'guide.settingsTitle': { ja: '設定・情報/Settings & Info', en: 'Settings & Info' },
   'guide.settingsBody': {
-    ja: 'ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・このアプリについてと、マーカーの設定、言語の設定をまとめています。\n' +
-        '「ご利用の注意とよくある質問」には、ルートや現在地のずれ、通行止めの見方など、山に入る前に知っておいていただきたいことをまとめています。\n' +
-        'ボタン名を日英併記にしているのは、英語表示のままで分からなくなっても、ここから日本語に戻せるようにするためです。',
-    en: 'Groups together notes and FAQ, the message history, version information, About this app, marker settings and the language setting.\n' +
-        '"Notes and FAQ" covers what to know before you set off: gaps in the routes and in your location, how to read closures, and more.\n' +
-        'The button is labelled in both Japanese and English so you can always come back here and switch the language.'
+    ja: 'マーカーと言語の設定、ご利用の注意やバージョン情報などをまとめています。\n' +
+        '「ご利用の注意とよくある質問」は、山に入る前にお読みください。\n' +
+        'ボタン名が日英併記なのは、英語表示のままでも日本語に戻せるようにするためです。',
+    en: 'Marker and language settings, plus notes and FAQ, version information and more.\n' +
+        'Please read "Notes and FAQ" before you set off.\n' +
+        'The label is in both Japanese and English so you can always switch the language here.'
   },
 
   'guide.guideQrTitle': { ja: '使い方とQR', en: 'How to Use and QR' },
@@ -372,19 +375,17 @@ const DICT = {
         '「現在地点をマーカー表示」で現在地の青い丸を出し、「現在地点は中央に表示」で地図が現在地に追従します。いずれも初期設定はオンです。\n' +
         '好きな場所を自由に見たいときは「現在地点は中央に表示」をオフにします。',
     en: 'The menu button (≡) at the top right opens the display settings panel (tap the map to close it).\n' +
-        '"Show clock" appears to the left of the menu button, and "Show zoom level" at the bottom right.\n' +
-        '"Show current location marker" displays the blue dot for your location, and "Keep current location centered" makes the map follow you. All of them are on by default.\n' +
-        'Turn off "Keep current location centered" when you want to pan around freely.'
+        '"Show clock" appears left of the menu button, "Show zoom level" at the bottom right.\n' +
+        '"Show current location marker" shows your blue dot, and "Keep current location centered" makes the map follow you. All are on by default.\n' +
+        'Turn off "Keep current location centered" to pan around freely.'
   },
 
   'guide.mapTrackTitle': { ja: '移動経路の記録', en: 'Recording Your Track' },
   'guide.mapTrackBody': {
-    ja: '「移動経路を記録」をオンにすると、メニューボタン(≡)の左に▶(記録開始)が出ます。押すと、歩いた道が線で地図に描かれます。\n' +
-        '停止は■で、誤って止めないよう確認が出ます。記録中は、起動時画面に戻っても記録は続きます。\n' +
-        '地点数と移動距離は経路ごとに表で出ます。「読み込み」でGPXファイルを表示、「出力」でGPXファイルに保存、「クリア」で表示中の経路をすべて消します。',
-    en: 'Turning on "Record track" puts a ▶ (start recording) button to the left of the menu button (≡). Press it and the path you walk is drawn on the map.\n' +
-        'Press ■ to stop it; a confirmation appears so you do not stop it by accident. Recording continues even if you go back to the start screen.\n' +
-        'The number of points and the distance are listed per track. "Import" displays a GPX file, "Export" saves one, and "Clear" removes every track on the map.'
+    ja: '「移動経路を記録」をオンにすると≡の左に▶が出ます。▶で記録を始め、■で止めます。起動時画面に戻っても記録は続きます。\n' +
+        '「読み込み」「出力」はGPXファイル用、「クリア」は表示中の経路を消します。',
+    en: 'Turn on "Record track" and ▶ appears left of ≡. Press ▶ to record and ■ to stop. Recording continues on the start screen.\n' +
+        '"Import" and "Export" handle GPX files; "Clear" removes all tracks.'
   },
 
   'guide.mapFinishTitle': { ja: 'マーカーの設定と、画面の戻り方', en: 'Marker Settings and Going Back' },
