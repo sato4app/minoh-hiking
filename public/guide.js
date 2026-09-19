@@ -47,11 +47,6 @@ const GUIDE_STEPS = [
     targets: ['[data-guide="homeDownload"]']
   },
   {
-    key: 'version',
-    view: 'home',
-    targets: ['[data-guide="homeVersion"]']
-  },
-  {
     key: 'settings',
     view: 'home',
     targets: ['[data-guide="homeSettings"]']

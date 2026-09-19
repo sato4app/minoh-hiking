@@ -41,9 +41,7 @@ import {
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
 import {
-  checkAppShellUpdate, promptAppShellUpdate, promptMapTileUpdate,
-  readStartupUpdateCheckEnabled, writeStartupUpdateCheckEnabled,
-  getCachedAppShellVersion
+  checkAppShellUpdate, promptMapTileUpdate, getCachedAppShellVersion
 } from './update.js';
 import {
   getManifestVersion, getSavedManifestVersion,
@@ -69,7 +67,6 @@ const el = {
 
   // ホーム
   btnOpenDownload: document.getElementById('btnOpenDownload'),
-  btnOpenSettingsInfo: document.getElementById('btnOpenSettingsInfo'),
   btnOpenAppSettings: document.getElementById('btnOpenAppSettings'),
   btnOpenQrCode: document.getElementById('btnOpenQrCode'),
   btnOpenGuide: document.getElementById('btnOpenGuide'),
@@ -78,15 +75,6 @@ const el = {
   qrCodeModal: document.getElementById('qrCodeModal'),
   qrCodeImage: document.getElementById('qrCodeImage'),
   qrCodeUrl: document.getElementById('qrCodeUrl'),
-
-  // バージョン情報モーダル(起動画面の「バージョン情報」から表示)
-  infoSettingsModal: document.getElementById('infoSettingsModal'),
-  toggleStartupUpdateCheck: document.getElementById('toggleStartupUpdateCheck'),
-  versionManifest: document.getElementById('versionManifest'),
-  versionAppShell: document.getElementById('versionAppShell'),
-  // 公開データのバージョン表示欄(バージョン情報内)
-  versionMapdata: document.getElementById('versionMapdata'),
-  versionClosures: document.getElementById('versionClosures'),
 
   // 設定モーダル(起動画面の「設定/Settings」から表示)
   appSettingsModal: document.getElementById('appSettingsModal'),
@@ -98,6 +86,14 @@ const el = {
   infoMessagesBody: document.getElementById('infoMessagesBody'),
   toggleInfoAbout: document.getElementById('toggleInfoAbout'),
   infoAboutBody: document.getElementById('infoAboutBody'),
+  // バージョン情報(設定モーダル内のトグルで表示)
+  toggleInfoVersion: document.getElementById('toggleInfoVersion'),
+  infoVersionBody: document.getElementById('infoVersionBody'),
+  versionManifest: document.getElementById('versionManifest'),
+  versionAppShell: document.getElementById('versionAppShell'),
+  // 公開データのバージョン表示欄(バージョン情報内)
+  versionMapdata: document.getElementById('versionMapdata'),
+  versionClosures: document.getElementById('versionClosures'),
   btnClearMessages: document.getElementById('btnClearMessages'),
   btnOpenMarkerSettings: document.getElementById('btnOpenMarkerSettings'),
 
@@ -165,10 +161,8 @@ async function init() {
   await migrateLegacyPackages();
   // タイル一覧の版の確認と履歴への記録は、配信データが揃ってから行う
   // (loadPublishedData の onApplied)。
-  // service-worker.js の SHELL_CACHE とキャッシュ済みバージョンを比較し
-  // 不一致なら confirm を出してアプリ全体を最新に更新
-  // (「起動時にアプリの更新版を確認」が ON のときのみ)
-  if (readStartupUpdateCheckEnabled()) checkAppShellUpdate();
+  // アプリの更新版の確認は起動時には行わず、起動時画面のボタンをタップしたときに行う
+  // (bindEvents)。
 
   // 共有地図を初期化(箕面大滝中心 / z=15、ホーム/マップで共通)
   initMap('map');
@@ -255,14 +249,18 @@ function bindEvents() {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
   el.btnOpenDownload.addEventListener('click', openDownloadModal);
-  // 起動画面の「バージョン情報」ボタンはバージョン情報モーダルを表示
-  el.btnOpenSettingsInfo.addEventListener('click', openSettingsInfoModal);
   // 起動画面の「設定/Settings」ボタンは設定モーダルを表示
   el.btnOpenAppSettings.addEventListener('click', openAppSettingsModal);
   // 起動画面の「QR」ボタンは、いま開いている URL の QRコードを表示
   el.btnOpenQrCode.addEventListener('click', openQrCodeModal);
   // 起動画面の「使い方」ボタンは、アプリの使い方を順に案内するガイドを開く
   el.btnOpenGuide.addEventListener('click', openGuide);
+  // 起動画面のボタンのどれをタップしても、あわせてアプリの更新版を確認する
+  // (新しい版があれば更新するか尋ねる。確認の回数の制御は update.js 側)。
+  // 各ボタン本来の動作(画面切替・モーダル表示など)はそのまま行う
+  for (const btn of el.views.home.querySelectorAll('.home-btn')) {
+    btn.addEventListener('click', checkAppShellUpdate);
+  }
 
   // 言語/Language(設定モーダル): 現在の設定値を表示し、変更時は保存して
   // リロードし、選択言語で全文言を再表示する。
@@ -274,11 +272,6 @@ function bindEvents() {
     try { sessionStorage.setItem(REOPEN_APP_SETTINGS_KEY, '1'); } catch { /* noop */ }
     location.reload();
   });
-  // バージョン情報: 起動時の更新確認トグル(localStorage に保存)
-  el.toggleStartupUpdateCheck.addEventListener('change', (e) => {
-    writeStartupUpdateCheckEnabled(e.target.checked);
-  });
-
   // 設定: 各トグルで内容領域の表示/非表示を切替
   el.toggleInfoMessages.addEventListener('change', (e) => {
     el.infoMessagesBody.hidden = !e.target.checked;
@@ -286,6 +279,11 @@ function bindEvents() {
   });
   el.toggleInfoAbout.addEventListener('change', (e) => {
     el.infoAboutBody.hidden = !e.target.checked;
+  });
+  // バージョン情報: ON にしたら、その時点の値を反映してから表示する
+  el.toggleInfoVersion.addEventListener('change', (e) => {
+    el.infoVersionBody.hidden = !e.target.checked;
+    if (e.target.checked) showVersionInfo();
   });
   // ご利用の注意とよくある質問: 初めて開いたときだけ中身を組み立てる
   // (内容は変わらないため、2回目以降は表示を戻すだけでよい)
@@ -490,7 +488,7 @@ function setClockVisible(on) {
 
 // ===== データ件数表示 =====
 // 読み込んだポイント/ルート/スポット/通行止めの件数を
-// バージョン情報モーダルのバージョン情報内に横一列で反映(未読込は "-")。
+// 設定モーダルの「バージョン情報」内に横一列で反映(未読込は "-")。
 function updateFeatureCounts() {
   const c = getFeatureCounts();
   el.countPoints.textContent = c.points == null ? '-' : String(c.points);
@@ -631,41 +629,21 @@ function showView(name) {
 }
 
 // ===== モーダル =====
-// バージョン情報モーダル(起動画面の「バージョン情報」から表示)。
-// 内容は「起動時にアプリの更新版を確認」トグルと、バージョン情報(常時表示)のみ。
-async function openSettingsInfoModal() {
-  // 起動時の更新確認トグルを現在の設定値で初期化
-  el.toggleStartupUpdateCheck.checked = readStartupUpdateCheckEnabled();
-
-  // バージョン情報を反映
-  el.versionManifest.textContent = getManifestVersion() || t('common.unknown');
-  const shell = (await getCachedAppShellVersion()) || t('common.unknown');
-  el.versionAppShell.textContent = shell;
-  // 公開データ: 現在反映されているデータのバージョン
-  el.versionMapdata.textContent = getMapdataVersion() || '-';
-  el.versionClosures.textContent = getClosureVersion() || '-';
-  // データ件数(ポイント/ルート/スポット/通行止め)を開いた時点の最新値で反映
-  updateFeatureCounts();
-
-  el.infoSettingsModal.hidden = false;
-
-  // 地図/アプリの更新有無を確認して、新しいものがあれば更新の confirm を表示する
-  checkUpdatesFromInfoModal();
-}
-
 // 設定モーダル(起動画面の「設定/Settings」から表示)。
-// ご利用の注意とよくある質問・メッセージ履歴・このアプリについて・マーカーの設定・
-// 言語/Language をまとめる。
+// ご利用の注意とよくある質問・メッセージ履歴・このアプリについて・バージョン情報・
+// マーカーの設定・言語/Language をまとめる。
 function openAppSettingsModal() {
-  // 内容を開くタイプのトグル(ご利用の注意とよくある質問・メッセージ履歴・このアプリについて)は
-  // 開くたびに必ずオフへ戻す。開いたままだと、次に設定を開いたときに長い内容が広がった状態で
-  // 始まり、その下にある「マーカーの設定」「言語の設定」までスクロールが必要になるため
+  // 内容を開くタイプのトグル(ご利用の注意とよくある質問・メッセージ履歴・このアプリについて・
+  // バージョン情報)は開くたびに必ずオフへ戻す。開いたままだと、次に設定を開いたときに長い内容が
+  // 広がった状態で始まり、その下にある「マーカーの設定」「言語の設定」までスクロールが必要になるため
   el.toggleInfoFaq.checked = false;
   el.infoFaqBody.hidden = true;
   el.toggleInfoMessages.checked = false;
   el.infoMessagesBody.hidden = true;
   el.toggleInfoAbout.checked = false;
   el.infoAboutBody.hidden = true;
+  el.toggleInfoVersion.checked = false;
+  el.infoVersionBody.hidden = true;
 
   // 履歴はトグルを開いたときにすぐ見えるよう事前に描画しておく
   renderMessageList();
@@ -704,24 +682,27 @@ function restoreAppSettingsModalAfterReload() {
   if (shouldReopen) openAppSettingsModal();
 }
 
-// バージョン情報モーダルを開いたときの更新チェック。
-// 地図タイルとアプリ(アプリシェル)のバージョンをサイトの最新と比較し、
-// 新しいものがあればそれぞれ別の confirm で案内する。
-// メッセージ表示・更新処理は update.js に集約している。
-async function checkUpdatesFromInfoModal() {
-  // 地図タイル → アプリの順に確認する。アプリ更新は OK で即再読み込みするため最後に確認する
-  // (先に出すと地図タイルの案内が表示される前に画面が再読込される)。
+// 設定モーダルの「バージョン情報」を ON にしたとき、その時点の値を反映する。
+async function showVersionInfo() {
+  el.versionManifest.textContent = getManifestVersion() || t('common.unknown');
+  // 公開データ: 現在反映されているデータのバージョン
+  el.versionMapdata.textContent = getMapdataVersion() || '-';
+  el.versionClosures.textContent = getClosureVersion() || '-';
+  // データ件数(ポイント/ルート/スポット/通行止め)を開いた時点の最新値で反映
+  updateFeatureCounts();
+  // アプリシェルのバージョンはキャッシュ名から取るため非同期(他の値を先に反映する)
+  el.versionAppShell.textContent = (await getCachedAppShellVersion()) || t('common.unknown');
 
   // 地図タイル: ダウンロード済みバージョン vs サイト最新マニフェスト
-  // (オフライン地図を未ダウンロードの場合は saved が無く、対象外)。案内のみで自動更新はしない。
+  // (オフライン地図を未ダウンロードの場合は saved が無く、対象外)。
+  // 新しければ「地図データのダウンロード」からの手動更新を案内する(自動更新はしない)。
+  // アプリ本体の更新確認はここでは行わない(起動時画面のボタンのタップで行う。
+  // この画面を開く「設定/Settings」もその1つ)
   const savedMap = getSavedManifestVersion();
   const latestMap = getManifestVersion();
   if (savedMap && latestMap && savedMap !== latestMap) {
     promptMapTileUpdate(savedMap, latestMap);
   }
-
-  // アプリ: キャッシュ済みアプリシェル vs サイトの service-worker.js。OK なら再読み込みして更新。
-  await promptAppShellUpdate();
 }
 
 // マーカーの設定モーダルを開く(マップ画面メニューから)

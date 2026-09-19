@@ -4,24 +4,10 @@
 // キャッシュ済み version と、サイトの service-worker.js 内の version を比較して更新を促す。
 
 import {
-  STARTUP_UPDATE_CHECK_KEY, APP_UPDATED_FLAG_KEY,
+  APP_UPDATED_FLAG_KEY,
   APP_UPDATE_DOWNLOAD_TIMEOUT_MS, APP_UPDATE_WORKER_WAIT_MS
 } from './config.js';
 import { t } from './i18n.js';
-
-// ===== 起動時の更新確認の設定(localStorage) =====
-export function readStartupUpdateCheckEnabled() {
-  try {
-    const v = localStorage.getItem(STARTUP_UPDATE_CHECK_KEY);
-    return v === null ? true : v === '1'; // 既定 ON
-  } catch {
-    return true;
-  }
-}
-
-export function writeStartupUpdateCheckEnabled(on) {
-  try { localStorage.setItem(STARTUP_UPDATE_CHECK_KEY, on ? '1' : '0'); } catch { /* noop */ }
-}
 
 // キャッシュ済みアプリシェルのバージョン(app-shell-<ver> の <ver>)
 export async function getCachedAppShellVersion() {
@@ -48,15 +34,22 @@ async function fetchServiceWorkerShellVersion() {
   }
 }
 
-// 起動時のアプリ更新確認(1セッションにつき1回まで)。
+// 起動時画面のボタンをタップしたときのアプリ更新確認。
 // キャッシュ済みと最新が異なれば confirm を出して更新する。
+// - confirm を出すのは1セッションにつき1回まで(「キャンセル」を選んだ後に、
+//   ボタンを押すたびに同じ確認が出ないようにする)。
+// - 最新だった・取得できなかった(オフライン等)ときは、次にボタンを押したときに確認し直す
+//   (電波の届く場所へ戻った後や、開いたままの間に公開された更新にも気づけるようにする)。
+// - 確認中(service-worker.js の取得待ち)に続けて押されても、確認は1本しか走らせない
+//   (confirm が二重に出ないようにする)。
 let appShellUpdatePromptShown = false;
+let appShellUpdateChecking = false;
 export async function checkAppShellUpdate() {
-  if (appShellUpdatePromptShown) return;
+  if (appShellUpdatePromptShown || appShellUpdateChecking) return;
   // アプリ更新による再読み込みの直後は、同じ更新確認を再表示しない(1回で十分)。
   // updateAppToLatest() は SW の切替完了を待たずに再読み込みするため、切替が
   // 間に合わないと再読み込み後もバージョンが不一致に見え、confirm が二重に出る。
-  // フラグが立っていれば今回の起動確認はスキップし、フラグは消費する。
+  // フラグが立っていればこのセッションの確認はスキップし、フラグは消費する。
   try {
     if (sessionStorage.getItem(APP_UPDATED_FLAG_KEY) === '1') {
       sessionStorage.removeItem(APP_UPDATED_FLAG_KEY);
@@ -64,14 +57,18 @@ export async function checkAppShellUpdate() {
       return;
     }
   } catch { /* noop */ }
-  const shown = await promptAppShellUpdate();
-  if (shown) appShellUpdatePromptShown = true;
+  appShellUpdateChecking = true;
+  try {
+    const shown = await promptAppShellUpdate();
+    if (shown) appShellUpdatePromptShown = true;
+  } finally {
+    appShellUpdateChecking = false;
+  }
 }
 
 // アプリ更新の confirm を表示し、OK なら最新へ更新(再読み込み)する。
-// 起動時・「バージョン情報」モーダルの両方から呼べる共通処理。
 // confirm を表示したら true、対象なし(初回/取得失敗/最新)なら false を返す。
-export async function promptAppShellUpdate() {
+async function promptAppShellUpdate() {
   const [cached, latest] = await Promise.all([
     getCachedAppShellVersion(),
     fetchServiceWorkerShellVersion()
@@ -182,7 +179,7 @@ async function updateAppToLatest() {
   } catch (err) {
     console.warn('アプリ更新失敗:', err);
   }
-  // 再読み込み直後の起動時チェックで、同じ更新確認を再表示しないよう印を付ける。
+  // 再読み込み後の最初の更新確認で、同じ更新確認を再表示しないよう印を付ける。
   try { sessionStorage.setItem(APP_UPDATED_FLAG_KEY, '1'); } catch { /* noop */ }
   location.reload();
 }

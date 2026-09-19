@@ -6,7 +6,6 @@
 export const MARKER_SETTINGS_KEY = 'minoh-hiking.marker-settings';
 export const VERSION_STORAGE_KEY = 'minoh-hiking.tile-manifest-version';
 export const MESSAGE_LOG_KEY = 'minoh-hiking.message-log';
-export const STARTUP_UPDATE_CHECK_KEY = 'minoh-hiking.startup-update-check';
 // 移動記録の実行中フラグ。記録開始で立て、停止操作で降ろす。
 // 起動時に立ったまま残っていれば、前回は停止操作を経ずに終わった(アプリの
 // 再読み込み・破棄・強制終了)ことになるため、その旨を履歴に残す手がかりに使う。
@@ -24,9 +23,10 @@ export const GUIDE_SEEN_KEY = 'minoh-hiking.guide-seen';
 
 // ===== sessionStorage キー =====
 // アプリ更新(updateAppToLatest)による再読み込み直後であることを示すフラグ。
-// 再読み込み前にセットし、再読み込み後の起動時チェックで同じ更新確認を
-// 再表示しないために使う。SW の切替が未完了でも二重に confirm を出さない。
-// sessionStorage なのでタブを閉じるまで有効(次回の本当の起動では再度確認する)。
+// 再読み込み前にセットし、再読み込み後の最初の更新確認(起動時画面のボタンの
+// タップ)で同じ更新確認を再表示しないために使う。SW の切替が未完了でも二重に
+// confirm を出さない。sessionStorage なのでタブを閉じるまで有効(次回の本当の
+// 起動では再度確認する)。
 export const APP_UPDATED_FLAG_KEY = 'minoh-hiking.app-updated';
 
 // 「言語の設定/Language Settings」の変更による再読み込み直後であることを示すフラグ。

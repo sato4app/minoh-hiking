@@ -518,8 +518,8 @@ export const FAQ_SECTIONS = [
         },
         a: [
           {
-            ja: 'ホーム画面の「バージョン情報」で、アプリバージョン・国土地理院地図タイル・ハイキングマップ・通行止め地点のバージョンと、各データの件数を確認できます。',
-            en: '"Version Info" on the start screen shows the versions of the app, the GSI map tiles, the hiking map and the closure data, along with how many items each holds.'
+            ja: '「設定/Settings」の「バージョン情報」をオンにすると、アプリバージョン・国土地理院地図タイル・ハイキングマップ・通行止め地点のバージョンと、各データの件数を確認できます。',
+            en: 'Turn on "Version information" in 設定/Settings to see the versions of the app, the GSI map tiles, the hiking map and the closure data, along with how many items each holds.'
           }
         ]
       },

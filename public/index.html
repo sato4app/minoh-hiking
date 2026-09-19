@@ -44,13 +44,13 @@
     </div>
   </div>
 
-  <!-- 初期画面(ホーム) -->
+  <!-- 初期画面(ホーム)。メニューのどのボタンをタップしても、あわせてアプリの
+       更新版を確認する(app.js → update.js の checkAppShellUpdate) -->
   <section class="view view-home" id="viewHome">
     <img class="home-image" src="icons/Startup-1024x1836.webp" alt="" aria-hidden="true" />
     <nav class="home-menu" aria-label="メインメニュー" data-i18n-aria="home.ariaMainMenu">
       <button type="button" class="home-btn" data-view="map" data-guide="homeShowMap" data-i18n="home.showMap">ハイキングマップ表示</button>
       <button type="button" class="home-btn" id="btnOpenDownload" data-guide="homeDownload" data-i18n="download.title">地図データのダウンロード</button>
-      <button type="button" class="home-btn" id="btnOpenSettingsInfo" data-guide="homeVersion" data-i18n="home.versionInfo">バージョン情報</button>
       <!-- 設定/Settings(設定モーダルを開く。設定中の言語が分からない人でもここから
            言語を変更できると分かるよう、ボタン名は日英併記とし翻訳対象外(言語切替で不変) -->
       <button type="button" class="home-btn" id="btnOpenAppSettings" data-guide="homeSettings">設定/Settings</button>
@@ -215,82 +215,9 @@
     </div>
   </div>
 
-  <!-- バージョン情報モーダル(起動画面の「バージョン情報」から表示)。
-       内容は「起動時にアプリの更新版を確認」トグルと、バージョン情報(常時表示)のみ。 -->
-  <div class="modal" id="infoSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="infoSettingsTitle">
-    <div class="modal-backdrop" data-close-modal></div>
-    <div class="modal-panel" role="document">
-      <header class="modal-header">
-        <h2 id="infoSettingsTitle" data-i18n="home.versionInfo">バージョン情報</h2>
-        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
-      </header>
-      <div class="modal-body">
-        <section class="info-section">
-
-          <!-- 起動時にアプリの更新版を確認 -->
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleStartupUpdateCheck" />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text" data-i18n="info.startupUpdateCheck">起動時にアプリの更新版を確認</span>
-          </label>
-
-          <!-- バージョン情報(トグルなしの常時表示) -->
-          <h3 class="info-section-title" data-i18n="info.versionInfo">バージョン情報</h3>
-          <div class="info-collapse" id="infoVersionBody">
-            <!-- アプリシェルのバージョン(補足なし) -->
-            <div class="info-row">
-              <span class="info-label" data-i18n="info.appVersion">アプリバージョン：</span>
-              <span class="info-value" id="versionAppShell">-</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">
-                <span data-i18n="info.mapVersion">国土地理院地図タイル：</span>
-                <span class="info-sublabel" data-i18n="info.mapVersionNote">（ダウンロード対象の地図指定）</span>
-              </span>
-              <span class="info-value" id="versionManifest">-</span>
-            </div>
-            <!-- 公開データのバージョン(公開API から取得した値) -->
-            <div class="info-row">
-              <span class="info-label">
-                <span data-i18n="info.mapdataVersion">ハイキングマップ：</span>
-                <span class="info-sublabel" data-i18n="info.mapdataVersionNote">（緊急ポイント等を含む）</span>
-              </span>
-              <span class="info-value" id="versionMapdata">-</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label" data-i18n="info.closuresVersion">通行止め・通行困難地点：</span>
-              <span class="info-value" id="versionClosures">-</span>
-            </div>
-            <!-- データ件数: ラベル行(1行目)+値行(2行目)の2行表・罫線なし(未読込は "-")。
-                 右端は上の info-row の値の右端に合わせる。
-                 ポイント=緊急ポイント、ルート・スポット=ハイキングデータ、通行止め=反映中データ。 -->
-            <table class="feature-counts-table" aria-label="データ件数" data-i18n-aria="info.ariaDataCounts">
-              <thead>
-                <tr>
-                  <th data-i18n="info.countPoints">ポイント</th>
-                  <th data-i18n="info.countRoutes">ルート</th>
-                  <th data-i18n="info.countSpots">スポット</th>
-                  <th data-i18n="info.countClosures">通行止め</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td id="countPoints">-</td>
-                  <td id="countRoutes">-</td>
-                  <td id="countSpots">-</td>
-                  <td id="countClosures">-</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </div>
-    </div>
-  </div>
-
   <!-- 設定モーダル(起動画面の「設定/Settings」から表示)。
-       ご利用の注意とよくある質問・メッセージ履歴の表示・このアプリについてと、
-       マーカーの設定・言語の設定をまとめる。
+       ご利用の注意とよくある質問・メッセージ履歴の表示・このアプリについて・
+       バージョン情報と、マーカーの設定・言語の設定をまとめる。
        「時刻を表示」「ズームレベルを表示」は、効果が出るのがマップ画面だけのため
        表示設定パネル(≡)側に置いている。 -->
   <div class="modal" id="appSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="appSettingsTitle">
@@ -372,6 +299,61 @@
                 <span class="info-value">みのお山麓保全委員会</span>
               </div>
             </div>
+          </div>
+
+          <!-- バージョン情報(既定オフ)。値はトグルを ON にしたときに app.js が
+               その時点の最新で反映する -->
+          <label class="toggle toggle-switch">
+            <input type="checkbox" id="toggleInfoVersion" />
+            <span class="toggle-slider" aria-hidden="true"></span>
+            <span class="toggle-text" data-i18n="info.versionInfo">バージョン情報</span>
+          </label>
+          <div class="info-collapse" id="infoVersionBody" hidden>
+            <!-- アプリシェルのバージョン(補足なし) -->
+            <div class="info-row">
+              <span class="info-label" data-i18n="info.appVersion">アプリバージョン：</span>
+              <span class="info-value" id="versionAppShell">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">
+                <span data-i18n="info.mapVersion">国土地理院地図タイル：</span>
+                <span class="info-sublabel" data-i18n="info.mapVersionNote">（ダウンロード対象の地図指定）</span>
+              </span>
+              <span class="info-value" id="versionManifest">-</span>
+            </div>
+            <!-- 公開データのバージョン(公開API から取得した値) -->
+            <div class="info-row">
+              <span class="info-label">
+                <span data-i18n="info.mapdataVersion">ハイキングマップ：</span>
+                <span class="info-sublabel" data-i18n="info.mapdataVersionNote">（緊急ポイント等を含む）</span>
+              </span>
+              <span class="info-value" id="versionMapdata">-</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label" data-i18n="info.closuresVersion">通行止め・通行困難地点：</span>
+              <span class="info-value" id="versionClosures">-</span>
+            </div>
+            <!-- データ件数: ラベル行(1行目)+値行(2行目)の2行表・罫線なし(未読込は "-")。
+                 右端は上の info-row の値の右端に合わせる。
+                 ポイント=緊急ポイント、ルート・スポット=ハイキングデータ、通行止め=反映中データ。 -->
+            <table class="feature-counts-table" aria-label="データ件数" data-i18n-aria="info.ariaDataCounts">
+              <thead>
+                <tr>
+                  <th data-i18n="info.countPoints">ポイント</th>
+                  <th data-i18n="info.countRoutes">ルート</th>
+                  <th data-i18n="info.countSpots">スポット</th>
+                  <th data-i18n="info.countClosures">通行止め</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td id="countPoints">-</td>
+                  <td id="countRoutes">-</td>
+                  <td id="countSpots">-</td>
+                  <td id="countClosures">-</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
           <!-- マーカーの設定(マーカーの設定モーダルを開く) -->

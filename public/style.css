@@ -625,7 +625,7 @@ body.view-state-map .leaflet-control-container {
 }
 
 /* データ件数(ポイント/ルート/スポット/通行止め):
-   バージョン情報モーダルのバージョン情報内に、横一列・中央寄せで表示する。
+   設定/Settings モーダルの「バージョン情報」内に、横一列・中央寄せで表示する。
    ラベル行(1行目)+値行(2行目)の2行表・罫線なし。
    margin-left: auto で表を右に寄せ、右余白は info-value の
    padding-right(1.5rem)と同じにして、表の右端を上の info-row の
@@ -1177,29 +1177,29 @@ body.view-state-map .leaflet-control-container {
   font-variant-numeric: tabular-nums;
 }
 
-/* バージョン情報: ラベルを左、値を右寄せに配置 */
-#infoSettingsModal .info-row {
+/* バージョン情報(設定/Settings モーダル内): ラベルを左、値を右寄せに配置 */
+#infoVersionBody .info-row {
   justify-content: space-between;
   align-items: baseline;
 }
 
-#infoSettingsModal .info-label {
-  /* 段下げ(左インデント)は付けず、見出し「バージョン情報」と左端を揃える。
+#infoVersionBody .info-label {
+  /* 段下げ(左インデント)は付けず、「このアプリについて」の各行と左端を揃える。
      ラベルが長い場合の途中改行は許容する。 */
   margin-right: 1.5rem;
   flex-shrink: 0;
 }
 
 /* タイルマニフェスト/アプリシェルをラベルの2行目に小さく表示 */
-#infoSettingsModal .info-sublabel {
+#infoVersionBody .info-sublabel {
   display: block;
   margin-left: 0;
 }
 
-/* アプリ名等の各項目の値を右寄せ(ラベルの左余白と同程度の右余白を設ける)
+/* 各バージョンの値を右寄せ(ラベルの左余白と同程度の右余白を設ける)
    値ボックスを残り幅いっぱいに広げ、テキストは右寄せのまま開始位置を左へ寄せて
    スマホでの折り返しを抑制する */
-#infoSettingsModal .info-value {
+#infoVersionBody .info-value {
   flex: 1;
   min-width: 0;
   text-align: right;
@@ -1236,7 +1236,7 @@ body.view-state-map .leaflet-control-container {
   overflow-wrap: break-word;
 }
 
-/* ===== バージョン情報・設定/Settings モーダル共通: セクション ===== */
+/* ===== 設定/Settings モーダル: セクション ===== */
 .info-section {
   padding: 0.5rem 1rem 1rem;
   border-bottom: 1px solid #eee;
@@ -1244,13 +1244,6 @@ body.view-state-map .leaflet-control-container {
 
 .info-section:last-child {
   border-bottom: none;
-}
-
-.info-section-title {
-  margin: 0.3rem 0 0.4rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #2c7a3d;
 }
 
 /* 言語/Language の選択行: ラベル左・選択右に配置 */

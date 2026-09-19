@@ -14,7 +14,7 @@
 // アプリシェルの取得戦略:
 // - 同一オリジン(HTML/CSS/JS 等): stale-while-revalidate(キャッシュ即返し+裏で
 //   ネット更新)。高速・弱電波に強く、オンライン時は次回読み込みで最新化される。
-//   新バージョンの明示更新は、アプリ側の「起動時/バージョン情報モーダルの更新確認」
+//   新バージョンの明示更新は、アプリ側の「起動時画面のボタンをタップしたときの更新確認」
 //   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
 // - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
 //
@@ -25,7 +25,7 @@
 // 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
 // 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
 
-const SHELL_CACHE = 'app-shell-2026-09-07.4';
+const SHELL_CACHE = 'app-shell-2026-09-19.1';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 
@@ -305,7 +305,7 @@ function stripRedirect(response) {
 //   キャッシュを即返して高速・弱電波に強く、裏でネット取得して次回用に更新する。
 //   ただし install で内容一致を確認済み(REVISIONS_KEY あり)のキャッシュでは裏取得を省く。
 //   バージョン更新の検知と適用は、いずれの場合もアプリ側の
-//   「起動時/バージョン情報モーダルの更新確認」(SHELL_CACHE 比較→confirm)が担う。
+//   「起動時画面のボタンをタップしたときの更新確認」(SHELL_CACHE 比較→confirm)が担う。
 // - swr=false(CDN 等の安定資産): cache-first(高速・通信節約)。
 async function handleShellRequest(event, { swr = false } = {}) {
   const req = event.request;

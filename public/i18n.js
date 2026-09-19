@@ -40,7 +40,6 @@ const DICT = {
   // ----- ホーム画面 -----
   'home.ariaMainMenu': { ja: 'メインメニュー', en: 'Main menu' },
   'home.showMap': { ja: 'ハイキングマップ表示', en: 'Show Hiking Map' },
-  'home.versionInfo': { ja: 'バージョン情報', en: 'Version Info' },
   // 起動時画面のボタンは幅を取らないよう短く「QR」とする。
   // QRコードモーダルの見出し(qr.title)は、何を出す画面か分かるよう「QRコード」のまま
   'home.qr': { ja: 'QR', en: 'QR' },
@@ -241,16 +240,18 @@ const DICT = {
   'download.cleared': { ja: 'キャッシュを削除しました', en: 'Cache cleared' },
   'download.clearFailed': { ja: '削除失敗: {message}', en: 'Failed to delete: {message}' },
 
-  // ----- バージョン情報モーダル / 設定/Settings モーダル -----
-  // 接頭辞 info. は、両モーダルが1つの「バージョン情報等」モーダルだった頃の名残
-  // (2026.9 で分離したがキー名は据え置き)。振り分けは次のとおり:
-  //   設定/Settings … showFaq / showMessages / ariaClearMessages /
-  //                    noMessages / about / appName / appNameValue
-  //                    (contributors の氏名・団体名は翻訳対象外のため辞書に持たない)
-  //   バージョン情報 … startupUpdateCheck / versionInfo / 各 version 系 / データ件数系
+  // ----- 設定/Settings モーダル -----
+  // 接頭辞 info. は、「バージョン情報等」モーダルだった頃の名残(キー名は据え置き)。
+  // 2026.9 で「バージョン情報」「設定/Settings」の2モーダルに分けたのち、2026.40 で
+  // バージョン情報を設定/Settings 内のトグルへ移し、再び1つのモーダルに戻った。内訳は次のとおり:
+  //   showFaq / showMessages / ariaClearMessages / noMessages /
+  //   about / appName / appNameValue
+  //     (contributors の氏名・団体名は翻訳対象外のため辞書に持たない)
+  //   versionInfo(トグル名) / 各 version 系 / データ件数系 … バージョン情報
+  // 「起動時にアプリの更新版を確認」(info.startupUpdateCheck)は 2026.40 で廃止した
+  // (更新版の確認は起動時画面のボタンのタップで行う)。
   // 「時刻を表示」「ズームレベルを表示」は 2026.37 で表示設定パネルへ移したため、
   // map.toggleClock / map.toggleZoomLevel に改名した(上の map. 群)。
-  'info.startupUpdateCheck': { ja: '起動時にアプリの更新版を確認', en: 'Check for app updates at startup' },
   'info.versionInfo': { ja: 'バージョン情報', en: 'Version information' },
   'info.appVersion': { ja: 'アプリバージョン：', en: 'App version:' },
   'info.mapVersion': { ja: '国土地理院地図タイル：', en: 'GSI map tiles:' },
@@ -323,20 +324,12 @@ const DICT = {
         'Press "Clear" to delete all downloaded map data.'
   },
 
-  'guide.versionTitle': { ja: 'バージョン情報', en: 'Version Info' },
-  'guide.versionBody': {
-    ja: 'アプリ・国土地理院地図タイル・ハイキングマップ・通行止めのバージョンと、表示中のデータ件数を確認できます。\n' +
-        '「起動時にアプリの更新版を確認」をオンにしておくと、新しい版が出たときに起動時に知らせます。',
-    en: 'Shows the versions of the app, the GSI map tiles, the hiking map and the closure data, together with how many items are loaded.\n' +
-        'Turn on "Check for app updates at startup" to be told at startup when a newer version is available.'
-  },
-
   'guide.settingsTitle': { ja: '設定/Settings', en: 'Settings' },
   'guide.settingsBody': {
-    ja: 'ご利用の注意とよくある質問・メッセージ履歴・このアプリについてと、マーカーの設定、言語の設定をまとめています。\n' +
+    ja: 'ご利用の注意とよくある質問・メッセージ履歴・このアプリについて・バージョン情報と、マーカーの設定、言語の設定をまとめています。\n' +
         '「ご利用の注意とよくある質問」には、ルートや現在地のずれ、通行止めの見方など、山に入る前に知っておいていただきたいことをまとめています。\n' +
         'ボタン名を日英併記にしているのは、英語表示のままで分からなくなっても、ここから日本語に戻せるようにするためです。',
-    en: 'Groups together notes and FAQ, the message history, About this app, marker settings and the language setting.\n' +
+    en: 'Groups together notes and FAQ, the message history, About this app, version information, marker settings and the language setting.\n' +
         '"Notes and FAQ" covers what to know before you set off: gaps in the routes and in your location, how to read closures, and more.\n' +
         'The button is labelled in both Japanese and English so you can always come back here and switch the language.'
   },
