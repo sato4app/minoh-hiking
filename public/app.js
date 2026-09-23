@@ -139,6 +139,27 @@ const el = {
   btnMapOpenMarkerSettings: document.getElementById('btnMapOpenMarkerSettings')
 };
 
+// 要素が見つからないときに落ちないイベント登録。
+// 端末に古い index.html が残ったまま新しい app.js が読み込まれると(シェルの新旧が
+// 混ざった状態)、一部の要素が取得できずに初期化が丸ごと止まり、地図まで出なくなる。
+// その場合でも残りの初期化を続け、起動時画面のボタンからアプリを更新できるようにする。
+function on(target, type, handler, options) {
+  if (!target) {
+    console.warn(`[app] 要素が見つからないため ${type} を登録しませんでした(表示が古い可能性があります)`);
+    return;
+  }
+  target.addEventListener(type, handler, options);
+}
+
+// 初期化の一段階を実行する。失敗しても後続(地図の初期化など)を止めない
+function initStep(name, fn) {
+  try {
+    fn();
+  } catch (err) {
+    console.error(`[app] 初期化の途中で問題が発生しました(${name}):`, err);
+  }
+}
+
 // ===== 初期化 =====
 async function init() {
   // 選択言語が英語のとき、静的なHTML文言(data-i18n属性)を一括置換する。
@@ -154,10 +175,10 @@ async function init() {
     }
   }
 
-  bindEvents();
-  initTilesEvents();
-  initMarkerSettings();
-  renderMessageList();
+  initStep('bindEvents', bindEvents);
+  initStep('initTilesEvents', initTilesEvents);
+  initStep('initMarkerSettings', initMarkerSettings);
+  initStep('renderMessageList', renderMessageList);
   await migrateLegacyPackages();
   // タイル一覧の版の確認と履歴への記録は、配信データが揃ってから行う
   // (loadPublishedData の onApplied)。
@@ -170,7 +191,7 @@ async function init() {
   // ここで初期化する(押されるまで一度も設定されないため)
   setCurrentMarkerButtonState(false);
   // ズームレベル表示は「ズームレベルを表示」トグルの状態に従う
-  setZoomDisplayVisible(el.toggleZoomDisplay.checked);
+  setZoomDisplayVisible(el.toggleZoomDisplay ? el.toggleZoomDisplay.checked : true);
   // 各マーカースタイルは公開データの読込前に設定しておく
   // (レイヤー構築時に反映される)。保存済み設定が無ければ config.js の既定値。
   const markerSettings = readMarkerSettings();
@@ -248,13 +269,13 @@ function bindEvents() {
   for (const btn of document.querySelectorAll('[data-view]')) {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
-  el.btnOpenDownload.addEventListener('click', openDownloadModal);
+  on(el.btnOpenDownload, 'click', openDownloadModal);
   // 起動画面の「設定・情報/Settings & Info」ボタンは設定モーダルを表示
-  el.btnOpenAppSettings.addEventListener('click', openAppSettingsModal);
+  on(el.btnOpenAppSettings, 'click', openAppSettingsModal);
   // 起動画面の「QR」ボタンは、いま開いている URL の QRコードを表示
-  el.btnOpenQrCode.addEventListener('click', openQrCodeModal);
+  on(el.btnOpenQrCode, 'click', openQrCodeModal);
   // 起動画面の「使い方」ボタンは、アプリの使い方を順に案内するガイドを開く
-  el.btnOpenGuide.addEventListener('click', openGuide);
+  on(el.btnOpenGuide, 'click', openGuide);
   // 起動画面のボタンのどれをタップしても、あわせてアプリの更新版を確認する
   // (新しい版があれば更新するか尋ねる。確認の回数の制御は update.js 側)。
   // 各ボタン本来の動作(画面切替・モーダル表示など)はそのまま行う
@@ -267,27 +288,27 @@ function bindEvents() {
   // リロードすると起動画面に戻ってしまうため、フラグを立てて再読み込み後に
   // 設定モーダルを開き直す(操作を続けられるようにする)
   el.languageSelect.value = getLang();
-  el.languageSelect.addEventListener('change', (e) => {
+  on(el.languageSelect, 'change', (e) => {
     setLang(e.target.value);
     try { sessionStorage.setItem(REOPEN_APP_SETTINGS_KEY, '1'); } catch { /* noop */ }
     location.reload();
   });
   // 設定: 各トグルで内容領域の表示/非表示を切替
-  el.toggleInfoMessages.addEventListener('change', (e) => {
+  on(el.toggleInfoMessages, 'change', (e) => {
     el.infoMessagesBody.hidden = !e.target.checked;
     if (e.target.checked) renderMessageList();
   });
-  el.toggleInfoAbout.addEventListener('change', (e) => {
+  on(el.toggleInfoAbout, 'change', (e) => {
     el.infoAboutBody.hidden = !e.target.checked;
   });
   // バージョン情報: ON にしたら、その時点の値を反映してから表示する
-  el.toggleInfoVersion.addEventListener('change', (e) => {
+  on(el.toggleInfoVersion, 'change', (e) => {
     el.infoVersionBody.hidden = !e.target.checked;
     if (e.target.checked) showVersionInfo();
   });
   // ご利用の注意とよくある質問: 初めて開いたときだけ中身を組み立てる。
   // 開くたびに、よくある質問は答えを閉じた最初の表示(見出しと質問だけ)に戻す
-  el.toggleInfoFaq.addEventListener('change', (e) => {
+  on(el.toggleInfoFaq, 'change', (e) => {
     el.infoFaqBody.hidden = !e.target.checked;
     if (e.target.checked) showFaq(el.faqContent);
   });
@@ -322,7 +343,7 @@ function bindEvents() {
   });
 
   // マップ表示設定(開くとき、移動経路の統計表を最新化する)
-  el.btnMapLayers.addEventListener('click', () => {
+  on(el.btnMapLayers, 'click', () => {
     el.mapLayerPanel.hidden = !el.mapLayerPanel.hidden;
     if (!el.mapLayerPanel.hidden) updateTrackStatsDisplay();
   });
@@ -336,13 +357,13 @@ function bindEvents() {
     });
   }
   // 時刻表示トグル(表示設定パネル内): ON でメニューボタンの左に現在時刻を表示
-  el.toggleClock.addEventListener('change', (e) => setClockVisible(e.target.checked));
+  on(el.toggleClock, 'change', (e) => setClockVisible(e.target.checked));
   // ズームレベル表示トグル(表示設定パネル内): ON で地図右下に現在のズームレベルを表示。
   // 表示要素は地図コントロール内にあり、マップ画面でのみ出るためビュー切替の反映は不要。
-  el.toggleZoomDisplay.addEventListener('change', (e) => setZoomDisplayVisible(e.target.checked));
+  on(el.toggleZoomDisplay, 'change', (e) => setZoomDisplayVisible(e.target.checked));
   // 現在地点をマーカー表示: 現在地マーカー(青丸)の表示/非表示を切替。
   // 現在地点表示ボタンが出す円とは独立だが、青丸を出すかはこのトグルに従う。
-  el.toggleCurrentMarker.addEventListener('change', (e) => applyCurrentMarkerVisible(e.target.checked));
+  on(el.toggleCurrentMarker, 'change', (e) => applyCurrentMarkerVisible(e.target.checked));
   // 現在地点表示ボタンはメニューのトグルとは独立(押すたびに円を3秒だけ表示する)
   setCurrentMarkerButtonHandler(handleCurrentSpotButton);
   // 現在地点は中央に表示: 地図を現在地へ追従させるか切替。
@@ -350,12 +371,12 @@ function bindEvents() {
   // 真下に隠れる位置にある。切り替えた結果が見えるよう、ON にしたらメニューを閉じる
   // (閉じないと、パネルの外に見えている範囲=現在地から離れた場所だけが見え、
   //  地図が見当違いの場所へ動いたように見えてしまう)。
-  el.toggleCenterCurrent.addEventListener('change', (e) => {
+  on(el.toggleCenterCurrent, 'change', (e) => {
     const on = e.target.checked;
     if (on) el.mapLayerPanel.hidden = true;
     setFollowCurrentLocation(on);
   });
-  el.toggleTrackRecording.addEventListener('change', (e) => {
+  on(el.toggleTrackRecording, 'change', (e) => {
     const on = e.target.checked;
     if (!on) {
       // OFF: 軌跡が消去される前に終了処理(統計の出力)を行う。
@@ -374,7 +395,7 @@ function bindEvents() {
 
   // 記録開始・停止トグルボタン: 移動経路を記録トグル ON のときのみ表示・操作可。
   // 記録中なら停止、停止中なら開始する(押下ごとにアイコンが切り替わる)。
-  el.btnTrackToggle.addEventListener('click', () => {
+  on(el.btnTrackToggle, 'click', () => {
     // ボタンが表示されている(=移動経路を記録 ON で現在地表示が有効)ときのみ動作。
     // checked の値に依存すると、位置情報エラーで checked が戻されたとき無言で
     // 効かなくなるため、ボタン自身の表示状態で判定する。
@@ -394,7 +415,7 @@ function bindEvents() {
   // 読み込み: GPX ファイルを選び、記録済みの移動経路として地図に表示する。
   // 記録中は経路が入れ替わると記録が壊れるため受け付けない。
   // 既存の経路があるときは、クリア/追加/中止をモーダルで選んでからファイル選択へ進む。
-  el.btnTrackImport.addEventListener('click', () => {
+  on(el.btnTrackImport, 'click', () => {
     if (isTrackRecording) {
       showToast(t('track.importWhileRecording'));
       return;
@@ -405,16 +426,16 @@ function bindEvents() {
     }
     openTrackImportPicker(false);
   });
-  el.trackImportInput.addEventListener('change', importTrackGpx);
+  on(el.trackImportInput, 'change', importTrackGpx);
 
   // 「クリア/追加/中止」モーダルの2ボタン。中止(キャンセル・×・背景)は
   // 共通の [data-close-modal] が閉じるだけで、経路には手を付けない。
-  el.btnTrackExistingClear.addEventListener('click', () => resolveTrackExisting(false));
-  el.btnTrackExistingAppend.addEventListener('click', () => resolveTrackExisting(true));
+  on(el.btnTrackExistingClear, 'click', () => resolveTrackExisting(false));
+  on(el.btnTrackExistingAppend, 'click', () => resolveTrackExisting(true));
 
   // 出力: 記録済みの移動経路を GPX 形式でファイルに出力する
-  el.btnTrackExport.addEventListener('click', openTrackExportModal);
-  el.btnTrackExportSave.addEventListener('click', exportTrackGpx);
+  on(el.btnTrackExport, 'click', openTrackExportModal);
+  on(el.btnTrackExportSave, 'click', exportTrackGpx);
 
   // 記録点が追加されるたびにパネル内の統計表を最新化する
   setOnTrackPointAppended(updateTrackStatsDisplay);
@@ -428,7 +449,7 @@ function bindEvents() {
   });
 
   // クリア: 記録した移動経路(線・開始点・現在地点)を消去
-  el.btnTrackClear.addEventListener('click', () => {
+  on(el.btnTrackClear, 'click', () => {
     const stats = getTrackStats();
     if (stats.pointCount === 0) {
       showToast(t('track.nothingToClear'));
@@ -445,19 +466,19 @@ function bindEvents() {
   });
 
   // マップ画面メニューから「マーカーの設定」モーダルを開く
-  el.btnMapOpenMarkerSettings.addEventListener('click', () => {
+  on(el.btnMapOpenMarkerSettings, 'click', () => {
     el.mapLayerPanel.hidden = true;
     openMarkerSettingsModal();
   });
 
   // 設定モーダルから「マーカーの設定」モーダルを開く(設定モーダルは閉じる)
-  el.btnOpenMarkerSettings.addEventListener('click', () => {
+  on(el.btnOpenMarkerSettings, 'click', () => {
     closeModal(el.appSettingsModal);
     openMarkerSettingsModal();
   });
 
   // メッセージ履歴
-  el.btnClearMessages.addEventListener('click', clearMessageLog);
+  on(el.btnClearMessages, 'click', clearMessageLog);
 }
 
 // ===== 時刻表示 =====
@@ -632,18 +653,20 @@ function showView(name) {
 // 設定モーダル(起動画面の「設定・情報/Settings & Info」から表示)。
 // ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・このアプリについて・
 // マーカーの設定・言語/Language をまとめる。
+// トグルをオフに戻し、内容を閉じる(要素が無い端末でも落ちないようにする)
+function closeInfoToggle(toggle, body) {
+  if (toggle) toggle.checked = false;
+  if (body) body.hidden = true;
+}
+
 function openAppSettingsModal() {
   // 内容を開くタイプのトグル(ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・
   // このアプリについて)は開くたびに必ずオフへ戻す。開いたままだと、次に設定を開いたときに長い内容が
   // 広がった状態で始まり、その下にある「マーカーの設定」「言語の設定」までスクロールが必要になるため
-  el.toggleInfoFaq.checked = false;
-  el.infoFaqBody.hidden = true;
-  el.toggleInfoMessages.checked = false;
-  el.infoMessagesBody.hidden = true;
-  el.toggleInfoVersion.checked = false;
-  el.infoVersionBody.hidden = true;
-  el.toggleInfoAbout.checked = false;
-  el.infoAboutBody.hidden = true;
+  closeInfoToggle(el.toggleInfoFaq, el.infoFaqBody);
+  closeInfoToggle(el.toggleInfoMessages, el.infoMessagesBody);
+  closeInfoToggle(el.toggleInfoVersion, el.infoVersionBody);
+  closeInfoToggle(el.toggleInfoAbout, el.infoAboutBody);
 
   // 履歴はトグルを開いたときにすぐ見えるよう事前に描画しておく
   renderMessageList();
