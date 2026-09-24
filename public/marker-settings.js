@@ -3,7 +3,7 @@
 // 設定UIで編集し、localStorage に保存して地図へ反映する。
 
 import {
-  MARKER_SETTINGS_KEY, MARKER_TYPES, MARKER_SHAPES
+  MARKER_SETTINGS_KEY, MARKER_TYPES, MARKER_SHAPES, MARKER_SHAPE_SYMBOLS
 } from './config.js';
 import {
   setEmergencyStyle,
@@ -30,6 +30,11 @@ function isLocked(m, attr) {
   return Array.isArray(m.locked) && m.locked.includes(attr);
 }
 
+// 保存済みの形状が今も選択肢にあるか(廃止した ✖ 等が保存されている場合に既定値へ戻すため)
+function isSelectableShape(shape) {
+  return MARKER_SHAPES.includes(shape);
+}
+
 // 保存済み設定を既定値で埋めて返す(初期スタイル適用にも使用)。
 // 変更不可の属性は保存値があっても既定値を使う。
 export function readMarkerSettings() {
@@ -43,7 +48,7 @@ export function readMarkerSettings() {
     const s = saved[m.key] || {};
     merged[m.key] = {
       color: (!isLocked(m, 'color') && s.color) || m.color,
-      shape: (!isLocked(m, 'shape') && s.shape) || m.shape,
+      shape: (!isLocked(m, 'shape') && isSelectableShape(s.shape) && s.shape) || m.shape,
       size: Number.isFinite(s.size) ? s.size : m.size
     };
   }
@@ -96,19 +101,7 @@ function renderMarkerSettings() {
       controls.appendChild(colorInput);
     }
 
-    const shapeSelect = document.createElement('select');
-    shapeSelect.className = 'marker-shape';
-    shapeSelect.setAttribute('aria-label', t('markerSettings.ariaShape', { name }));
-    for (const shape of MARKER_SHAPES) {
-      const opt = document.createElement('option');
-      opt.value = shape;
-      opt.textContent = t(`markerShape.${shape}`);
-      if (shape === cur.shape) opt.selected = true;
-      shapeSelect.appendChild(opt);
-    }
-    shapeSelect.disabled = isLocked(m, 'shape');
-    shapeSelect.addEventListener('change', () => updateMarkerSetting(m.key, 'shape', shapeSelect.value));
-    controls.appendChild(shapeSelect);
+    controls.appendChild(buildShapeControl(m, cur.shape, name));
 
     const sizeInput = document.createElement('input');
     sizeInput.type = 'number';
@@ -133,6 +126,52 @@ function renderMarkerSettings() {
   }
 
   renderMarkerSettingsNotes();
+}
+
+// 形状の入力部品。一覧を狭くするため記号だけを表示し、ドロップダウンを開いたときは
+// 「記号 名称」を並べる。<select> は閉じた表示と選択肢の文字を分けられないので、
+// 透明にした <select> を記号表示の枠に重ねる(開く操作・キー操作・読み上げは <select> が担う)。
+// 変更不可の種別は <select> を使わず、記号だけを表示する。
+function buildShapeControl(m, shape, name) {
+  const box = document.createElement('span');
+  box.className = 'marker-shape-box';
+
+  const symbol = document.createElement('span');
+  symbol.className = 'marker-shape-symbol';
+  symbol.textContent = MARKER_SHAPE_SYMBOLS[shape] || '';
+  box.appendChild(symbol);
+
+  if (isLocked(m, 'shape')) {
+    box.classList.add('marker-shape-locked');
+    box.setAttribute('role', 'img');
+    box.setAttribute('aria-label',
+      `${t('markerSettings.ariaShape', { name })}: ${t(`markerShape.${shape}`)}`);
+    return box;
+  }
+
+  symbol.setAttribute('aria-hidden', 'true');
+  const caret = document.createElement('span');
+  caret.className = 'marker-shape-caret';
+  caret.setAttribute('aria-hidden', 'true');
+  caret.textContent = '▾';
+  box.appendChild(caret);
+
+  const select = document.createElement('select');
+  select.className = 'marker-shape';
+  select.setAttribute('aria-label', t('markerSettings.ariaShape', { name }));
+  for (const value of MARKER_SHAPES) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = `${MARKER_SHAPE_SYMBOLS[value]} ${t(`markerShape.${value}`)}`;
+    if (value === shape) opt.selected = true;
+    select.appendChild(opt);
+  }
+  select.addEventListener('change', () => {
+    symbol.textContent = MARKER_SHAPE_SYMBOLS[select.value] || '';
+    updateMarkerSetting(m.key, 'shape', select.value);
+  });
+  box.appendChild(select);
+  return box;
 }
 
 // 注記番号の表記(ラベルと注記で共用し、日英で書式を揃える)

@@ -199,13 +199,25 @@ function shapeToSVG(shape, color, size) {
       return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><polygon points="${starPoints(s)}" fill="${color}" stroke="${stroke}" stroke-width="1"/></svg>`;
     case 'line':
       return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><line x1="1" y1="${c}" x2="${s - 1}" y2="${c}" stroke="${color}" stroke-width="${Math.max(2, Math.round(s / 3))}"/></svg>`;
-    case 'x': {
-      // ✖(バツ)。他形状の白縁取りに合わせ、白の太線を下に敷いてから色線を重ねる
-      const w = Math.max(2, Math.round(s / 5));
-      const lines = (sw, col) =>
-        `<line x1="1" y1="1" x2="${s - 1}" y2="${s - 1}" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>` +
-        `<line x1="${s - 1}" y1="1" x2="1" y2="${s - 1}" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>`;
-      return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}">${lines(w + 2, stroke)}${lines(w, color)}</svg>`;
+    case 'noEntry': {
+      // 進入禁止(⛔)。色の円に白の横棒
+      const bw = (s * 0.6).toFixed(1);
+      const bh = Math.max(2, Math.round(s * 0.18));
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><circle cx="${c}" cy="${c}" r="${r}" fill="${color}" stroke="${stroke}" stroke-width="1"/>` +
+        `<rect x="${(s * 0.2).toFixed(1)}" y="${(c - bh / 2).toFixed(1)}" width="${bw}" height="${bh}" rx="${(bh / 4).toFixed(1)}" fill="${stroke}"/></svg>`;
+    }
+    case 'warning': {
+      // 警戒(警戒標識風)。色のひし形に黒の内枠と「!」。
+      // 「!」はフォント差をなくすため文字ではなく棒と点で描く
+      const glyph = '#111827';
+      const pts = `${c},1 ${s - 1},${c} ${c},${s - 1} 1,${c}`;
+      const d = Math.max(2, s * 0.12);
+      const inner = `${c},${(1 + d).toFixed(1)} ${(s - 1 - d).toFixed(1)},${c} ${c},${(s - 1 - d).toFixed(1)} ${(1 + d).toFixed(1)},${c}`;
+      const w = Math.max(2, s * 0.11);
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><polygon points="${pts}" fill="${color}" stroke="${stroke}" stroke-width="1"/>` +
+        `<polygon points="${inner}" fill="none" stroke="${glyph}" stroke-width="1"/>` +
+        `<rect x="${(c - w / 2).toFixed(1)}" y="${(s * 0.28).toFixed(1)}" width="${w.toFixed(1)}" height="${(s * 0.3).toFixed(1)}" rx="${(w / 2).toFixed(1)}" fill="${glyph}"/>` +
+        `<circle cx="${c}" cy="${(s * 0.7).toFixed(1)}" r="${(w * 0.55).toFixed(1)}" fill="${glyph}"/></svg>`;
     }
     default:
       return shapeToSVG('circle', color, size);
@@ -311,11 +323,11 @@ export function setEmergencyPointsVisible(visible) {
 // ===== 通行止め・通行困難地点(closures) =====
 // データの取得(公開API `/api/closures`)は published-data.js 側が行い、
 // ここでは渡された GeoJSON の描画のみを担う。
-// kind でスタイルを分ける: closed(通行止め)=赤✖ / difficult(通行困難)=橙三角(既定)。
-// スタイルはマーカー設定で変更可能(setClosureClosedStyle / setClosureDifficultStyle)。
+// kind でスタイルを分ける: closed(通行止め)=赤の進入禁止 / difficult(通行困難)=黄色の警戒。
+// 色・形状は固定で、サイズのみマーカー設定で変更可能(setClosureClosedStyle / setClosureDifficultStyle)。
 const CLOSURE_FALLBACK_STYLES = {
-  closed: { color: '#DC2626', shape: 'x', size: 10 },
-  difficult: { color: '#F59E0B', shape: 'triangle', size: 16 }
+  closed: { color: '#DC2626', shape: 'noEntry', size: 20 },
+  difficult: { color: '#FACC15', shape: 'warning', size: 20 }
 };
 // kind → ポップアップ表示名の翻訳キー(表示名は i18n.js の辞書で管理)
 const CLOSURE_KIND_KEYS = { closed: 'closure.kindClosed', difficult: 'closure.kindDifficult' };

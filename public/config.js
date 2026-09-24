@@ -122,9 +122,10 @@ export const MARKER_TYPES = [
     locked: ['shape'], note: 2 },
   { key: 'spot', color: '#1E90FF', shape: 'square', size: 10 },           // スポット
   // 通行止め・通行困難地点(closures)。kind=closed / difficult に対応
-  { key: 'closureClosed', color: '#DC2626', shape: 'x', size: 10,
+  // 通行止め=進入禁止(赤丸に白の横棒)、通行困難=警戒(黄色のひし形に黒の「!」)
+  { key: 'closureClosed', color: '#DC2626', shape: 'noEntry', size: 20,
     locked: ['color', 'shape'], note: 1 },
-  { key: 'closureDifficult', color: '#F59E0B', shape: 'triangle', size: 16,
+  { key: 'closureDifficult', color: '#FACC15', shape: 'warning', size: 20,
     locked: ['color', 'shape'], note: 1 },
   // 移動記録関連(表示順は移動記録経路の上)。色は移動記録経路と同じ既定値。
   { key: 'trackStart', color: '#000080', shape: 'square', size: 12 },     // 移動記録開始点
@@ -135,4 +136,18 @@ export const MARKER_TYPES = [
 
 // マーカー形状の選択肢(設定UIのドロップダウン)。
 // 表示名は i18n.js の辞書で管理する(キーは markerShape.<value> で導出)。
-export const MARKER_SHAPES = ['circle', 'square', 'triangle', 'diamond', 'star', 'line', 'x'];
+// 形状を変更できない種別だけが使う形状(line / noEntry / warning)は選択肢に含めない。
+export const MARKER_SHAPES = ['circle', 'square', 'triangle', 'diamond', 'star'];
+
+// 設定UIで形状を表す記号。一覧には記号だけを、ドロップダウンを開いたときは
+// 「記号 名称」を表示する。warning の \uFE0F は絵文字(カラー)表示を指定する異体字セレクタ
+export const MARKER_SHAPE_SYMBOLS = {
+  circle: '●',
+  square: '■',
+  triangle: '▲',
+  diamond: '◆',
+  star: '★',
+  line: '━',
+  noEntry: '⛔',
+  warning: '⚠\uFE0F'
+};

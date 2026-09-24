@@ -1005,12 +1005,6 @@ body.view-state-map .leaflet-control-container {
   cursor: not-allowed;
 }
 
-/* 変更不可の形状 */
-.marker-shape:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .marker-settings-actions {
   display: flex;
   justify-content: flex-end;
@@ -1046,21 +1040,75 @@ body.view-state-map .leaflet-control-container {
   background: transparent;
 }
 
-/* 形状・サイズは入力部品のため 1rem を維持する(iOS の自動ズーム防止) */
-.marker-shape {
-  padding: 0.25rem 0.3rem;
+/* 形状: 記号だけを表示する枠に、透明な <select> を重ねる(marker-settings.js の
+   buildShapeControl)。押すと <select> の選択肢が「記号 名称」で開く */
+.marker-shape-box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 40px;
+  height: 28px;
   border: 1px solid #d1d5db;
   border-radius: 4px;
   background: #fff;
+  color: #222;
 }
 
+.marker-shape-symbol {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.marker-shape-caret {
+  font-size: 0.7rem;
+  line-height: 1;
+  color: #666;
+}
+
+/* 透明な <select> を枠いっぱいに重ねる。1rem は iOS の自動ズーム防止 */
+.marker-shape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* <select> が透明なので、フォーカス表示は枠に出す */
+.marker-shape-box:focus-within {
+  outline: 2px solid #2563eb;
+  outline-offset: 1px;
+}
+
+/* 変更不可の形状(<select> を置かず記号だけ) */
+.marker-shape-locked {
+  cursor: not-allowed;
+}
+
+/* サイズは入力部品のため 1rem を維持する(iOS の自動ズーム防止)。
+   幅を詰めるため増減ボタンは出さない */
 .marker-size {
-  width: 3.6rem;
-  padding: 0.25rem 0.3rem;
+  width: 40px;
+  height: 28px;
+  padding: 0 0.3rem;
   border: 1px solid #d1d5db;
   border-radius: 4px;
   text-align: right;
   font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.marker-size::-webkit-outer-spin-button,
+.marker-size::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .marker-size-unit {
