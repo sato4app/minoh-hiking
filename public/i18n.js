@@ -284,7 +284,7 @@ const DICT = {
   'info.noMessages': { ja: '履歴はありません。', en: 'No messages.' },
   'info.about': { ja: 'このアプリについて', en: 'About This App' },
   'info.appName': { ja: 'アプリ名：', en: 'App Name:' },
-  'info.appNameValue': { ja: '箕面の森ハイキングマップ', en: 'Minoh Hiking Map' },
+  'info.appNameValue': { ja: '箕面の森ハイキングマップ', en: 'Minoh Forest Hiking Map' },
   'info.url': { ja: 'URL：', en: 'URL:' },
   'info.sourceCode': { ja: 'ソースコード：', en: 'Source Code:' },
   // クレジット(役割ごとの担当)。担当は固有名詞を含むため訳さず、補足でその旨を断る
