@@ -24,7 +24,13 @@ export function initMarkerSettings() {
   el.btnResetMarkerSettings.addEventListener('click', resetMarkerSettings);
 }
 
-// 保存済み設定を既定値で埋めて返す(初期スタイル適用にも使用)
+// 変更不可の属性か(config.js の MARKER_TYPES の locked で指定)
+function isLocked(m, attr) {
+  return Array.isArray(m.locked) && m.locked.includes(attr);
+}
+
+// 保存済み設定を既定値で埋めて返す(初期スタイル適用にも使用)。
+// 変更不可の属性は保存値があっても既定値を使う。
 export function readMarkerSettings() {
   let saved = {};
   try {
@@ -35,8 +41,8 @@ export function readMarkerSettings() {
   for (const m of MARKER_TYPES) {
     const s = saved[m.key] || {};
     merged[m.key] = {
-      color: s.color || m.color,
-      shape: s.shape || m.shape,
+      color: (!isLocked(m, 'color') && s.color) || m.color,
+      shape: (!isLocked(m, 'shape') && s.shape) || m.shape,
       size: Number.isFinite(s.size) ? s.size : m.size
     };
   }
@@ -62,7 +68,8 @@ function renderMarkerSettings() {
 
     const label = document.createElement('span');
     label.className = 'marker-label';
-    label.textContent = name;
+    // 変更不可の属性がある種別は注記番号を付ける(注記文はリスト下部に表示)
+    label.textContent = m.note ? `${name} *${m.note}` : name;
     row.appendChild(label);
 
     const controls = document.createElement('div');
@@ -73,6 +80,7 @@ function renderMarkerSettings() {
     colorInput.className = 'marker-color';
     colorInput.value = cur.color;
     colorInput.setAttribute('aria-label', t('markerSettings.ariaColor', { name }));
+    colorInput.disabled = isLocked(m, 'color');
     colorInput.addEventListener('input', () => updateMarkerSetting(m.key, 'color', colorInput.value));
     controls.appendChild(colorInput);
 
@@ -86,6 +94,7 @@ function renderMarkerSettings() {
       if (shape === cur.shape) opt.selected = true;
       shapeSelect.appendChild(opt);
     }
+    shapeSelect.disabled = isLocked(m, 'shape');
     shapeSelect.addEventListener('change', () => updateMarkerSetting(m.key, 'shape', shapeSelect.value));
     controls.appendChild(shapeSelect);
 
@@ -114,7 +123,8 @@ function renderMarkerSettings() {
 
 function updateMarkerSetting(key, attr, value) {
   const settings = readMarkerSettings();
-  if (!settings[key]) return;
+  const m = MARKER_TYPES.find(x => x.key === key);
+  if (!settings[key] || !m || isLocked(m, attr)) return;
   settings[key][attr] = value;
   writeMarkerSettings(settings);
   applyMarkerSettingToMap(key, settings[key]);
