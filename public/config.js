@@ -104,6 +104,11 @@ export const APP_UPDATE_DOWNLOAD_TIMEOUT_MS = 90000;
 // 更新要求後に新しい Service Worker(ダウンロードの実行役)が現れるのを待つ上限。
 export const APP_UPDATE_WORKER_WAIT_MS = 5000;
 
+// 「詳細地図データ(Z=18)を含む」トグルを出して、Z=18 もダウンロードできるようにするか。
+// false の間はダウンロード対象を Z=14〜17 に限り、トグルを非表示にする。
+// 公開側(タイル一覧の z18_optional)はそのまま配信しているので、true に戻すだけで復活できる。
+export const DOWNLOAD_DETAIL_ENABLED = false;
+
 // ===== メッセージ履歴 =====
 export const MESSAGE_LOG_MAX = 100;
 

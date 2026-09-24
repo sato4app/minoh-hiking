@@ -10,7 +10,7 @@
 import {
   TILE_CACHE_PREFIX, TILE_URL_BASE,
   CONCURRENCY, MAX_RETRIES, VERSION_STORAGE_KEY,
-  TILE_AVG_KB_BY_Z, TILE_AVG_KB_FALLBACK
+  TILE_AVG_KB_BY_Z, TILE_AVG_KB_FALLBACK, DOWNLOAD_DETAIL_ENABLED
 } from './config.js';
 import { savePackage, listPackages, clearPackages, deletePackage } from './db.js';
 import { logHistory } from './messages.js';
@@ -30,6 +30,7 @@ let cachedTileUrls = null;
 const el = {
   statusMessage: document.getElementById('statusMessage'),
   downloadModal: document.getElementById('downloadModal'),
+  downloadDetailRow: document.getElementById('downloadDetailRow'),
   toggleDetail: document.getElementById('toggleDetail'),
   btnDownloadMap: document.getElementById('btnDownloadMap'),
   btnClearCache: document.getElementById('btnClearCache'),
@@ -47,7 +48,9 @@ const el = {
 export function initTilesEvents() {
   el.btnDownloadMap.addEventListener('click', onDownloadMap);
   el.btnClearCache.addEventListener('click', onClearCache);
+  // 「詳細地図データ(Z=18)を含む」トグルは Z=18 のダウンロードを許可しているときだけ出す。
   // 対象レイヤーが変わるとサイズも変わる(キャッシュ済み集合は取り直さない)
+  el.downloadDetailRow.hidden = !DOWNLOAD_DETAIL_ENABLED;
   el.toggleDetail.addEventListener('change', updateSizeRow);
   el.btnUpdateDiff.addEventListener('click', () => startManifestUpdate('diff'));
   el.btnUpdateAll.addEventListener('click', () => startManifestUpdate('all'));
@@ -152,14 +155,21 @@ export function openDownloadModal() {
 }
 
 // 「詳細地図データ(Z=18)を含む」トグルで決まるダウンロード対象レイヤー。
-// Off(既定) → z14〜17(基本)、On → z14〜18(詳細を含む)
+// Off(既定) → z14〜17(基本)、On → z14〜18(詳細を含む)。
+// Z=18 のダウンロードを止めている間(DOWNLOAD_DETAIL_ENABLED = false)は常に z14〜17
 const BASE_LAYER_KEYS = ['z14_default', 'z15_default', 'z16_default', 'z17_default'];
 const DETAIL_LAYER_KEY = 'z18_optional';
 
 function selectedLayerKeys() {
-  return el.toggleDetail.checked
+  return DOWNLOAD_DETAIL_ENABLED && el.toggleDetail.checked
     ? [...BASE_LAYER_KEYS, DETAIL_LAYER_KEY]
     : [...BASE_LAYER_KEYS];
+}
+
+// 更新バナー(差分のみ更新 / すべて更新)の対象レイヤー。
+// Z=18 を許可しているときはマニフェストの全レイヤー(null)、止めている間は z14〜17 のみ
+function updatableLayerKeys() {
+  return DOWNLOAD_DETAIL_ENABLED ? null : [...BASE_LAYER_KEYS];
 }
 
 async function onDownloadMap() {
@@ -235,7 +245,7 @@ async function startManifestUpdate(mode) {
     return;
   }
 
-  const allJobs = buildJobs();
+  const allJobs = buildJobs(updatableLayerKeys());
   let jobs = allJobs;
   let overwrite = false;
 
@@ -482,8 +492,8 @@ function updateVersionRow() {
   target.classList.add('is-update');
 }
 
-// 選択中レイヤーの合計サイズと、まだ端末に無い分(更新分)の概算を表示する。
-// 合計＝更新分(未ダウンロード)のときは同じ数値が並ぶだけなので合計のみを出す。
+// ダウンロード対象(選択中レイヤー)のサイズと、まだ端末に無い分(更新分)の概算を表示する。
+// サイズ＝更新分(未ダウンロード)のときは同じ数値が並ぶだけなのでサイズのみを出す。
 function updateSizeRow() {
   const jobs = buildJobs(selectedLayerKeys());
   if (jobs.length === 0) {
@@ -491,18 +501,18 @@ function updateSizeRow() {
     return;
   }
 
-  const total = formatMB(estimateMB(jobs));
+  const size = formatMB(estimateMB(jobs));
   const pending = cachedTileUrls
     ? jobs.filter((job) => !cachedTileUrls.has(tileUrl(job)))
     : jobs;
 
   if (pending.length === jobs.length) {
-    el.downloadSizeValue.textContent = t('download.sizeTotal', { total });
+    el.downloadSizeValue.textContent = t('download.size', { size });
   } else if (pending.length === 0) {
-    el.downloadSizeValue.textContent = t('download.sizeNoDelta', { total });
+    el.downloadSizeValue.textContent = t('download.sizeNoDelta', { size });
   } else {
     el.downloadSizeValue.textContent = t('download.sizeWithDelta', {
-      total, delta: formatMB(estimateMB(pending))
+      size, delta: formatMB(estimateMB(pending))
     });
   }
 }

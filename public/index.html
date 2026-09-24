@@ -186,7 +186,10 @@
       </header>
       <div class="modal-body">
         <!-- ヘッダー直下の補足: ダウンロード対象の説明 -->
-        <p class="modal-subtitle" data-i18n="download.subtitle">電波が届かない場所でも地図を表示できるよう、地図データを端末に保存します（オフライン対応）</p>
+        <p class="modal-subtitle" data-i18n="download.subtitle">電波が届かない場所でも地図を表示（オフライン対応）できるよう、地図データを端末に保存します。</p>
+        <!-- サイズ行: ダウンロード対象の概算と、まだ端末に無い分(更新分)の概算。
+             値は tiles.js が配信中のタイル一覧から計算して組み立てる -->
+        <div class="download-size" id="downloadSizeValue">-</div>
 
         <!-- バージョン行: 端末に保存済みの版と、配信中の最新版。
              値は状態(未ダウンロード / 最新 / 更新あり)で出し分けるため tiles.js が組み立てる -->
@@ -195,15 +198,14 @@
           <span class="download-version-value" id="downloadVersionValue">-</span>
         </div>
 
-        <!-- 対象選択(既定オフ)。切り替えるとサイズ行を再計算する -->
-        <label class="toggle toggle-switch">
+        <!-- 対象選択(既定オフ)。切り替えるとサイズ行を再計算する。
+             現在は Z=17 までのダウンロードに限っており、非表示(config.js の
+             DOWNLOAD_DETAIL_ENABLED を true にすると tiles.js が表示する) -->
+        <label class="toggle toggle-switch download-detail" id="downloadDetailRow" hidden>
           <input type="checkbox" id="toggleDetail" />
           <span class="toggle-slider" aria-hidden="true"></span>
           <span class="toggle-text" data-i18n="download.includeDetail">詳細地図データ(Z=18)を含む</span>
         </label>
-        <!-- サイズ行: 選択中のレイヤーの合計と、まだ端末に無い分(更新分)の概算。
-             直上のトグルに属する明細なので、トグルの文字位置まで左を下げて表示する -->
-        <div class="download-size" id="downloadSizeValue">-</div>
 
         <div class="button-group button-group-row">
           <button type="button" id="btnDownloadMap" class="btn btn-primary" data-i18n="download.startBtn">ダウンロード</button>

@@ -397,8 +397,8 @@ export const FAQ_SECTIONS = [
             en: 'If you are near a route, that area or zoom level may simply not be downloaded yet. Get it from "Download Map Data" somewhere with a signal.'
           },
           {
-            ja: '細かい地図(Z=18)まで見たいときは、「詳細地図データ(Z=18)を含む」をオンにしてダウンロードします。',
-            en: 'To see the finest map (Z=18), turn on "Include Detailed Map Data (Z=18)" before downloading.'
+            ja: 'ダウンロードで保存するのはズーム17(Z=17)までです。電波のない場所で一番細かい地図(Z=18)まで拡大すると白く抜けることがあるので、Z=17以下に縮小してください。',
+            en: 'Downloads save zoom levels up to 17 (Z=17). If you zoom in to the finest map (Z=18) where there is no signal, the map may be blank, so zoom out to Z=17 or below.'
           }
         ]
       },
@@ -531,8 +531,8 @@ export const FAQ_SECTIONS = [
         },
         a: [
           {
-            ja: '「地図データのダウンロード」画面の「クリア」で、保存済みの地図データを削除できます(確認が表示されます)。詳細地図データを含めても合計 約 14.1 MB です。',
-            en: '"Clear" on the "Download Map Data" screen deletes the saved map data (you will be asked to confirm). Even with the detailed map data included, the total is about 14.1 MB.'
+            ja: '「地図データのダウンロード」画面の「クリア」で、保存済みの地図データを削除できます(確認が表示されます)。保存される地図データは 約 8.5 MB です。',
+            en: '"Clear" on the "Download Map Data" screen deletes the saved map data (you will be asked to confirm). The saved map data is about 8.5 MB.'
           }
         ]
       },

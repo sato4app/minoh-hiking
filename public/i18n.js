@@ -176,22 +176,24 @@ const DICT = {
   // 起動画面のボタンとモーダル見出しで共用する
   'download.title': { ja: '地図データのダウンロード', en: 'Download Map Data' },
   'download.subtitle': {
-    ja: '電波が届かない場所でも地図を表示できるよう、地図データを端末に保存します（オフライン対応）',
-    en: 'Saves map data on your device so the map works where there is no signal (offline support)'
+    ja: '電波が届かない場所でも地図を表示（オフライン対応）できるよう、地図データを端末に保存します。',
+    en: 'Saves map data on your device so the map can be shown where there is no signal (offline support).'
   },
   // バージョン行: ラベルと、状態別の値(未ダウンロード / 最新 / 更新あり)。
   // 「保存済み ⇒ 最新」の形は版番号と矢印だけなので tiles.js 側で組み立てる
   'download.versionLabel': { ja: '端末の地図データ ⇒ 配信中の最新', en: 'On Device ⇒ Latest Available' },
   'download.notDownloaded': { ja: '未ダウンロード', en: 'Not downloaded' },
   'download.versionUpToDate': { ja: '{version}（最新）', en: '{version} (latest)' },
-  // サイズ行: 合計は選択中レイヤーの総量、更新分はまだ端末に無いタイルの総量。
-  // 未ダウンロード(合計＝更新分)のときは合計だけを出す
-  'download.sizeTotal': { ja: '合計 約 {total} MB', en: 'Total approx. {total} MB' },
+  // サイズ行: サイズはダウンロード対象(選択中レイヤー)の総量、更新分はまだ端末に無いタイルの総量。
+  // 未ダウンロード(サイズ＝更新分)のときはサイズだけを出す
+  'download.size': { ja: 'サイズ：約{size}MB', en: 'Size: approx. {size} MB' },
   'download.sizeWithDelta': {
-    ja: '合計 約 {total} MB / 更新分 約 {delta} MB',
-    en: 'Total approx. {total} MB / Update approx. {delta} MB'
+    ja: 'サイズ：約{size}MB（更新分 約{delta}MB）',
+    en: 'Size: approx. {size} MB (update approx. {delta} MB)'
   },
-  'download.sizeNoDelta': { ja: '合計 約 {total} MB / 更新分 なし', en: 'Total approx. {total} MB / No update needed' },
+  'download.sizeNoDelta': { ja: 'サイズ：約{size}MB（更新分 なし）', en: 'Size: approx. {size} MB (no update needed)' },
+  // Z=18 を含めるトグル。config.js の DOWNLOAD_DETAIL_ENABLED が false の間は表示しない
+  // (復活に備えて残している)
   'download.includeDetail': { ja: '詳細地図データ(Z=18)を含む', en: 'Include Detailed Map Data (Z=18)' },
   'download.startBtn': { ja: 'ダウンロード', en: 'Download' },
   'download.manifestLoadFailed': { ja: 'マニフェスト読込失敗: {message}', en: 'Failed to load manifest: {message}' },
@@ -343,10 +345,10 @@ const DICT = {
   'guide.downloadTitle': { ja: '地図データのダウンロード', en: 'Download Map Data' },
   'guide.downloadBody': {
     ja: '山に入る前に地図データを保存しておくと、電波が届かない場所でも地図を表示できます。\n' +
-        '標準(Z=14〜17)で約8.5MB、「詳細地図データ(Z=18)を含む」で合計約14.1MBです。\n' +
+        '保存するのはZ=14〜17で、サイズは約8.5MBです。\n' +
         '「クリア」を押すと、ダウンロードした地図データをすべて消します。',
     en: 'Save the map data before heading into the mountains so the map works with no signal.\n' +
-        'Standard (Z=14-17) is about 8.5 MB; with "Include Detailed Map Data (Z=18)", about 14.1 MB in total.\n' +
+        'Z=14-17 is saved, about 8.5 MB.\n' +
         'Press "Clear" to delete all downloaded map data.'
   },
 
@@ -452,10 +454,10 @@ const DICT = {
   'update.mapTilesNotice': {
     ja: 'ダウンロード対象の地図タイルが拡張されました。\n現在: {saved}\n最新: {latest}\n\n' +
         '起動時画面の「地図データのダウンロード」から、ダウンロードしてください。\n' +
-        'サイズは詳細地図データを含めて合計約14MBで、既存分があれば差分のみです。',
+        'サイズは約8.5MBで、既存分があれば差分のみです。',
     en: 'The map tiles available for download have been expanded.\nCurrent: {saved}\nLatest: {latest}\n\n' +
         'Please download them from "Download Map Data" on the start screen.\n' +
-        'The total size is about 14 MB including the detailed map data; if you already have tiles, only the difference is downloaded.'
+        'The size is about 8.5 MB; if you already have tiles, only the difference is downloaded.'
   },
 
   // ----- マーカーの設定 -----
