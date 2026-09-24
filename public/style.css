@@ -1050,7 +1050,7 @@ body.view-state-map .leaflet-control-container {
   gap: 1px;
   flex-shrink: 0;
   box-sizing: border-box;
-  width: 40px;
+  width: 48px;
   height: 28px;
   border: 1px solid #d1d5db;
   border-radius: 4px;
@@ -1094,7 +1094,7 @@ body.view-state-map .leaflet-control-container {
 /* サイズは入力部品のため 1rem を維持する(iOS の自動ズーム防止)。
    幅を詰めるため増減ボタンは出さない */
 .marker-size {
-  width: 40px;
+  width: 48px;
   height: 28px;
   padding: 0 0.3rem;
   border: 1px solid #d1d5db;
