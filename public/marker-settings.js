@@ -8,7 +8,8 @@ import {
 import {
   setEmergencyStyle,
   setHikingRouteStyle, setHikingSpotStyle,
-  setClosureClosedStyle, setClosureDifficultStyle
+  setClosureClosedStyle, setClosureDifficultStyle,
+  shapeToSVG
 } from './map.js';
 import { setTrackStyle, setTrackStartStyle, setTrackCurrentStyle } from './geolocation.js';
 import { t } from './i18n.js';
@@ -128,17 +129,31 @@ function renderMarkerSettings() {
   renderMarkerSettingsNotes();
 }
 
-// 形状の入力部品。一覧を狭くするため記号だけを表示し、ドロップダウンを開いたときは
+// 形状の見本(一覧の形状欄に出す図形)の一辺(px)と、色を固定しない種別の塗り色。
+// 色が固定の種別(進入禁止・警戒)は中の横棒・「!」が読めるよう少し大きくする
+const SHAPE_PREVIEW_SIZE = 16;
+const SHAPE_PREVIEW_SIZE_SIGN = 20;
+const SHAPE_PREVIEW_COLOR = '#222';
+
+// 形状の見本は地図のマーカーと同じ SVG で描く。記号の文字(● 等)は端末のフォントに
+// よって大きさがばらつく(欧文フォントの ● は ■ の半分ほどになる)ため使わない。
+// 色が固定の種別(進入禁止・警戒)はその色で、それ以外は文字色で描く
+function shapePreviewSVG(m, shape) {
+  if (isLocked(m, 'color')) return shapeToSVG(shape, m.color, SHAPE_PREVIEW_SIZE_SIGN);
+  return shapeToSVG(shape, SHAPE_PREVIEW_COLOR, SHAPE_PREVIEW_SIZE);
+}
+
+// 形状の入力部品。一覧を狭くするため形状の見本だけを表示し、ドロップダウンを開いたときは
 // 「記号 名称」を並べる。<select> は閉じた表示と選択肢の文字を分けられないので、
-// 透明にした <select> を記号表示の枠に重ねる(開く操作・キー操作・読み上げは <select> が担う)。
-// 変更不可の種別は <select> を使わず、記号だけを表示する。
+// 透明にした <select> を見本の枠に重ねる(開く操作・キー操作・読み上げは <select> が担う)。
+// 変更不可の種別は <select> を使わず、見本だけを表示する。
 function buildShapeControl(m, shape, name) {
   const box = document.createElement('span');
   box.className = 'marker-shape-box';
 
   const symbol = document.createElement('span');
   symbol.className = 'marker-shape-symbol';
-  symbol.textContent = MARKER_SHAPE_SYMBOLS[shape] || '';
+  symbol.innerHTML = shapePreviewSVG(m, shape);
   box.appendChild(symbol);
 
   if (isLocked(m, 'shape')) {
@@ -153,7 +168,6 @@ function buildShapeControl(m, shape, name) {
   const caret = document.createElement('span');
   caret.className = 'marker-shape-caret';
   caret.setAttribute('aria-hidden', 'true');
-  caret.textContent = '▾';
   box.appendChild(caret);
 
   const select = document.createElement('select');
@@ -167,7 +181,7 @@ function buildShapeControl(m, shape, name) {
     select.appendChild(opt);
   }
   select.addEventListener('change', () => {
-    symbol.textContent = MARKER_SHAPE_SYMBOLS[select.value] || '';
+    symbol.innerHTML = shapePreviewSVG(m, select.value);
     updateMarkerSetting(m.key, 'shape', select.value);
   });
   box.appendChild(select);

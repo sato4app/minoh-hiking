@@ -177,7 +177,8 @@ export function ensureMapSize() {
 }
 
 // ===== マーカー形状の生成 =====
-function shapeToSVG(shape, color, size) {
+// マーカー設定の形状欄の見本にも使う(marker-settings.js)
+export function shapeToSVG(shape, color, size) {
   const s = Math.max(4, Math.min(80, size || 10));
   const c = s / 2;
   const r = (s - 2) / 2;

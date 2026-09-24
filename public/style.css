@@ -1058,15 +1058,23 @@ body.view-state-map .leaflet-control-container {
   color: #222;
 }
 
+/* 形状の見本(SVG)。文字ではないのでフォントに左右されない */
 .marker-shape-symbol {
-  font-size: 1rem;
-  line-height: 1;
+  display: inline-flex;
 }
 
+.marker-shape-symbol svg {
+  display: block;
+}
+
+/* ▾ も文字を使わず、枠線で三角を作る(フォントによる大きさの差をなくす) */
 .marker-shape-caret {
-  font-size: 0.7rem;
-  line-height: 1;
-  color: #666;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-left: 3.5px solid transparent;
+  border-right: 3.5px solid transparent;
+  border-top: 4px solid #666;
 }
 
 /* 透明な <select> を枠いっぱいに重ねる。1rem は iOS の自動ズーム防止 */

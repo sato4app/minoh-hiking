@@ -482,7 +482,7 @@ const DICT = {
   'markerType.trackCurrent': { ja: '移動記録現在地点', en: 'Track Current Point' },
   'markerType.track': { ja: '移動記録経路', en: 'Track Route' },
 
-  // マーカー形状(config.js の MARKER_SHAPES / MARKER_SHAPE_SYMBOLS の key と一致)。
+  // マーカー形状(config.js の MARKER_SHAPES の value と一致)。
   // line / noEntry / warning は形状を変更できない種別の読み上げ用
   'markerShape.circle': { ja: '円', en: 'Circle' },
   'markerShape.square': { ja: '四角', en: 'Square' },

@@ -139,15 +139,12 @@ export const MARKER_TYPES = [
 // 形状を変更できない種別だけが使う形状(line / noEntry / warning)は選択肢に含めない。
 export const MARKER_SHAPES = ['circle', 'square', 'triangle', 'diamond', 'star'];
 
-// 設定UIで形状を表す記号。一覧には記号だけを、ドロップダウンを開いたときは
-// 「記号 名称」を表示する。warning の \uFE0F は絵文字(カラー)表示を指定する異体字セレクタ
+// 設定UIのドロップダウンを開いたときに、名称の前に付ける記号(例: ● 円)。
+// 閉じた状態の形状欄は記号ではなく SVG の見本を表示する(marker-settings.js)
 export const MARKER_SHAPE_SYMBOLS = {
   circle: '●',
   square: '■',
   triangle: '▲',
   diamond: '◆',
-  star: '★',
-  line: '━',
-  noEntry: '⛔',
-  warning: '⚠\uFE0F'
+  star: '★'
 };
