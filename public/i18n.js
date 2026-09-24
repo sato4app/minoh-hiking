@@ -372,10 +372,10 @@ const DICT = {
   'guide.mapOverlayBody': {
     ja: '緊急ポイント・ハイキングルート・スポット・通行止め地点は常に表示されます(切り替えスイッチはありません)。\n' +
         'マーカーや線をタップすると、緊急ポイント番号・スポット名・通行止めの理由などが吹き出しで出ます。\n' +
-        '赤い丸に白い横棒(⛔)が通行止め、黄色のひし形に「!」が通行困難地点です。',
+        '赤い丸に白い横棒(⛔)が通行止め、黄色の三角に「!」が通行困難地点です。',
     en: 'Emergency points, hiking routes, spots and closures are always shown (there is no switch to hide them).\n' +
         'Tap a marker or a line to see the emergency point number, the spot name, the reason for a closure and so on in a popup.\n' +
-        'A red circle with a white bar (⛔) shows a closed point, and a yellow diamond with "!" shows a point that is difficult to pass.'
+        'A red circle with a white bar (⛔) shows a closed point, and a yellow triangle with "!" shows a point that is difficult to pass.'
   },
 
   'guide.mapControlsTitle': { ja: '画面の右下', en: 'The Bottom Right of the Screen' },

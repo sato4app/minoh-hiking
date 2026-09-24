@@ -207,17 +207,19 @@ function shapeToSVG(shape, color, size) {
         `<rect x="${(s * 0.2).toFixed(1)}" y="${(c - bh / 2).toFixed(1)}" width="${bw}" height="${bh}" rx="${(bh / 4).toFixed(1)}" fill="${stroke}"/></svg>`;
     }
     case 'warning': {
-      // 警戒(警戒標識風)。色のひし形に黒の内枠と「!」。
+      // 警戒(⚠ 風)。色の三角に黒の内枠と「!」。
       // 「!」はフォント差をなくすため文字ではなく棒と点で描く
       const glyph = '#111827';
-      const pts = `${c},1 ${s - 1},${c} ${c},${s - 1} 1,${c}`;
-      const d = Math.max(2, s * 0.12);
-      const inner = `${c},${(1 + d).toFixed(1)} ${(s - 1 - d).toFixed(1)},${c} ${c},${(s - 1 - d).toFixed(1)} ${(1 + d).toFixed(1)},${c}`;
+      const pts = `${c},1 ${s - 1},${s - 1} 1,${s - 1}`;
+      // 内枠は外形から d だけ内側。三角(底辺=高さ)の頂点は二等分線方向に
+      // 頂上 d/sin(26.6°)≒2.24d・底角 d/tan(31.7°)≒1.62d ずれる
+      const d = Math.max(1.5, s * 0.08);
+      const inner = `${c},${(1 + 2.24 * d).toFixed(1)} ${(s - 1 - 1.62 * d).toFixed(1)},${(s - 1 - d).toFixed(1)} ${(1 + 1.62 * d).toFixed(1)},${(s - 1 - d).toFixed(1)}`;
       const w = Math.max(2, s * 0.11);
       return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><polygon points="${pts}" fill="${color}" stroke="${stroke}" stroke-width="1"/>` +
         `<polygon points="${inner}" fill="none" stroke="${glyph}" stroke-width="1"/>` +
-        `<rect x="${(c - w / 2).toFixed(1)}" y="${(s * 0.28).toFixed(1)}" width="${w.toFixed(1)}" height="${(s * 0.3).toFixed(1)}" rx="${(w / 2).toFixed(1)}" fill="${glyph}"/>` +
-        `<circle cx="${c}" cy="${(s * 0.7).toFixed(1)}" r="${(w * 0.55).toFixed(1)}" fill="${glyph}"/></svg>`;
+        `<rect x="${(c - w / 2).toFixed(1)}" y="${(s * 0.36).toFixed(1)}" width="${w.toFixed(1)}" height="${(s * 0.28).toFixed(1)}" rx="${(w / 2).toFixed(1)}" fill="${glyph}"/>` +
+        `<circle cx="${c}" cy="${(s * 0.76).toFixed(1)}" r="${(w * 0.55).toFixed(1)}" fill="${glyph}"/></svg>`;
     }
     default:
       return shapeToSVG('circle', color, size);

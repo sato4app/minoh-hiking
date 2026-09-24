@@ -117,20 +117,20 @@ export const TOAST_DURATION_SEC = 3;
 //   note は設定画面のラベルに付ける注記番号((*1) / (*2))で、注記の本文は
 //   i18n.js の markerSettings.noteText<番号> で管理する。
 export const MARKER_TYPES = [
-  { key: 'emergency', color: '#00AA00', shape: 'circle', size: 12 },      // 緊急ポイント
-  { key: 'hikingRoute', color: '#007d00', shape: 'line', size: 3,         // ハイキングルート
+  { key: 'emergency', color: '#00AA00', shape: 'circle', size: 16 },      // 緊急ポイント
+  { key: 'hikingRoute', color: '#007d00', shape: 'line', size: 4,         // ハイキングルート
     locked: ['shape'], note: 2 },
-  { key: 'spot', color: '#1E90FF', shape: 'square', size: 10 },           // スポット
+  { key: 'spot', color: '#1E90FF', shape: 'square', size: 14 },           // スポット
   // 通行止め・通行困難地点(closures)。kind=closed / difficult に対応
-  // 通行止め=進入禁止(赤丸に白の横棒)、通行困難=警戒(黄色のひし形に黒の「!」)
+  // 通行止め=進入禁止(赤丸に白の横棒)、通行困難=警戒(黄色の三角に黒の「!」)
   { key: 'closureClosed', color: '#DC2626', shape: 'noEntry', size: 20,
     locked: ['color', 'shape'], note: 1 },
   { key: 'closureDifficult', color: '#FACC15', shape: 'warning', size: 20,
     locked: ['color', 'shape'], note: 1 },
   // 移動記録関連(表示順は移動記録経路の上)。色は移動記録経路と同じ既定値。
-  { key: 'trackStart', color: '#000080', shape: 'square', size: 12 },     // 移動記録開始点
-  { key: 'trackCurrent', color: '#000080', shape: 'triangle', size: 16 }, // 移動記録現在地点
-  { key: 'track', color: '#000080', shape: 'line', size: 4,               // 移動記録経路
+  { key: 'trackStart', color: '#000080', shape: 'square', size: 16 },     // 移動記録開始点
+  { key: 'trackCurrent', color: '#000080', shape: 'triangle', size: 20 }, // 移動記録現在地点
+  { key: 'track', color: '#000080', shape: 'line', size: 5,               // 移動記録経路
     locked: ['shape'], note: 2 }
 ];
 
