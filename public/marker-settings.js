@@ -15,6 +15,7 @@ import { t } from './i18n.js';
 
 const el = {
   markerSettingsList: document.getElementById('markerSettingsList'),
+  markerSettingsNotes: document.getElementById('markerSettingsNotes'),
   btnResetMarkerSettings: document.getElementById('btnResetMarkerSettings')
 };
 
@@ -69,7 +70,7 @@ function renderMarkerSettings() {
     const label = document.createElement('span');
     label.className = 'marker-label';
     // 変更不可の属性がある種別は注記番号を付ける(注記文はリスト下部に表示)
-    label.textContent = m.note ? `${name} (*${m.note})` : name;
+    label.textContent = m.note ? `${name} ${noteMark(m.note)}` : name;
     row.appendChild(label);
 
     const controls = document.createElement('div');
@@ -129,6 +130,25 @@ function renderMarkerSettings() {
 
     row.appendChild(controls);
     el.markerSettingsList.appendChild(row);
+  }
+
+  renderMarkerSettingsNotes();
+}
+
+// 注記番号の表記(ラベルと注記で共用し、日英で書式を揃える)
+function noteMark(n) {
+  return `(*${n})`;
+}
+
+// リスト下部の注記。MARKER_TYPES で使われている注記番号だけを番号順に出す
+function renderMarkerSettingsNotes() {
+  if (!el.markerSettingsNotes) return;
+  el.markerSettingsNotes.innerHTML = '';
+  const notes = [...new Set(MARKER_TYPES.map(m => m.note).filter(Boolean))].sort((a, b) => a - b);
+  for (const n of notes) {
+    const span = document.createElement('span');
+    span.textContent = `${noteMark(n)} ${t(`markerSettings.noteText${n}`)}`;
+    el.markerSettingsNotes.appendChild(span);
   }
 }
 

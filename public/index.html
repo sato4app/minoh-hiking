@@ -423,10 +423,8 @@
       <div class="modal-body">
         <section class="settings-section">
           <div class="marker-settings-list" id="markerSettingsList"></div>
-          <div class="marker-settings-notes">
-            <span data-i18n="markerSettings.note1">(*1) 色と形状は変更不可</span>
-            <span data-i18n="markerSettings.note2">(*2) 形状は変更不可</span>
-          </div>
+          <!-- 変更不可の注記((*1) / (*2))。marker-settings.js がラベルと同じ書式で組み立てる -->
+          <div class="marker-settings-notes" id="markerSettingsNotes"></div>
           <div class="marker-settings-actions">
             <button type="button" class="btn btn-secondary" id="btnResetMarkerSettings" data-i18n="markerSettings.reset">規定値に戻す</button>
           </div>

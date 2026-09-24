@@ -450,8 +450,9 @@ const DICT = {
   'markerSettings.ariaColor': { ja: '{name} 色', en: '{name} color' },
   'markerSettings.ariaShape': { ja: '{name} 形状', en: '{name} shape' },
   'markerSettings.ariaSize': { ja: '{name} サイズ', en: '{name} size' },
-  'markerSettings.note1': { ja: '(*1) 色と形状は変更不可', en: '(*1) Color and shape cannot be changed' },
-  'markerSettings.note2': { ja: '(*2) 形状は変更不可', en: '(*2) Shape cannot be changed' },
+  // 変更不可の注記の本文。番号「(*n) 」は marker-settings.js が付ける(日英で書式を揃えるため)
+  'markerSettings.noteText1': { ja: '色と形状は変更不可', en: 'Color and shape cannot be changed' },
+  'markerSettings.noteText2': { ja: '形状は変更不可', en: 'Shape cannot be changed' },
 
   // マーカー種別(config.js の MARKER_TYPES の key と一致)
   'markerType.emergency': { ja: '緊急ポイント', en: 'Emergency point' },
