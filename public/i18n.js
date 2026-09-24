@@ -29,6 +29,14 @@ const lang = getLang();
 // キー命名: <画面/モジュール>.<意味> の2階層。値は { ja, en }。
 // markerType.* / markerShape.* は config.js の MARKER_TYPES の key /
 // MARKER_SHAPES の value と一致させる(規約で導出するため)。
+// 英語の表記ルール(faq-text.js も同じ):
+// - 画面上の名前(ボタン・トグル・項目名・見出し・マーカー種別名)は各語の頭を大文字にする
+//   (Stop Recording)。a / an / the / and / or / to / of / in / on / for 等の短い語は、
+//   先頭以外は小文字のまま(Back to Start Screen)。
+// - 文章(メッセージ・確認・説明・注記・状態を表す値・読み上げ専用の aria-label)は
+//   文頭だけ大文字にする(Track recording started)。
+// - 文中で画面上の名前を引用するときは、画面の表記どおりにする(Turn on "Record Track")。
+// - 綴りはアメリカ式(color / centered / meters)。
 const DICT = {
   // ----- 共通 -----
   'app.title': { ja: '箕面ハイキング', en: 'Minoh Hiking' },
@@ -50,18 +58,18 @@ const DICT = {
   'map.ariaMap': { ja: '箕面エリア地理院地図', en: 'GSI map of the Minoh area' },
   'map.ariaLayers': { ja: '表示設定', en: 'Display settings' },
   // 表示設定パネル(≡)のトグル。上から、画面に重ねる表示2つ・現在地2つ・移動経路1つの順
-  'map.toggleClock': { ja: '時刻を表示', en: 'Show clock' },
-  'map.toggleZoomLevel': { ja: 'ズームレベルを表示', en: 'Show zoom level' },
-  'map.toggleCurrentMarker': { ja: '現在地点をマーカー表示', en: 'Show current location marker' },
+  'map.toggleClock': { ja: '時刻を表示', en: 'Show Clock' },
+  'map.toggleZoomLevel': { ja: 'ズームレベルを表示', en: 'Show Zoom Level' },
+  'map.toggleCurrentMarker': { ja: '現在地点をマーカー表示', en: 'Show Current Location Marker' },
   // 現在地点表示ボタン(ズームボタンの上)。メニューのトグルとは独立した単発の操作
-  'map.showCurrentSpot': { ja: '現在地点表示', en: 'Show current location' },
-  'map.toggleCenterCurrent': { ja: '現在地点は中央に表示', en: 'Keep current location centered' },
-  'map.toggleTrackRecording': { ja: '移動経路を記録', en: 'Record track' },
-  'map.backToHome': { ja: '起動時の画面に戻る', en: 'Back to start screen' },
+  'map.showCurrentSpot': { ja: '現在地点表示', en: 'Show Current Location' },
+  'map.toggleCenterCurrent': { ja: '現在地点は中央に表示', en: 'Keep Current Location Centered' },
+  'map.toggleTrackRecording': { ja: '移動経路を記録', en: 'Record Track' },
+  'map.backToHome': { ja: '起動時の画面に戻る', en: 'Back to Start Screen' },
 
   // ----- 移動記録 -----
-  'track.start': { ja: '記録開始', en: 'Start recording' },
-  'track.stop': { ja: '記録停止', en: 'Stop recording' },
+  'track.start': { ja: '記録開始', en: 'Start Recording' },
+  'track.stop': { ja: '記録停止', en: 'Stop Recording' },
   'track.export': { ja: '出力', en: 'Export' },
   'track.import': { ja: '読み込み', en: 'Import' },
   'track.importWhileRecording': {
@@ -76,10 +84,10 @@ const DICT = {
     ja: '表示中の移動経路が {routes} 本あります。表示中の経路をクリアするか、新しい経路として追加するかを選んでください。',
     en: 'Routes currently on the map: {routes}. Choose whether to clear them, or keep them and add a new route.'
   },
-  'track.existingClearRecord': { ja: 'クリアして記録開始', en: 'Clear and start recording' },
-  'track.existingAppendRecord': { ja: '追加して記録開始', en: 'Add a route and start recording' },
-  'track.existingClearImport': { ja: 'クリアして読み込み', en: 'Clear and import' },
-  'track.existingAppendImport': { ja: '追加して読み込み', en: 'Add and import' },
+  'track.existingClearRecord': { ja: 'クリアして記録開始', en: 'Clear and Start Recording' },
+  'track.existingAppendRecord': { ja: '追加して記録開始', en: 'Add a Route and Start Recording' },
+  'track.existingClearImport': { ja: 'クリアして読み込み', en: 'Clear and Import' },
+  'track.existingAppendImport': { ja: '追加して読み込み', en: 'Add and Import' },
   'track.importNoPoints': {
     ja: '移動経路が見つかりませんでした(GPXに trkpt がありません)',
     en: 'No track points (trkpt) found in the GPX file'
@@ -101,7 +109,7 @@ const DICT = {
     en: 'Import failed: {message}'
   },
   'track.exportTitle': { ja: '移動経路の出力(GPX)', en: 'Export Track (GPX)' },
-  'track.exportFilename': { ja: 'ファイル名', en: 'File name' },
+  'track.exportFilename': { ja: 'ファイル名', en: 'File Name' },
   'track.nothingToExport': { ja: '出力する移動経路がありません', en: 'No recorded track to export' },
   'track.exportNeedName': {
     ja: 'ファイル名を入力してください',
@@ -125,7 +133,7 @@ const DICT = {
     en: 'Track recording finished [{by}] ({summary})'
   },
   'track.stopByButton': { ja: '記録停止ボタン(■)をタップ', en: 'Stop button (■) tapped' },
-  'track.stopByToggle': { ja: '「移動経路を記録」をオフ', en: '"Record track" switched off' },
+  'track.stopByToggle': { ja: '「移動経路を記録」をオフ', en: '"Record Track" switched off' },
   'track.interrupted': {
     ja: '前回の移動記録は停止操作なしで中断されました(アプリの再読み込み・終了など)',
     en: 'The previous track recording ended without a stop action (app reload or exit)'
@@ -159,8 +167,8 @@ const DICT = {
     ja: 'タイル情報が更新されました({version})。新しい範囲のオフライン地図をダウンロードできます。',
     en: 'Map tile data has been updated ({version}). You can download offline maps for the new area.'
   },
-  'banner.updateDiff': { ja: '差分のみ更新', en: 'Update changes only' },
-  'banner.updateAll': { ja: 'すべて更新', en: 'Update all' },
+  'banner.updateDiff': { ja: '差分のみ更新', en: 'Update Changes Only' },
+  'banner.updateAll': { ja: 'すべて更新', en: 'Update All' },
   'banner.later': { ja: '後で', en: 'Later' },
   'banner.ariaClose': { ja: 'バナーを閉じる', en: 'Close banner' },
 
@@ -173,7 +181,7 @@ const DICT = {
   },
   // バージョン行: ラベルと、状態別の値(未ダウンロード / 最新 / 更新あり)。
   // 「保存済み ⇒ 最新」の形は版番号と矢印だけなので tiles.js 側で組み立てる
-  'download.versionLabel': { ja: '端末の地図データ ⇒ 配信中の最新', en: 'On device ⇒ Latest available' },
+  'download.versionLabel': { ja: '端末の地図データ ⇒ 配信中の最新', en: 'On Device ⇒ Latest Available' },
   'download.notDownloaded': { ja: '未ダウンロード', en: 'Not downloaded' },
   'download.versionUpToDate': { ja: '{version}（最新）', en: '{version} (latest)' },
   // サイズ行: 合計は選択中レイヤーの総量、更新分はまだ端末に無いタイルの総量。
@@ -184,7 +192,7 @@ const DICT = {
     en: 'Total approx. {total} MB / Update approx. {delta} MB'
   },
   'download.sizeNoDelta': { ja: '合計 約 {total} MB / 更新分 なし', en: 'Total approx. {total} MB / No update needed' },
-  'download.includeDetail': { ja: '詳細地図データ(Z=18)を含む', en: 'Include detailed map data (Z=18)' },
+  'download.includeDetail': { ja: '詳細地図データ(Z=18)を含む', en: 'Include Detailed Map Data (Z=18)' },
   'download.startBtn': { ja: 'ダウンロード', en: 'Download' },
   'download.manifestLoadFailed': { ja: 'マニフェスト読込失敗: {message}', en: 'Failed to load manifest: {message}' },
   'download.noLayers': { ja: 'マニフェストにレイヤー情報がありません', en: 'The manifest has no layer information' },
@@ -256,29 +264,29 @@ const DICT = {
   // (更新版の確認は起動時画面のボタンのタップで行う)。
   // 「時刻を表示」「ズームレベルを表示」は 2026.37 で表示設定パネルへ移したため、
   // map.toggleClock / map.toggleZoomLevel に改名した(上の map. 群)。
-  'info.versionInfo': { ja: 'バージョン情報', en: 'Version information' },
-  'info.appVersion': { ja: 'アプリバージョン：', en: 'App version:' },
-  'info.mapVersion': { ja: '国土地理院地図タイル：', en: 'GSI map tiles:' },
+  'info.versionInfo': { ja: 'バージョン情報', en: 'Version Information' },
+  'info.appVersion': { ja: 'アプリバージョン：', en: 'App Version:' },
+  'info.mapVersion': { ja: '国土地理院地図タイル：', en: 'GSI Map Tiles:' },
   'info.mapVersionNote': { ja: '（ダウンロード対象の地図指定）', en: '(Map tiles targeted for download)' },
-  'info.mapdataVersion': { ja: 'ハイキングマップ：', en: 'Hiking map:' },
+  'info.mapdataVersion': { ja: 'ハイキングマップ：', en: 'Hiking Map:' },
   'info.mapdataVersionNote': { ja: '（緊急ポイント等を含む）', en: '(Includes emergency points, etc.)' },
-  'info.closuresVersion': { ja: '通行止め・通行困難地点：', en: 'Closed & difficult points:' },
+  'info.closuresVersion': { ja: '通行止め・通行困難地点：', en: 'Closed & Difficult Points:' },
   'info.ariaDataCounts': { ja: 'データ件数', en: 'Data counts' },
   'info.countPoints': { ja: 'ポイント', en: 'Points' },
   'info.countRoutes': { ja: 'ルート', en: 'Routes' },
   'info.countSpots': { ja: 'スポット', en: 'Spots' },
   'info.countClosures': { ja: '通行止め', en: 'Closures' },
-  'info.showMessages': { ja: 'メッセージ履歴の表示', en: 'Show message history' },
+  'info.showMessages': { ja: 'メッセージ履歴の表示', en: 'Show Message History' },
   // ご利用の注意とよくある質問(設定・情報/Settings & Info のトグル)。中身の文言は faq-text.js
   // 開いた中身は「ご利用の注意」の見出しから始まる(全体の見出しは、トグル名と重なるため置かない)
   'info.showFaq': { ja: 'ご利用の注意とよくある質問', en: 'Notes and FAQ' },
-  'info.ariaClearMessages': { ja: '履歴を消去', en: 'Clear history' },
+  'info.ariaClearMessages': { ja: '履歴を消去', en: 'Clear History' },
   'info.noMessages': { ja: '履歴はありません。', en: 'No messages.' },
-  'info.about': { ja: 'このアプリについて', en: 'About this app' },
-  'info.appName': { ja: 'アプリ名：', en: 'App name:' },
+  'info.about': { ja: 'このアプリについて', en: 'About This App' },
+  'info.appName': { ja: 'アプリ名：', en: 'App Name:' },
   'info.appNameValue': { ja: '箕面の森ハイキングマップ', en: 'Minoh Hiking Map' },
   'info.url': { ja: 'URL：', en: 'URL:' },
-  'info.sourceCode': { ja: 'ソースコード：', en: 'Source code:' },
+  'info.sourceCode': { ja: 'ソースコード：', en: 'Source Code:' },
 
   // ----- QRコード(起動画面の「QR」) -----
   'qr.title': { ja: 'QRコード', en: 'QR Code' },
@@ -328,7 +336,7 @@ const DICT = {
         '標準(Z=14〜17)で約8.5MB、「詳細地図データ(Z=18)を含む」で合計約14.1MBです。\n' +
         '「クリア」を押すと、ダウンロードした地図データをすべて消します。',
     en: 'Save the map data before heading into the mountains so the map works with no signal.\n' +
-        'Standard (Z=14-17) is about 8.5 MB; with "Include detailed map data (Z=18)", about 14.1 MB in total.\n' +
+        'Standard (Z=14-17) is about 8.5 MB; with "Include Detailed Map Data (Z=18)", about 14.1 MB in total.\n' +
         'Press "Clear" to delete all downloaded map data.'
   },
 
@@ -366,7 +374,7 @@ const DICT = {
         '現在地点表示ボタンを押すと、現在地が画面の中央に来るように地図が動き、薄い青色の円が3秒かけて小さくなって消えます。\n' +
         '初めて使うときは位置情報の利用許可を聞かれます。「許可」を選んでください。',
     en: 'From the bottom up: the GSI credit, the scale bar, the zoom level, the zoom buttons (+/−) and the show-current-location button.\n' +
-        'Pressing the show-current-location button moves the map so you are centred, and a pale blue circle shrinks over three seconds and disappears.\n' +
+        'Pressing the show-current-location button moves the map so you are centered, and a pale blue circle shrinks over three seconds and disappears.\n' +
         'The first time, you will be asked to allow access to your location. Please choose "Allow".'
   },
 
@@ -377,16 +385,16 @@ const DICT = {
         '「現在地点をマーカー表示」で現在地の青い丸を出し、「現在地点は中央に表示」で地図が現在地に追従します。いずれも初期設定はオンです。\n' +
         '好きな場所を自由に見たいときは「現在地点は中央に表示」をオフにします。',
     en: 'The menu button (≡) at the top right opens the display settings panel (tap the map to close it).\n' +
-        '"Show clock" appears left of the menu button, "Show zoom level" at the bottom right.\n' +
-        '"Show current location marker" shows your blue dot, and "Keep current location centered" makes the map follow you. All are on by default.\n' +
-        'Turn off "Keep current location centered" to pan around freely.'
+        '"Show Clock" appears left of the menu button, "Show Zoom Level" at the bottom right.\n' +
+        '"Show Current Location Marker" shows your blue dot, and "Keep Current Location Centered" makes the map follow you. All are on by default.\n' +
+        'Turn off "Keep Current Location Centered" to pan around freely.'
   },
 
   'guide.mapTrackTitle': { ja: '移動経路の記録', en: 'Recording Your Track' },
   'guide.mapTrackBody': {
     ja: '「移動経路を記録」をオンにすると≡の左に▶が出ます。▶で記録を始め、■で止めます。起動時画面に戻っても記録は続きます。\n' +
         '「読み込み」「出力」はGPXファイル用、「クリア」は表示中の経路を消します。',
-    en: 'Turn on "Record track" and ▶ appears left of ≡. Press ▶ to record and ■ to stop. Recording continues on the start screen.\n' +
+    en: 'Turn on "Record Track" and ▶ appears left of ≡. Press ▶ to record and ■ to stop. Recording continues on the start screen.\n' +
         '"Import" and "Export" handle GPX files; "Clear" removes all tracks.'
   },
 
@@ -395,8 +403,8 @@ const DICT = {
     ja: '「マーカーの設定」では、地図の目印の色・形・大きさを種類ごとに変えられます。\n' +
         '「起動時の画面に戻る」で最初の画面に戻ります。\n' +
         '「次へ」を押すと、起動時画面に戻って最後のご案内をします。',
-    en: 'In "Marker settings" you can change the colour, shape and size of each kind of marker on the map.\n' +
-        '"Back to start screen" returns you to the first screen.\n' +
+    en: 'In "Marker Settings" you can change the color, shape and size of each kind of marker on the map.\n' +
+        '"Back to Start Screen" returns you to the first screen.\n' +
         'Press "Next" to return to the start screen for the last page.'
   },
 
@@ -442,7 +450,7 @@ const DICT = {
 
   // ----- マーカーの設定 -----
   'markerSettings.title': { ja: 'マーカーの設定', en: 'Marker Settings' },
-  'markerSettings.reset': { ja: '規定値に戻す', en: 'Reset to defaults' },
+  'markerSettings.reset': { ja: '規定値に戻す', en: 'Reset to Defaults' },
   'markerSettings.resetConfirm': {
     ja: 'マーカーの設定を規定値に戻します。よろしいですか?',
     en: 'Reset marker settings to defaults?'
@@ -455,14 +463,14 @@ const DICT = {
   'markerSettings.noteText2': { ja: '形状は変更不可', en: 'Shape cannot be changed' },
 
   // マーカー種別(config.js の MARKER_TYPES の key と一致)
-  'markerType.emergency': { ja: '緊急ポイント', en: 'Emergency point' },
-  'markerType.hikingRoute': { ja: 'ハイキングルート', en: 'Hiking route' },
+  'markerType.emergency': { ja: '緊急ポイント', en: 'Emergency Point' },
+  'markerType.hikingRoute': { ja: 'ハイキングルート', en: 'Hiking Route' },
   'markerType.spot': { ja: 'スポット', en: 'Spot' },
-  'markerType.closureClosed': { ja: '通行止め地点', en: 'Closed point' },
-  'markerType.closureDifficult': { ja: '通行困難地点', en: 'Difficult point' },
-  'markerType.trackStart': { ja: '移動記録開始点', en: 'Track start point' },
-  'markerType.trackCurrent': { ja: '移動記録現在地点', en: 'Track current point' },
-  'markerType.track': { ja: '移動記録経路', en: 'Track route' },
+  'markerType.closureClosed': { ja: '通行止め地点', en: 'Closed Point' },
+  'markerType.closureDifficult': { ja: '通行困難地点', en: 'Difficult Point' },
+  'markerType.trackStart': { ja: '移動記録開始点', en: 'Track Start Point' },
+  'markerType.trackCurrent': { ja: '移動記録現在地点', en: 'Track Current Point' },
+  'markerType.track': { ja: '移動記録経路', en: 'Track Route' },
 
   // マーカー形状(config.js の MARKER_SHAPES の value と一致)
   'markerShape.circle': { ja: '円', en: 'Circle' },

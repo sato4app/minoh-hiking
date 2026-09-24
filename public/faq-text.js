@@ -28,7 +28,7 @@ export const FAQ_NOTICES = [
   {
     text: {
       ja: 'ハイキングルートは紙の地図をもとにした参考データです。実際の道と数十メートルずれることがあります。',
-      en: 'Hiking routes are reference data drawn from a paper map. They can be off from the real trail by tens of metres.'
+      en: 'Hiking routes are reference data drawn from a paper map. They can be off from the real trail by tens of meters.'
     },
     refs: ['Q5']
   },
@@ -42,7 +42,7 @@ export const FAQ_NOTICES = [
   {
     text: {
       ja: '現在地は5〜10メートル、谷あいや樹林の中では数十メートルずれることがあります。',
-      en: 'Your location is typically off by 5-10 metres, and by tens of metres in valleys or under trees.'
+      en: 'Your location is typically off by 5-10 meters, and by tens of meters in valleys or under trees.'
     },
     refs: ['Q9']
   },
@@ -145,7 +145,7 @@ export const FAQ_SECTIONS = [
           },
           {
             ja: 'ただし、移動経路の記録中は、現在地点に置かれる三角のマーカーが進行方向を向きます。向きは、直近3点までの記録点の平均の位置から、現在地点へ向かう方向として求めています(記録点は、約20メートル移動するか約1分ごとに追加されます)。',
-            en: 'While a track is being recorded, however, the triangular marker at your position points the way you are travelling. The direction is the bearing from the average of the last three recorded points to your current position (a point is recorded after about 20 metres of movement, or about every minute).'
+            en: 'While a track is being recorded, however, the triangular marker at your position points the way you are traveling. The direction is the bearing from the average of the last three recorded points to your current position (a point is recorded after about 20 meters of movement, or about every minute).'
           },
           {
             ja: 'そのため、歩き始めた直後や、その場にとどまっているときは向きが定まらないことがあります。記録していないときは、この三角は表示されません。方角そのものを確かめたいときは、コンパスをご利用ください。',
@@ -168,7 +168,7 @@ export const FAQ_SECTIONS = [
           { ja: '同じではありません。', en: 'No, they are not.' },
           {
             ja: '地図に重ねて表示するハイキングルートとスポットは、紙の地図をもとに作成した参考データです。そのため、実際の林道・ハイキング道とは数十メートル単位でずれることがあります。',
-            en: 'The hiking routes and spots drawn on the map are reference data created from a paper map. They can therefore be off from the real forest roads and trails by tens of metres.'
+            en: 'The hiking routes and spots drawn on the map are reference data created from a paper map. They can therefore be off from the real forest roads and trails by tens of meters.'
           },
           {
             ja: 'ルートの線は、道の「おおよその位置とつながり」を示すものであり、正確な道の形ではありません。歩くときは、現地の道と標識を優先してください。',
@@ -207,11 +207,11 @@ export const FAQ_SECTIONS = [
           // 文書にある表(ズーム別の画素数)は狭い画面に置けないため、要点を文章にした
           {
             ja: '同じ 20 メートルのずれでも、画面上での見え方はズームによって変わります。起動時の z=15 では約5画素ですが、最大の z=18 では約41画素になります(箕面付近の緯度での目安)。z=15 では指の先ほどのずれでも、z=18 では画面の 1/4 近く離れて見えることがあります。',
-            en: 'The same 20-metre gap looks different at different zoom levels. At z=15, the startup zoom, it is about 5 pixels; at z=18, the maximum, it is about 41 pixels (approximate, at the latitude of Minoh). What looks like a fingertip at z=15 can look like nearly a quarter of the screen at z=18.'
+            en: 'The same 20-meter gap looks different at different zoom levels. At z=15, the startup zoom, it is about 5 pixels; at z=18, the maximum, it is about 41 pixels (approximate, at the latitude of Minoh). What looks like a fingertip at z=15 can look like nearly a quarter of the screen at z=18.'
           },
           {
             ja: 'ルートと道の関係を大まかに確かめたいときは、ズームを下げた方が実態に近く見えます。現在のズームは画面右下に z=NN で表示されます(表示設定パネルの「ズームレベルを表示」で消せます)。',
-            en: 'To get a general sense of how a route relates to the trail, zooming out gives a truer picture. The current zoom is shown as z=NN at the bottom right (you can hide it with "Show zoom level" in the display settings panel).'
+            en: 'To get a general sense of how a route relates to the trail, zooming out gives a truer picture. The current zoom is shown as z=NN at the bottom right (you can hide it with "Show Zoom Level" in the display settings panel).'
           }
         ]
       },
@@ -239,11 +239,11 @@ export const FAQ_SECTIONS = [
         a: [
           {
             ja: 'スマートフォンの現在地は、5〜10 メートル程度の誤差があるのが普通です。',
-            en: 'A smartphone location normally carries an error of about 5 to 10 metres.'
+            en: 'A smartphone location normally carries an error of about 5 to 10 meters.'
           },
           {
             ja: '谷あい・急斜面の下・樹林の中・崖のそばでは、空が見える範囲が狭くなって衛星をとらえにくくなるため、数十メートルずれることがあります。箕面の谷筋は特に注意が必要です。',
-            en: 'In valleys, below steep slopes, under trees or beside cliffs, less sky is visible and fewer satellites can be reached, so the error can grow to tens of metres. The valleys of Minoh call for particular care.'
+            en: 'In valleys, below steep slopes, under trees or beside cliffs, less sky is visible and fewer satellites can be reached, so the error can grow to tens of meters. The valleys of Minoh call for particular care.'
           },
           {
             ja: 'アプリを開いた直後や、しばらく使っていなかった後も、位置が定まるまで時間がかかります。',
@@ -278,7 +278,7 @@ export const FAQ_SECTIONS = [
         a: [
           {
             ja: '表示設定パネルの「現在地点をマーカー表示」がオンになっているか、位置情報の利用を許可しているかをご確認ください。',
-            en: 'Check that "Show current location marker" is on in the display settings panel, and that you have allowed access to your location.'
+            en: 'Check that "Show Current Location Marker" is on in the display settings panel, and that you have allowed access to your location.'
           },
           {
             ja: '谷や樹林の中、屋内では位置の取得に時間がかかります。空が見える場所で少しお待ちください。端末を再起動すると、表示できるようになる場合があります。',
@@ -398,7 +398,7 @@ export const FAQ_SECTIONS = [
           },
           {
             ja: '細かい地図(Z=18)まで見たいときは、「詳細地図データ(Z=18)を含む」をオンにしてダウンロードします。',
-            en: 'To see the finest map (Z=18), turn on "Include detailed map data (Z=18)" before downloading.'
+            en: 'To see the finest map (Z=18), turn on "Include Detailed Map Data (Z=18)" before downloading.'
           }
         ]
       },
@@ -480,7 +480,7 @@ export const FAQ_SECTIONS = [
         a: [
           {
             ja: '前の経路を「読み込み」で表示してから記録を始め、確認画面で「追加して記録開始」を選んでください。',
-            en: 'Display the earlier track with "Import", then start recording and choose "Add a route and start recording" on the confirmation screen.'
+            en: 'Display the earlier track with "Import", then start recording and choose "Add a Route and Start Recording" on the confirmation screen.'
           },
           {
             ja: '経路が「経路 1」「経路 2」として別々に残り、それぞれの地点数・移動距離が表示されます。',
@@ -506,7 +506,7 @@ export const FAQ_SECTIONS = [
           },
           {
             ja: '詳細は「設定・情報/Settings & Info」の「このアプリについて」をご参照ください。',
-            en: 'For details, see "About this app" in 設定・情報/Settings & Info.'
+            en: 'For details, see "About This App" in 設定・情報/Settings & Info.'
           }
         ]
       },
@@ -519,7 +519,7 @@ export const FAQ_SECTIONS = [
         a: [
           {
             ja: '「設定・情報/Settings & Info」の「バージョン情報」をオンにすると、アプリバージョン・国土地理院地図タイル・ハイキングマップ・通行止め地点のバージョンと、各データの件数を確認できます。',
-            en: 'Turn on "Version information" in 設定・情報/Settings & Info to see the versions of the app, the GSI map tiles, the hiking map and the closure data, along with how many items each holds.'
+            en: 'Turn on "Version Information" in 設定・情報/Settings & Info to see the versions of the app, the GSI map tiles, the hiking map and the closure data, along with how many items each holds.'
           }
         ]
       },
