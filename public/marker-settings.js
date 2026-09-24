@@ -75,14 +75,25 @@ function renderMarkerSettings() {
     const controls = document.createElement('div');
     controls.className = 'marker-controls';
 
-    const colorInput = document.createElement('input');
-    colorInput.type = 'color';
-    colorInput.className = 'marker-color';
-    colorInput.value = cur.color;
-    colorInput.setAttribute('aria-label', t('markerSettings.ariaColor', { name }));
-    colorInput.disabled = isLocked(m, 'color');
-    colorInput.addEventListener('input', () => updateMarkerSetting(m.key, 'color', colorInput.value));
-    controls.appendChild(colorInput);
+    if (isLocked(m, 'color')) {
+      // 変更不可の色は入力部品を使わず、その色で塗った見本を出す。
+      // disabled の input[type=color] はブラウザによって薄く描かれ、
+      // 実際と違う色(赤→ピンク等)に見えてしまうため
+      const swatch = document.createElement('span');
+      swatch.className = 'marker-color marker-color-locked';
+      swatch.style.backgroundColor = cur.color;
+      swatch.setAttribute('role', 'img');
+      swatch.setAttribute('aria-label', t('markerSettings.ariaColor', { name }));
+      controls.appendChild(swatch);
+    } else {
+      const colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.className = 'marker-color';
+      colorInput.value = cur.color;
+      colorInput.setAttribute('aria-label', t('markerSettings.ariaColor', { name }));
+      colorInput.addEventListener('input', () => updateMarkerSetting(m.key, 'color', colorInput.value));
+      controls.appendChild(colorInput);
+    }
 
     const shapeSelect = document.createElement('select');
     shapeSelect.className = 'marker-shape';

@@ -995,12 +995,17 @@ body.view-state-map .leaflet-control-container {
   color: #666;
 }
 
-/* 変更不可の入力部品。色見本は半透明にすると実際と違う色(赤→ピンク等)に
-   見えるため、透明度は変えずにカーソルだけで示す */
-.marker-color:disabled {
+/* 変更不可の色見本(input ではなく span)。入力欄と同じ大きさの枠の内側を
+   その色で塗る(input[type=color] の見本と同じく、枠との間に白い余白を残す) */
+.marker-color-locked {
+  display: inline-block;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  box-shadow: inset 0 0 0 3px #fff;
   cursor: not-allowed;
 }
 
+/* 変更不可の形状 */
 .marker-shape:disabled {
   opacity: 0.5;
   cursor: not-allowed;
