@@ -1197,6 +1197,12 @@ body.view-state-map .leaflet-control-container {
   margin-left: 0.25rem;
 }
 
+/* 長めの補足(クレジットの「各担当は…翻訳対象外」)。見出しの横に収まらないときは、
+   語の途中で折り返さず補足ごと次の行へ送る */
+.info-sublabel-wrap {
+  display: inline-block;
+}
+
 .info-value {
   font-weight: 600;
   color: #222;
@@ -1247,8 +1253,8 @@ body.view-state-map .leaflet-control-container {
   word-break: keep-all;
 }
 
-/* このアプリについて: Credits の明細(役割ごとの担当)。
-   見出し「Credits:」に属する明細のため左に段下げする。
+/* このアプリについて: クレジットの明細(役割ごとの担当)。
+   見出し「クレジット：」に属する明細のため左に段下げする。
    段下げ・ラベルとの間隔は、スマホの幅(実質 287px 程度)で
    「役割名: 担当」が1行に収まるよう 0.5rem に抑える */
 .info-contributors {
@@ -1277,7 +1283,7 @@ body.view-state-map .leaflet-control-container {
   padding-top: 0;
 }
 
-/* 「このアプリについて」の外部リンク(ソースコードのリポジトリ・Credits のポートフォリオ)。
+/* 「このアプリについて」の外部リンク(ソースコードのリポジトリ・クレジットのポートフォリオ)。
    周りの太字の黒と区別できるよう、FAQ の参照リンクと同じテーマ色+下線にする。
    上下に余白を足して指で押せる範囲を広げる(行の高さは変えない)。
    sato4app は値の列の右端に来るため、左右には広げない(広げると枠から数px はみ出す) */

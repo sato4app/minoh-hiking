@@ -329,43 +329,46 @@
               <span class="info-value info-value-url">https://minoh-hiking.vercel.app/</span>
             </div>
             <!-- ソースコード: このアプリのリポジトリへのリンク。URL と同じく「このアプリがどこにあるか」の
-                 情報のため、Credits(誰が何をしたか)ではなく URL の下に置く。
+                 情報のため、クレジット(誰が何をしたか)ではなく URL の下に置く。
                  ラベルは言語で区切りを変えるため辞書に持つ(info.sourceCode)。値は英字だけで日英共通のため
                  訳さず、括弧も半角にする。ライセンスの種類(MIT)までは書かない(GitHub で分かる) -->
             <div class="info-row">
               <span class="info-label" data-i18n="info.sourceCode">ソースコード：</span>
               <span class="info-value info-value-source">Open Source (<a class="info-link" href="https://github.com/sato4app/minoh-hiking" target="_blank" rel="noopener">GitHub</a>)</span>
             </div>
-            <!-- Credits: 役割ごとの担当。
-                 見出し「Credits：」・役割・担当を含めブロック全体を翻訳対象外とし、
-                 言語切替でも変えない(見出しは英語、役割と担当は日本語で固定)。
-                 そのため data-i18n は付けない。
+            <!-- クレジット: 役割ごとの担当。
+                 見出し(クレジット / Credits)と役割名は訳す(info.credits / info.credit*)。
+                 担当は団体名などの固有名詞を含むため翻訳対象外とし、言語切替でも日本語のまま
+                 (data-i18n を付けない)。そのことを見出しの補足(info.creditsNote)で断っておく。
                  担当が2行になるもの(プロジェクト統括 / 地図の出典)は、2行目を
                  ラベル無しの続き行(info-row-cont)として値の列に右寄せで置く。
                  幅が足りない端末では語句の区切り(wbr)で折り返す。
                  アプリの企画・開発の sato4app は作者のポートフォリオへのリンク(リンクの文字を
                  行き先の名前にそろえ、どこへ行くか押す前に分かるようにする)。外部サイトのため別タブで開く -->
             <div class="info-row">
-              <span class="info-label">Credits：</span>
+              <span class="info-label">
+                <span data-i18n="info.credits">クレジット：</span>
+                <span class="info-sublabel info-sublabel-wrap" data-i18n="info.creditsNote">（各担当は、固有名詞を含むため翻訳対象外）</span>
+              </span>
             </div>
             <div class="info-contributors">
               <div class="info-row">
-                <span class="info-label">アプリの企画・開発：</span>
+                <span class="info-label" data-i18n="info.creditPlanning">アプリの企画・開発：</span>
                 <span class="info-value">さとう <a class="info-link" href="https://sato4app.github.io/Portfolio/" target="_blank" rel="noopener">sato4app</a></span>
               </div>
               <div class="info-row">
-                <span class="info-label">ハイキングマップ情報：</span>
+                <span class="info-label" data-i18n="info.creditMapData">ハイキングマップ情報：</span>
                 <span class="info-value">山麓<wbr>アプリ部会</span>
               </div>
               <div class="info-row">
-                <span class="info-label">プロジェクト統括：</span>
+                <span class="info-label" data-i18n="info.creditOversight">プロジェクト統括：</span>
                 <span class="info-value">みのお山麓<wbr>保全委員会</span>
               </div>
               <div class="info-row info-row-cont">
                 <span class="info-value">明治の森<wbr>箕面自然休養林<wbr>管理運営協議会</span>
               </div>
               <div class="info-row">
-                <span class="info-label">地図の出典：</span>
+                <span class="info-label" data-i18n="info.creditMapSource">地図の出典：</span>
                 <span class="info-value">国土地理院<wbr>ウェブサイト</span>
               </div>
               <div class="info-row info-row-cont">

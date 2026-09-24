@@ -254,8 +254,8 @@ const DICT = {
   // バージョン情報を設定/Settings 内のトグルへ移し、再び1つのモーダルに戻った。
   // 情報表示の項目が多くなったため、2026.41 で「設定・情報/Settings & Info」に改称した。内訳は次のとおり:
   //   showFaq / showMessages / ariaClearMessages / noMessages /
-  //   about / appName / appNameValue / url / sourceCode
-  //     (Credits の役割名・担当は翻訳対象外のため辞書に持たない)
+  //   about / appName / appNameValue / url / sourceCode / credits / creditsNote / credit*
+  //     (クレジットの見出しと役割名は訳す。担当は固有名詞を含むため翻訳対象外で辞書に持たない)
   //     区切りは日本語が全角「：」、英語が半角「:」。URL は語そのものは訳さないが、
   //     区切りを言語に合わせるため辞書に持つ。sourceCode はラベルだけを持ち、値の
   //     「Open Source (GitHub)」は英字だけで日英共通のため辞書に持たない
@@ -287,6 +287,16 @@ const DICT = {
   'info.appNameValue': { ja: '箕面の森ハイキングマップ', en: 'Minoh Hiking Map' },
   'info.url': { ja: 'URL：', en: 'URL:' },
   'info.sourceCode': { ja: 'ソースコード：', en: 'Source Code:' },
+  // クレジット(役割ごとの担当)。担当は固有名詞を含むため訳さず、補足でその旨を断る
+  'info.credits': { ja: 'クレジット：', en: 'Credits:' },
+  'info.creditsNote': {
+    ja: '（各担当は、固有名詞を含むため翻訳対象外）',
+    en: '(Names are not translated as they include proper nouns)'
+  },
+  'info.creditPlanning': { ja: 'アプリの企画・開発：', en: 'Planning & Development:' },
+  'info.creditMapData': { ja: 'ハイキングマップ情報：', en: 'Hiking Map Data:' },
+  'info.creditOversight': { ja: 'プロジェクト統括：', en: 'Project Oversight:' },
+  'info.creditMapSource': { ja: '地図の出典：', en: 'Map Source:' },
 
   // ----- QRコード(起動画面の「QR」) -----
   'qr.title': { ja: 'QRコード', en: 'QR Code' },
