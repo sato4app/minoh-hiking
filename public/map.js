@@ -350,6 +350,8 @@ function buildClosureLayer() {
       const lines = [`<strong>${escapeHtml(p.name ?? p.id ?? '')}</strong>`];
       if (kind) lines.push(escapeHtml(kind));
       if (p.reason) lines.push(t('closure.popupReason', { reason: escapeHtml(p.reason) }));
+      // 解除予定日(YYYY-MM-DD)。通行止め・通行困難のどちらにも付き得る。値があるときのみ
+      if (p.reopenDate) lines.push(t('closure.popupReopen', { date: escapeHtml(p.reopenDate) }));
       if (p.note) lines.push(escapeHtml(p.note));
       if (p.updatedAt) lines.push(t('closure.popupUpdated', { date: escapeHtml(p.updatedAt) }));
       layer.bindPopup(lines.join('<br>'));

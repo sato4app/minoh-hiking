@@ -32,7 +32,9 @@ export const DATASETS = {
     blobPath: 'closures/minoh-hiking-closure.geojson',
     previousPath: 'closures/previous.geojson',
     geometryTypes: ['Point'],
-    featureTypes: null       // properties.type は問わない
+    featureTypes: null,      // properties.type は問わない
+    // 日付(YYYY-MM-DD)で持つプロパティ。値があるときだけ形式を検査する(§6.3)
+    dateProps: ['reopenDate']
   },
   // オフライン地図のダウンロード対象タイル一覧(GeoJSON ではない)
   tiles: {

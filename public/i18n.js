@@ -493,10 +493,11 @@ const DICT = {
 
   // ----- 通行止め・通行困難地点(closures) -----
   // 本アプリは表示専用のため、マップのポップアップで使う文言
-  // (kind 表示・理由・更新日)のみを持つ。
+  // (kind 表示・理由・解除予定・更新日)のみを持つ。
   'closure.kindClosed': { ja: '通行止め', en: 'Closed' },
   'closure.kindDifficult': { ja: '通行困難', en: 'Difficult to pass' },
   'closure.popupReason': { ja: '理由: {reason}', en: 'Reason: {reason}' },
+  'closure.popupReopen': { ja: '解除予定: {date}', en: 'Expected to Reopen: {date}' },
   'closure.popupUpdated': { ja: '更新日: {date}', en: 'Updated: {date}' }
 };
 

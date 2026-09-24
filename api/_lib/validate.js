@@ -54,6 +54,14 @@ export function validateGeoJSON(data, dataset) {
       if (err) return err;
     }
 
+    // 日付プロパティは YYYY-MM-DD の実在する日付であること(値があるときのみ。closures の reopenDate)
+    for (const key of dataset.dateProps ?? []) {
+      if (props[key] == null) continue;
+      if (!isValidDate(props[key])) {
+        return `${label} の ${key} は YYYY-MM-DD 形式の日付である必要があります: ${props[key]}`;
+      }
+    }
+
     // id は一意であること。id を持たない Feature(spot 等)はスキップする
     const id = props.id;
     if (id != null) {
@@ -62,6 +70,14 @@ export function validateGeoJSON(data, dataset) {
     }
   }
   return null;
+}
+
+// YYYY-MM-DD 形式で、暦の上で実在する日付か(2026-02-30 などは不可)
+function isValidDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [y, m, d] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
 }
 
 // 1点分の座標検査。問題なければ null
