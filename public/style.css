@@ -985,15 +985,14 @@ body.view-state-map .leaflet-control-container {
   gap: 0.4rem;
 }
 
-/* 変更不可の注記(*1 / *2) */
+/* 変更不可の注記((*1) / (*2))。横に並べ、幅が足りなければ折り返す */
 .marker-settings-notes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
   margin-top: 0.6rem;
   font-size: 0.8rem;
   color: #666;
-}
-
-.marker-settings-notes p {
-  margin: 0.15rem 0;
 }
 
 /* 変更不可の入力部品 */

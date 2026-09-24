@@ -114,7 +114,7 @@ export const TOAST_DURATION_SEC = 3;
 // マーカー設定の対象種別と既定値。
 // 表示名は i18n.js の辞書で管理する(キーは markerType.<key> で導出)。
 // locked: 設定UIで変更不可とする属性(常に既定値を使用)。
-//   note は設定画面のラベルに付ける注記番号(*1 / *2)で、注記文は
+//   note は設定画面のラベルに付ける注記番号((*1) / (*2))で、注記文は
 //   i18n.js の markerSettings.note<番号> で管理する。
 export const MARKER_TYPES = [
   { key: 'emergency', color: '#00AA00', shape: 'circle', size: 12 },      // 緊急ポイント

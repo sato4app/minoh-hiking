@@ -69,7 +69,7 @@ function renderMarkerSettings() {
     const label = document.createElement('span');
     label.className = 'marker-label';
     // 変更不可の属性がある種別は注記番号を付ける(注記文はリスト下部に表示)
-    label.textContent = m.note ? `${name} *${m.note}` : name;
+    label.textContent = m.note ? `${name} (*${m.note})` : name;
     row.appendChild(label);
 
     const controls = document.createElement('div');
