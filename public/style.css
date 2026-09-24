@@ -995,8 +995,12 @@ body.view-state-map .leaflet-control-container {
   color: #666;
 }
 
-/* 変更不可の入力部品 */
-.marker-color:disabled,
+/* 変更不可の入力部品。色見本は半透明にすると実際と違う色(赤→ピンク等)に
+   見えるため、透明度は変えずにカーソルだけで示す */
+.marker-color:disabled {
+  cursor: not-allowed;
+}
+
 .marker-shape:disabled {
   opacity: 0.5;
   cursor: not-allowed;
