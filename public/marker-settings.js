@@ -24,10 +24,14 @@ const el = {
 // マーカー設定は全種別をまとめて保存するため、一度でも設定を変えた端末には、変えていない種別の
 // 既定値もそのまま残る。既定値を変えてもその端末には反映されないため、旧既定のままの値だけを置き換える。
 // 行った段階を MARKER_SETTINGS_REV_KEY に残し、以降は利用者が同じ値を選んでもそのままにする。
-//   段階1(2026.63): 通行困難地点の既定サイズを 24px にした。旧既定の 20px(2026.58〜)・
-//   16px(〜2026.57)だけを置き換え、利用者が選んだ他のサイズは変えない。
-const MARKER_SETTINGS_REV = 1;
-const CLOSURE_DIFFICULT_OLD_DEFAULT_SIZES = [20, 16];
+// 通行困難地点の既定サイズの経緯: 16px(〜2026.57) → 20px(2026.58〜) → 24px(2026.63) → 20px(2026.64〜)
+//   段階1(2026.63): 旧既定の 20px・16px を 24px に置き換えた。
+//   段階2(2026.64): 既定を 20px に戻した。段階1を済ませた端末は、段階1で入れた 24px を 20px に戻す。
+//   段階1を済ませていない端末は、既定と同じ 20px も利用者が選んだ 24px も触らず、16px だけを 20px にする。
+//   どちらも利用者が選んだ他のサイズは変えない。
+const MARKER_SETTINGS_REV = 2;
+// 既定サイズ(20px)へ置き換える保存値。キーはこの端末で済んでいる段階
+const CLOSURE_DIFFICULT_OLD_DEFAULT_SIZES = { 0: [16], 1: [24] };
 
 function migrateMarkerSettings() {
   try {
@@ -36,11 +40,12 @@ function migrateMarkerSettings() {
     const raw = localStorage.getItem(MARKER_SETTINGS_KEY);
     const saved = raw ? JSON.parse(raw) : null;
     const difficult = saved && saved.closureDifficult;
-    if (difficult && CLOSURE_DIFFICULT_OLD_DEFAULT_SIZES.includes(difficult.size)) {
+    const oldSizes = CLOSURE_DIFFICULT_OLD_DEFAULT_SIZES[rev] || [];
+    if (difficult && oldSizes.includes(difficult.size)) {
       difficult.size = MARKER_TYPES.find((m) => m.key === 'closureDifficult').size;
       localStorage.setItem(MARKER_SETTINGS_KEY, JSON.stringify(saved));
     }
-    // 保存が無い端末も印を付ける(以後に利用者が 20px 等を選んでも置き換えない)
+    // 保存が無い端末も印を付ける(以後に利用者が 16px・24px 等を選んでも置き換えない)
     localStorage.setItem(MARKER_SETTINGS_REV_KEY, String(MARKER_SETTINGS_REV));
   } catch { /* 保存を読めない・書けない環境では何もしない(表示は既定値か保存値で続く) */ }
 }

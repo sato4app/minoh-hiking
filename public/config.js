@@ -137,7 +137,7 @@ export const MARKER_TYPES = [
   // 通行止め=進入禁止(赤丸に白の横棒)、通行困難=警戒(黄色の三角に黒の「!」)
   { key: 'closureClosed', color: '#DC2626', shape: 'noEntry', size: 20,
     locked: ['color', 'shape'], note: 1 },
-  { key: 'closureDifficult', color: '#FACC15', shape: 'warning', size: 24,
+  { key: 'closureDifficult', color: '#FACC15', shape: 'warning', size: 20,
     locked: ['color', 'shape'], note: 1 },
   // 移動記録関連(表示順は移動記録経路の上)。色は移動記録経路と同じ既定値。
   { key: 'trackStart', color: '#000080', shape: 'square', size: 16 },     // 移動記録開始点
