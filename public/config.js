@@ -22,6 +22,10 @@ export const TRACK_EXPORT_SEQ_KEY = 'minoh-hiking.track-export-seq';
 // ガイドの内容を変えても、キー名は変えないこと(変えると、アプリを更新した全端末で
 // 再び自動表示される。自動表示は初回の1度だけで、更新では出さない決まり)。
 export const GUIDE_SEEN_KEY = 'minoh-hiking.guide-seen';
+// マップのメニュー(表示設定パネル)のトグルの状態。{ <トグルの id>: true/false } の JSON。
+// 切り替えるたびに保存し、起動時に戻す(再起動・アプリの更新・言語切替の再読み込みでも前回のまま)。
+// 保存が無い・読めないトグルは HTML の初期値(移動経路を記録のみ OFF)で始める。
+export const MAP_TOGGLES_KEY = 'minoh-hiking.map-toggles';
 
 // ===== sessionStorage キー =====
 // アプリ更新(updateAppToLatest)による再読み込み直後であることを示すフラグ。

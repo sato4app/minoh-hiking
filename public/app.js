@@ -36,7 +36,7 @@ import {
 } from './published-data.js';
 import {
   TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC,
-  TRACK_RECORDING_FLAG_KEY
+  TRACK_RECORDING_FLAG_KEY, MAP_TOGGLES_KEY
 } from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
@@ -165,6 +165,9 @@ async function init() {
   // 選択言語が英語のとき、静的なHTML文言(data-i18n属性)を一括置換する。
   // 以降の confirm・トースト等の動的文言より必ず先に適用する
   applyStaticTranslations();
+  // マップのメニューのトグルを前回の状態に戻す。
+  // 各トグルの反映は以降の初期化・マップ画面への切替が checked を読んで行うため、最初に行う
+  initStep('restoreMapToggles', restoreMapToggles);
 
   // SW 登録
   if ('serviceWorker' in navigator) {
@@ -247,6 +250,30 @@ async function init() {
   maybeAutoOpenGuide();
 
   requestAnimationFrame(() => resizeMap());
+}
+
+// ===== マップのメニューのトグルの保存 =====
+// 対象は表示設定パネル内のチェックボックス全部(id で対応付ける)。
+// トグルを追加しても、パネル内に id 付きで置けば保存・復元の対象になる。
+function mapToggleInputs() {
+  return el.mapLayerPanel ? el.mapLayerPanel.querySelectorAll('input[type="checkbox"][id]') : [];
+}
+
+function saveMapToggles() {
+  const states = {};
+  for (const input of mapToggleInputs()) states[input.id] = input.checked;
+  try { localStorage.setItem(MAP_TOGGLES_KEY, JSON.stringify(states)); } catch { /* noop */ }
+}
+
+// 保存済みの状態を戻す。checked を書き換えるだけで change は発火させない
+// (各トグルの反映は起動処理が checked を読んで行う)。保存に無いトグルは HTML の初期値のまま
+function restoreMapToggles() {
+  let states = null;
+  try { states = JSON.parse(localStorage.getItem(MAP_TOGGLES_KEY)); } catch { /* noop */ }
+  if (!states || typeof states !== 'object') return;
+  for (const input of mapToggleInputs()) {
+    if (typeof states[input.id] === 'boolean') input.checked = states[input.id];
+  }
 }
 
 // メニューの「現在地点をマーカー表示」トグルの状態を反映する。
@@ -392,6 +419,9 @@ function bindEvents() {
     // 現在地の監視は「現在地点をマーカー表示」等のトグルが管理するため、ここでは触らない。
     updateTrackButtonState(on);
   });
+  // 表示設定パネルのトグルは切り替えるたびに保存する(次回起動時に restoreMapToggles で戻す)。
+  // 各トグルの処理(上)より後に登録し、取り消しで checked を戻した場合も最終の状態を保存する
+  for (const input of mapToggleInputs()) on(input, 'change', saveMapToggles);
 
   // 記録開始・停止トグルボタン: 移動経路を記録トグル ON のときのみ表示・操作可。
   // 記録中なら停止、停止中なら開始する(押下ごとにアイコンが切り替わる)。
