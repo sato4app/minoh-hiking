@@ -234,6 +234,8 @@ async function startDownload(layerKeys) {
   }
 
   await refreshDownloadInfo();
+  // 途中で止めた・一部失敗した場合も、取れたタイルは保存されているため依頼する
+  await requestPersistentStorage();
 }
 
 // ===== マニフェスト更新DL(差分 / 全部) =====
@@ -299,6 +301,7 @@ async function startManifestUpdate(mode) {
   }
 
   await refreshDownloadInfo();
+  await requestPersistentStorage();
 }
 
 // ===== ジョブ実行(共通ワーカーループ) =====
@@ -395,6 +398,29 @@ async function fetchAndCacheTile(cache, url, signal) {
 function handleOffline() {
   if (isDownloading) {
     setStatus(t('download.offlineWarning'), 'warning');
+  }
+}
+
+// ===== 保存領域の永続化 =====
+// 保存したタイルが、端末の空き容量が少なくなったときにブラウザ・OS の判断で消されないよう、
+// このサイトの保存領域を「永続」扱いにするよう依頼する(navigator.storage.persist)。
+// 許可するかはブラウザが決める(ホーム画面に追加したアプリは許可されやすい)。
+// 許可されなくても従来どおり動く(空き不足時に消される可能性が残るだけ)。
+// タイルが保存されているときだけ依頼する。Firefox は許可を尋ねるため、保存するものが無いうちには
+// 尋ねない。呼ぶのはダウンロード・更新の後と、起動時(ダウンロード済みの端末にも適用するため)。
+// 許可されたときだけメッセージ履歴に残す(拒否は起動のたびに依頼し直すため、残すと履歴が埋まる)。
+export async function requestPersistentStorage() {
+  try {
+    if (!navigator.storage?.persist || !navigator.storage?.persisted) return;
+    if (await navigator.storage.persisted()) return;
+    if ((await listTileCacheNames()).length === 0) return;
+    if (await navigator.storage.persist()) {
+      logHistory(t('download.persistGranted'), 'success');
+    } else {
+      console.info('保存領域の永続化は許可されませんでした(空き容量が少ないときに消される場合があります)');
+    }
+  } catch (err) {
+    console.warn('保存領域の永続化の依頼に失敗:', err);
   }
 }
 

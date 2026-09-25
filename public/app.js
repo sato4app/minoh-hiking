@@ -47,7 +47,7 @@ import {
   getManifestVersion, getSavedManifestVersion,
   evaluateManifestVersion,
   openDownloadModal,
-  migrateLegacyPackages, initTilesEvents, setStatus
+  migrateLegacyPackages, initTilesEvents, setStatus, requestPersistentStorage
 } from './tiles.js';
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
 import { renderQrSvg } from './qrcode.js';
@@ -183,6 +183,8 @@ async function init() {
   initStep('initMarkerSettings', initMarkerSettings);
   initStep('renderMessageList', renderMessageList);
   await migrateLegacyPackages();
+  // ダウンロード済みのタイルがあれば、保存領域の永続化を依頼する(起動を待たせない)
+  requestPersistentStorage();
   // タイル一覧の版の確認と履歴への記録は、配信データが揃ってから行う
   // (loadPublishedData の onApplied)。
   // アプリの更新版の確認は起動時には行わず、起動時画面のボタンをタップしたときに行う

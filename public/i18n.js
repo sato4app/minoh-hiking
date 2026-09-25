@@ -248,6 +248,10 @@ const DICT = {
   'download.cannotClearWhileDownloading': { ja: 'ダウンロード中は削除できません', en: 'Cannot clear while downloading' },
   'download.clearConfirm': { ja: 'キャッシュ済みのタイルを全て削除します。よろしいですか?', en: 'Delete all cached tiles?' },
   'download.cleared': { ja: 'キャッシュを削除しました', en: 'Cache cleared' },
+  'download.persistGranted': {
+    ja: '保存した地図データを、端末の空き容量が少なくなっても消されない設定にしました',
+    en: 'Saved map data will now be kept even when device storage runs low'
+  },
   'download.clearFailed': { ja: '削除失敗: {message}', en: 'Failed to delete: {message}' },
 
   // ----- 設定・情報/Settings & Info モーダル -----

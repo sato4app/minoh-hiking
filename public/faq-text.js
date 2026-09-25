@@ -5,7 +5,7 @@
 //
 // 構成:
 //   FAQ_NOTICES  … ご利用の注意(9項目)。1行の要約と、詳しい説明のある質問への参照
-//   FAQ_SECTIONS … よくある質問(7分類・26問)。説明の本体はこちらにだけ置く
+//   FAQ_SECTIONS … よくある質問(7分類・27問)。説明の本体はこちらにだけ置く
 //
 // ご利用の注意を増やすときは、対応する質問を FAQ_SECTIONS に用意し、ref で指すこと
 // (注意側に本文を書くと、また二重管理になる)。
@@ -79,7 +79,7 @@ export const FAQ_NOTICES = [
       ja: '移動経路の記録中はスリープしないため、電池の消耗が早くなります。予備の電源をご用意ください。',
       en: 'While recording a track the device is kept from sleeping, so the battery drains faster. Bring a power bank.'
     },
-    refs: ['Q19']
+    refs: ['Q20']
   }
 ];
 
@@ -405,6 +405,27 @@ export const FAQ_SECTIONS = [
       {
         id: 'Q18',
         q: {
+          ja: 'ダウンロードした地図データが、いつの間にか消えていました。',
+          en: 'The map data I downloaded has disappeared.'
+        },
+        a: [
+          {
+            ja: 'iPhone・iPad の Safari で開いて使っている場合(ホーム画面に追加していない場合)、7日間このアプリを開かないと、ダウンロードした地図データが端末から削除されることがあります。Safari の仕組みによるもので、アプリの不具合ではありません。',
+            en: 'If you use this app in Safari on an iPhone or iPad without adding it to the Home Screen, the downloaded map data may be deleted from the device when the app is not opened for 7 days. This is how Safari works, not a fault in the app.'
+          },
+          {
+            ja: 'ホーム画面に追加したアプリとして使えば、この削除の対象になりません。Safari の共有ボタンから「ホーム画面に追加」を選び、追加したアイコンから開いてください。Safari で保存した地図データはホーム画面のアプリには引き継がれないため、アイコンから開いたあとで、改めて「地図データのダウンロード」を行ってください。',
+            en: 'Using it as an app added to the Home Screen avoids this deletion. Choose "Add to Home Screen" from the Share button in Safari, then open the app from the new icon. Map data saved in Safari does not carry over to the Home Screen app, so run "Download Map Data" again after opening it from the icon.'
+          },
+          {
+            ja: 'このほか、端末の空き容量が少なくなったとき、ブラウザの閲覧データ(サイトデータ)を消去したとき、ホーム画面のアプリを削除したときにも消えます。消えた場合は、電波のある場所で「地図データのダウンロード」から取り直してください。',
+            en: 'The data is also deleted when the device runs low on storage, when you clear browsing data (site data) in the browser, or when you delete the Home Screen app. If it is gone, get it again from "Download Map Data" somewhere with a signal.'
+          }
+        ]
+      },
+      {
+        id: 'Q19',
+        q: {
           ja: 'ポイントやルートが、まったく表示されません。',
           en: 'No points or routes appear at all.'
         },
@@ -425,7 +446,7 @@ export const FAQ_SECTIONS = [
     title: { ja: '移動経路の記録と電池', en: 'Track Recording and Battery' },
     items: [
       {
-        id: 'Q19',
+        id: 'Q20',
         q: {
           ja: '記録中に、電池の減りが早いです。',
           en: 'The battery drains quickly while recording.'
@@ -442,7 +463,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q20',
+        id: 'Q21',
         q: {
           ja: '記録した経路は、アプリに保存されますか。',
           en: 'Is the recorded track saved in the app?'
@@ -459,7 +480,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q21',
+        id: 'Q22',
         q: {
           ja: '記録中に画面が消えて、経路が飛んでしまいました。',
           en: 'The screen went off while recording and the track has a gap.'
@@ -472,7 +493,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q22',
+        id: 'Q23',
         q: {
           ja: '前に記録した経路と、今日歩いた経路を並べて見たいです。',
           en: 'I want to see a previously recorded track alongside the one from today.'
@@ -494,7 +515,7 @@ export const FAQ_SECTIONS = [
     title: { ja: 'その他', en: 'Other' },
     items: [
       {
-        id: 'Q23',
+        id: 'Q24',
         q: {
           ja: '地図やルートは、誰が作っているのですか。',
           en: 'Who makes the map and the routes?'
@@ -511,7 +532,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q24',
+        id: 'Q25',
         q: {
           ja: '地図やアプリのバージョンを確認したいです。',
           en: 'I want to check the map and app versions.'
@@ -524,7 +545,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q25',
+        id: 'Q26',
         q: {
           ja: '端末の空き容量を増やしたいです。',
           en: 'I want to free up space on my device.'
@@ -537,7 +558,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q26',
+        id: 'Q27',
         q: {
           ja: '英語表示にしたら、戻し方が分からなくなりました。',
           en: 'I switched to English and cannot find my way back.'
