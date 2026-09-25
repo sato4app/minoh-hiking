@@ -6,7 +6,21 @@
   <meta name="theme-color" content="#2c7a3d" />
   <title>箕面ハイキング</title>
 
-  <link rel="manifest" href="manifest.webmanifest" />
+  <!-- ホーム画面に追加したときのアプリ名は、スマホ本体の言語で決める(アプリ内の言語設定ではない)。
+       日本語なら「箕面ハイキング」、それ以外は「Minoh Hiking」。直後のスクリプトが切り替える。
+       Android は manifest の short_name、iOS は apple-mobile-web-app-title を名前に使う。
+       名前は追加した時点で決まり、追加後にスマホの言語を変えても変わらない -->
+  <link rel="manifest" id="appManifest" href="manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-title" id="appHomeScreenTitle" content="箕面ハイキング" />
+  <script>
+    // ブラウザが manifest を読む前に済ませるため、head 内で同期的に実行する
+    (function () {
+      var lang = ((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase();
+      if (lang === 'ja' || lang.indexOf('ja-') === 0) return;
+      document.getElementById('appManifest').setAttribute('href', 'manifest-en.webmanifest');
+      document.getElementById('appHomeScreenTitle').setAttribute('content', 'Minoh Hiking');
+    })();
+  </script>
   <link rel="icon" href="icons/icon-192-v2.png" />
   <link rel="apple-touch-icon" href="icons/icon-180.png" />
 

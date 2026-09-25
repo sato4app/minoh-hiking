@@ -1,0 +1,26 @@
+{
+  "name": "Minoh Hiking - Offline Map",
+  "short_name": "Minoh Hiking",
+  "description": "A PWA for viewing GSI maps of the Minoh area offline",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#2c7a3d",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "icons/icon-192-v2.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512-v2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

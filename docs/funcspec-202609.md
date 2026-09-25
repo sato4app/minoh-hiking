@@ -1,6 +1,6 @@
 # 箕面ハイキングマップ 機能仕様書
 
-**バージョン:** 2026.67
+**バージョン:** 2026.68
 **最終更新日:** 2026年9月25日
 
 ---
@@ -8,7 +8,7 @@
 ## 1. 概要
 
 ### 1.1 アプリケーション名
-箕面ハイキングマップ（PWA名: 箕面ハイキング - オフライン地図）
+箕面ハイキングマップ（PWA名: 箕面ハイキング - オフライン地図。スマホの言語が日本語以外のときは Minoh Hiking - Offline Map。→ [12.2](#122-web-app-manifest)）
 
 ### 1.2 目的
 箕面エリアの国土地理院地図をオフラインで閲覧できる Progressive Web App（PWA）。
@@ -58,7 +58,8 @@ minoh-hiking/
 │   ├── db.js                   # IndexedDB（ダウンロード履歴・移動経路）
 │   ├── config.js               # 既定値・共有定数（キー・URL・マーカー種別）
 │   ├── service-worker.js       # タイル/アプリシェルのキャッシュ戦略
-│   ├── manifest.webmanifest    # PWAマニフェスト
+│   ├── manifest.webmanifest    # PWAマニフェスト（日本語名。スマホの言語が日本語のとき）
+│   ├── manifest-en.webmanifest # PWAマニフェスト（英語名。スマホの言語が日本語以外のとき）
 │   └── icons/                  # アプリアイコン・起動画像
 ├── api/
 │   ├── mapdata.js              # 地図データの公開API（GET配信 / POST公開）
@@ -1242,17 +1243,34 @@ FeatureCollection。各 Feature は Point。プロパティは `type` / `id` / `
   エラーになるため）。
 
 ### 12.2 Web App Manifest
-| 項目 | 値 |
-|------|-----|
-| name | 箕面ハイキング - オフライン地図 |
-| short_name | 箕面ハイキング |
-| start_url | ./ |
-| scope | ./ |
-| display | standalone |
-| orientation | any |
-| theme_color | #2c7a3d |
-| background_color | #ffffff |
-| lang | ja |
+スマホ本体の言語に合わせて2つを使い分ける（→ 下記「ホーム画面のアプリ名」）。
+
+| 項目 | `manifest.webmanifest`（日本語） | `manifest-en.webmanifest`（日本語以外） |
+|------|-----|-----|
+| name | 箕面ハイキング - オフライン地図 | Minoh Hiking - Offline Map |
+| short_name | 箕面ハイキング | Minoh Hiking |
+| description | 箕面エリアの地理院地図をオフラインで閲覧できるPWA | A PWA for viewing GSI maps of the Minoh area offline |
+| lang | ja | en |
+| start_url / scope | ./ | ./（同じ） |
+| display / orientation | standalone / any | 同じ |
+| theme_color / background_color | #2c7a3d / #ffffff | 同じ |
+| icons | → 12.3 | 同じ |
+
+**ホーム画面のアプリ名（2026.68〜）:**
+- ホーム画面に追加したときのアプリ名は、**スマホ本体の言語**（`navigator.languages[0]`、無ければ
+  `navigator.language`）で決める。**アプリ内の言語設定（→ [3.7](#37-設定と情報モーダル)）には従わない。**
+  日本語（`ja` / `ja-*`）なら「箕面ハイキング」、それ以外（英語・その他の言語・取得できないとき）は
+  「Minoh Hiking」。
+- `index.html` の `<head>` 内のスクリプトが、ブラウザが manifest を読む前に同期的に切り替える。
+  日本語以外なら `<link rel="manifest">` の `href` を `manifest-en.webmanifest` に、iOS 用の
+  `<meta name="apple-mobile-web-app-title">` の `content` を「Minoh Hiking」にする
+  （Android は manifest の `short_name`、iOS はこの meta を名前に使う）。
+- 名前は**追加した時点で決まる**。追加後にスマホの言語を変えても追従しない（iOS は追加後に名前が
+  変わらない。Android の Chrome は manifest の変更を後から取り込むことがあるが、それを当てにしない）。
+  `<title>`（`document.title`）はアプリ内の言語設定に従う（`app.title`）ため、ホーム画面の名前とは別物。
+- 2つの manifest は名前・説明・`lang` 以外を同じにする。特に `start_url` / `scope` がずれると、
+  同じアプリとして扱われなくなる。どちらもアプリシェル（`SHELL_LOCAL_PATHS`）に含め、Vercel では
+  `Content-Type: application/manifest+json` を付ける（`vercel.json`）。
 
 > `start_url` は `./index.html` ではなく `./` とする。Vercel の cleanUrls により
 > `/index.html` は `/` へ 308 リダイレクトされ、iOS の PWA 起動でエラーになるため。
@@ -1381,3 +1399,4 @@ FeatureCollection。各 Feature は Point。プロパティは `type` / `id` / `
 | 2026-09-25 | 2026.65 | **ポイントのポップアップを出そうとタップすると、近くのルートのポップアップが開いてしまう不具合を修正**（→ [3.1](#31-地図設定)）。ルートは Canvas で「太さ/2 + `TAP_TOLERANCE`(12)」＝約 28px の幅で当たる一方、ポイント（divIcon）は見た目の大きさ（14〜20px）でしか当たらず、ポイントのすぐ外を押すとルートが反応していた（ヘッドレス Edge で、スポットの 10〜12px 外・緊急ポイントの 14px 外・通行止めの 16px 外がすべてルートのポップアップになることを確認）。ルートは `bindPopup` をやめて `click` で `openRouteOrNearbyPoint` を呼び、押した位置から「アイコンの一辺/2 + `TAP_TOLERANCE`」以内にあるポイントのうち一番近いもののポップアップを開くようにした（無ければ従来どおりルート）。何も無い所を押したときは従来どおり何も開かない。`SHELL_CACHE` を `app-shell-2026-09-25.6` に更新 |
 | 2026-09-25 | 2026.66 | **保存したタイルが端末の空き不足で消されにくくなるよう、保存領域の永続化を依頼するようにした**（→ [5.7](#57-保存領域の永続化)）。従来は `navigator.storage.persist()` を呼んでおらず、保存データは「空きが足りなくなったら消してよい」扱いだった。タイルが保存されているときだけ、ダウンロード・マニフェスト更新ダウンロードの後と起動時に依頼する（Firefox は許可を尋ねるため、保存するものが無いうちには尋ねない）。許可されたときだけメッセージ履歴に残す。i18n: `download.persistGranted`（保存した地図データを、端末の空き容量が少なくなっても消されない設定にしました / Saved map data will now be kept even when device storage runs low）を追加。あわせて 5.6 に「タイルを削除するのはクリアだけ」を明記した。`SHELL_CACHE` を `app-shell-2026-09-25.7` に更新 |
 | 2026-09-25 | 2026.67 | **よくある質問に Q18「ダウンロードした地図データが、いつの間にか消えていました。」を追加**（→ [3.7](#37-設定と情報モーダル)）。iPhone・iPad の Safari でホーム画面に追加せずに使っていると、7日間開かないとダウンロードした地図データが削除されることがある（Safari の仕組み。保存領域の永続化（2026.66）でも防げない）ため、ホーム画面に追加して使うこと、Safari で保存したデータはホーム画面のアプリに引き継がれないため追加後にダウンロードし直すこと、空き容量不足・閲覧データの消去・アプリの削除でも消えることを答えに書いた。「表示されない・見えない」の Q17（オフラインで地図の一部が白く抜ける）の次に置き、従来の Q18〜Q26 を Q19〜Q27 に繰り下げた（ご利用の注意 9 の参照も Q19 → Q20）。7分類・27問・答えの段落 55 件。`SHELL_CACHE` を `app-shell-2026-09-25.8` に更新 |
+| 2026-09-25 | 2026.68 | **ホーム画面に追加したときのアプリ名を、スマホの言語で「箕面ハイキング」／「Minoh Hiking」に切り替えるようにした**（→ [12.2](#122-web-app-manifest)）。従来は manifest が日本語だけで、英語などのスマホでも「箕面ハイキング」になっていた。英語用の `manifest-en.webmanifest`（name: Minoh Hiking - Offline Map / short_name: Minoh Hiking / lang: en。他は同じ）を追加し、`index.html` の `<head>` 内のスクリプトで、スマホの言語が日本語（`ja` / `ja-*`）以外なら manifest の参照先と iOS 用の `apple-mobile-web-app-title`（新設）を英語に切り替える。アプリ内の言語設定には従わず、追加後にスマホの言語を変えても追従しない。ヘッドレス Edge で、ja-JP / ja は日本語名、en-US / fr-FR / zh-TW / 言語なしは英語名の manifest が使われることを確認（CDP `Page.getAppManifest`）。アプリシェルに `manifest-en.webmanifest` を追加し（全24件）、`vercel.json` に Content-Type を追加。`SHELL_CACHE` を `app-shell-2026-09-25.9` に更新 |
