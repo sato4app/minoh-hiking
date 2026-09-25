@@ -208,23 +208,40 @@ export function shapeToSVG(shape, color, size) {
         `<rect x="${(s * 0.2).toFixed(1)}" y="${(c - bh / 2).toFixed(1)}" width="${bw}" height="${bh}" rx="${(bh / 4).toFixed(1)}" fill="${stroke}"/></svg>`;
     }
     case 'warning': {
-      // 警戒(⚠ 風)。色の三角に黒の内枠と「!」。
+      // 警戒(⚠ 風)。色の三角に黒の外枠と「!」、その外側に三角に沿った白の縁。
+      // 黄色は地理院地図の等高線(黄土色)・県道(黄色)に溶け込むため、黒枠で輪郭を出し、
+      // 白の縁で背景の線から切り離す(丸い下地は通行止めの丸と形が紛れるため使わない)。
+      // 三角は s 四方のまま、縁の分だけ SVG を広げる(アイコンの大きさは shapeBoxSize)。
       // 「!」はフォント差をなくすため文字ではなく棒と点で描く
       const glyph = '#111827';
-      const pts = `${c},1 ${s - 1},${s - 1} 1,${s - 1}`;
-      // 内枠は外形から d だけ内側。三角(底辺=高さ)の頂点は二等分線方向に
-      // 頂上 d/sin(26.6°)≒2.24d・底角 d/tan(31.7°)≒1.62d ずれる
-      const d = Math.max(1.5, s * 0.08);
-      const inner = `${c},${(1 + 2.24 * d).toFixed(1)} ${(s - 1 - 1.62 * d).toFixed(1)},${(s - 1 - d).toFixed(1)} ${(1 + 1.62 * d).toFixed(1)},${(s - 1 - d).toFixed(1)}`;
+      const pad = shapeHaloPad(shape, s);
+      const S = s + pad * 2;
+      const sw = Math.max(1.5, s * 0.09);       // 黒枠の太さ
+      const ring = Math.max(1.5, s * 0.1);      // 黒枠の外に見える白の縁の幅
+      const inset = sw / 2 + 0.5;
+      const p = (x, y) => `${(x + pad).toFixed(1)},${(y + pad).toFixed(1)}`;
+      const pts = `${p(c, inset)} ${p(s - inset, s - inset)} ${p(inset, s - inset)}`;
       const w = Math.max(2, s * 0.11);
-      return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><polygon points="${pts}" fill="${color}" stroke="${stroke}" stroke-width="1"/>` +
-        `<polygon points="${inner}" fill="none" stroke="${glyph}" stroke-width="1"/>` +
-        `<rect x="${(c - w / 2).toFixed(1)}" y="${(s * 0.36).toFixed(1)}" width="${w.toFixed(1)}" height="${(s * 0.28).toFixed(1)}" rx="${(w / 2).toFixed(1)}" fill="${glyph}"/>` +
-        `<circle cx="${c}" cy="${(s * 0.76).toFixed(1)}" r="${(w * 0.55).toFixed(1)}" fill="${glyph}"/></svg>`;
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}">` +
+        `<polygon points="${pts}" fill="${stroke}" stroke="${stroke}" stroke-width="${(sw + ring * 2).toFixed(1)}" stroke-linejoin="round"/>` +
+        `<polygon points="${pts}" fill="${color}" stroke="${glyph}" stroke-width="${sw.toFixed(1)}" stroke-linejoin="round"/>` +
+        `<rect x="${(c - w / 2 + pad).toFixed(1)}" y="${(s * 0.36 + pad).toFixed(1)}" width="${w.toFixed(1)}" height="${(s * 0.28).toFixed(1)}" rx="${(w / 2).toFixed(1)}" fill="${glyph}"/>` +
+        `<circle cx="${c + pad}" cy="${(s * 0.76 + pad).toFixed(1)}" r="${(w * 0.55).toFixed(1)}" fill="${glyph}"/></svg>`;
     }
     default:
       return shapeToSVG('circle', color, size);
   }
+}
+
+// 形状の外側に付ける縁の幅(片側 px)。現在は警戒(warning)の白の縁のみ
+function shapeHaloPad(shape, s) {
+  return shape === 'warning' ? Math.ceil(Math.max(1.5, s * 0.1)) + 1 : 0;
+}
+
+// shapeToSVG が返す SVG の一辺(px)。縁を持つ形状はマーカーのサイズより大きくなる
+function shapeBoxSize(shape, size) {
+  const s = Math.max(4, Math.min(80, size || 10));
+  return s + shapeHaloPad(shape, s) * 2;
 }
 
 function starPoints(s) {
@@ -250,8 +267,10 @@ export function buildMarkerIcon(style, {
   rotationDeg = 0,
   className = 'custom-marker'
 } = {}) {
-  const size = Math.max(4, Math.min(80, style?.size || fallbackSize));
-  const svg = shapeToSVG(style?.shape || fallbackShape, style?.color || fallbackColor, size);
+  const shape = style?.shape || fallbackShape;
+  const svg = shapeToSVG(shape, style?.color || fallbackColor, style?.size || fallbackSize);
+  // 縁を持つ形状(warning)は SVG がサイズより大きいので、アイコンの枠も SVG に合わせる
+  const size = shapeBoxSize(shape, style?.size || fallbackSize);
   const html = rotationDeg
     ? `<div style="width:${size}px;height:${size}px;transform:rotate(${rotationDeg}deg);transform-origin:50% 50%;">${svg}</div>`
     : svg;
