@@ -349,7 +349,7 @@ export function setEmergencyPointsVisible(visible) {
 // 色・形状は固定で、サイズのみマーカー設定で変更可能(setClosureClosedStyle / setClosureDifficultStyle)。
 const CLOSURE_FALLBACK_STYLES = {
   closed: { color: '#DC2626', shape: 'noEntry', size: 20 },
-  difficult: { color: '#FACC15', shape: 'warning', size: 20 }
+  difficult: { color: '#FACC15', shape: 'warning', size: 24 }
 };
 // kind → ポップアップ表示名の翻訳キー(表示名は i18n.js の辞書で管理)
 const CLOSURE_KIND_KEYS = { closed: 'closure.kindClosed', difficult: 'closure.kindDifficult' };

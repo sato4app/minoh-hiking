@@ -4,6 +4,9 @@
 
 // ===== localStorage キー(全モジュール共通) =====
 export const MARKER_SETTINGS_KEY = 'minoh-hiking.marker-settings';
+// マーカー設定の保存値に、既定値の変更に合わせた置き換えをどこまで行ったか(整数。無ければ 0)。
+// 置き換えは各段階1回だけ行う(marker-settings.js の migrateMarkerSettings)
+export const MARKER_SETTINGS_REV_KEY = 'minoh-hiking.marker-settings-rev';
 export const VERSION_STORAGE_KEY = 'minoh-hiking.tile-manifest-version';
 export const MESSAGE_LOG_KEY = 'minoh-hiking.message-log';
 // 移動記録の実行中フラグ。記録開始で立て、停止操作で降ろす。
@@ -134,7 +137,7 @@ export const MARKER_TYPES = [
   // 通行止め=進入禁止(赤丸に白の横棒)、通行困難=警戒(黄色の三角に黒の「!」)
   { key: 'closureClosed', color: '#DC2626', shape: 'noEntry', size: 20,
     locked: ['color', 'shape'], note: 1 },
-  { key: 'closureDifficult', color: '#FACC15', shape: 'warning', size: 20,
+  { key: 'closureDifficult', color: '#FACC15', shape: 'warning', size: 24,
     locked: ['color', 'shape'], note: 1 },
   // 移動記録関連(表示順は移動記録経路の上)。色は移動記録経路と同じ既定値。
   { key: 'trackStart', color: '#000080', shape: 'square', size: 16 },     // 移動記録開始点

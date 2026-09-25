@@ -3,7 +3,7 @@
 // 設定UIで編集し、localStorage に保存して地図へ反映する。
 
 import {
-  MARKER_SETTINGS_KEY, MARKER_TYPES, MARKER_SHAPES, MARKER_SHAPE_SYMBOLS
+  MARKER_SETTINGS_KEY, MARKER_SETTINGS_REV_KEY, MARKER_TYPES, MARKER_SHAPES, MARKER_SHAPE_SYMBOLS
 } from './config.js';
 import {
   setEmergencyStyle,
@@ -19,6 +19,33 @@ const el = {
   markerSettingsNotes: document.getElementById('markerSettingsNotes'),
   btnResetMarkerSettings: document.getElementById('btnResetMarkerSettings')
 };
+
+// ===== 既定値の変更に合わせた保存値の置き換え(各段階1回だけ) =====
+// マーカー設定は全種別をまとめて保存するため、一度でも設定を変えた端末には、変えていない種別の
+// 既定値もそのまま残る。既定値を変えてもその端末には反映されないため、旧既定のままの値だけを置き換える。
+// 行った段階を MARKER_SETTINGS_REV_KEY に残し、以降は利用者が同じ値を選んでもそのままにする。
+//   段階1(2026.63): 通行困難地点の既定サイズを 24px にした。旧既定の 20px(2026.58〜)・
+//   16px(〜2026.57)だけを置き換え、利用者が選んだ他のサイズは変えない。
+const MARKER_SETTINGS_REV = 1;
+const CLOSURE_DIFFICULT_OLD_DEFAULT_SIZES = [20, 16];
+
+function migrateMarkerSettings() {
+  try {
+    const rev = Number(localStorage.getItem(MARKER_SETTINGS_REV_KEY)) || 0;
+    if (rev >= MARKER_SETTINGS_REV) return;
+    const raw = localStorage.getItem(MARKER_SETTINGS_KEY);
+    const saved = raw ? JSON.parse(raw) : null;
+    const difficult = saved && saved.closureDifficult;
+    if (difficult && CLOSURE_DIFFICULT_OLD_DEFAULT_SIZES.includes(difficult.size)) {
+      difficult.size = MARKER_TYPES.find((m) => m.key === 'closureDifficult').size;
+      localStorage.setItem(MARKER_SETTINGS_KEY, JSON.stringify(saved));
+    }
+    // 保存が無い端末も印を付ける(以後に利用者が 20px 等を選んでも置き換えない)
+    localStorage.setItem(MARKER_SETTINGS_REV_KEY, String(MARKER_SETTINGS_REV));
+  } catch { /* 保存を読めない・書けない環境では何もしない(表示は既定値か保存値で続く) */ }
+}
+// 初期スタイルの読み出し(readMarkerSettings)より前に済ませるため、読み込み時に行う
+migrateMarkerSettings();
 
 // 設定UIの描画と「規定値に戻す」ボタンの登録(初期化時に一度呼ぶ)
 export function initMarkerSettings() {
