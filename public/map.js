@@ -360,18 +360,35 @@ function buildClosureLayer() {
       return createPointMarker(latlng, style, 'custom-marker closure-marker');
     },
     onEachFeature: (feature, layer) => {
-      const p = feature.properties || {};
-      const kind = CLOSURE_KIND_KEYS[p.kind] ? t(CLOSURE_KIND_KEYS[p.kind]) : (p.kind || '');
-      const lines = [`<strong>${escapeHtml(p.name ?? p.id ?? '')}</strong>`];
-      if (kind) lines.push(escapeHtml(kind));
-      if (p.reason) lines.push(t('closure.popupReason', { reason: escapeHtml(p.reason) }));
-      // 解除予定日(YYYY-MM-DD)。通行止め・通行困難のどちらにも付き得る。値があるときのみ
-      if (p.reopenDate) lines.push(t('closure.popupReopen', { date: escapeHtml(p.reopenDate) }));
-      if (p.note) lines.push(escapeHtml(p.note));
-      if (p.updatedAt) lines.push(t('closure.popupUpdated', { date: escapeHtml(p.updatedAt) }));
-      layer.bindPopup(lines.join('<br>'));
+      // 解除予定日の経過判定を開いた時点の日付で行うため、内容は開くたびに組み立てる
+      layer.bindPopup(() => closurePopupHtml(feature.properties || {}));
     }
   });
+}
+
+function closurePopupHtml(p) {
+  const kind = CLOSURE_KIND_KEYS[p.kind] ? t(CLOSURE_KIND_KEYS[p.kind]) : (p.kind || '');
+  const lines = [`<strong>${escapeHtml(p.name ?? p.id ?? '')}</strong>`];
+  if (kind) lines.push(escapeHtml(kind));
+  if (p.reason) lines.push(t('closure.popupReason', { reason: escapeHtml(p.reason) }));
+  // 解除予定日(YYYY-MM-DD)。通行止め・通行困難のどちらにも付き得る。値があるときのみ。
+  // 予定日を過ぎても地点は消さず(解除の確認は運用側が行う)、過ぎている旨を添える
+  if (p.reopenDate) {
+    let reopen = t('closure.popupReopen', { date: escapeHtml(p.reopenDate) });
+    if (p.reopenDate < localDateIso()) reopen += t('closure.popupReopenPassed');
+    lines.push(reopen);
+  }
+  if (p.note) lines.push(escapeHtml(p.note));
+  if (p.updatedAt) lines.push(t('closure.popupUpdated', { date: escapeHtml(p.updatedAt) }));
+  return lines.join('<br>');
+}
+
+// 端末の現地日付(YYYY-MM-DD)。YYYY-MM-DD どうしは文字列比較で日付の前後を判定できる
+function localDateIso() {
+  const d = new Date();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${day}`;
 }
 
 export function setClosuresVisible(visible) {

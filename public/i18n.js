@@ -502,6 +502,7 @@ const DICT = {
   'closure.kindDifficult': { ja: '通行困難', en: 'Difficult to pass' },
   'closure.popupReason': { ja: '理由: {reason}', en: 'Reason: {reason}' },
   'closure.popupReopen': { ja: '解除予定: {date}', en: 'Expected to Reopen: {date}' },
+  'closure.popupReopenPassed': { ja: '（予定日を過ぎています）', en: ' (date has passed)' },
   'closure.popupUpdated': { ja: '更新日: {date}', en: 'Updated: {date}' }
 };
 
