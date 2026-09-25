@@ -506,10 +506,50 @@ function buildHikingLayer() {
         return;
       }
       if (p.type === 'route') {
-        layer.bindPopup(`<strong>${escapeHtml(routeSectionLabel(p.id))}</strong>`);
+        // bindPopup は使わない。押した位置の近くにポイントがあればそちらを開くため(→ openRouteOrNearbyPoint)
+        const html = `<strong>${escapeHtml(routeSectionLabel(p.id))}</strong>`;
+        layer.on('click', (e) => openRouteOrNearbyPoint(e, html));
       }
     }
   });
+}
+
+// ===== ルートのタップとポイントの優先 =====
+// ルート(線)は Canvas で「太さ/2 + TAP_TOLERANCE」の幅で当たるが、ポイント(divIcon)は
+// 見た目の大きさでしか当たらない。そのためポイントのすぐ外を押すと近くのルートが反応し、
+// ポイントのポップアップが開かなかった。ルートが押されたときは、ポイントにもルートと同じ余裕
+// (中心から アイコンの一辺/2 + TAP_TOLERANCE 以内)で当たっているかを調べ、当たっていれば
+// 一番近いポイントのポップアップを優先して開く。当たっていなければルートのポップアップを開く。
+// 地図の何も無い所を押したときは対象外(開いているポップアップを閉じる操作のため)。
+function openRouteOrNearbyPoint(e, html) {
+  // 地図の click(開いたポップアップを閉じる処理)へ伝えない。bindPopup の既定動作と同じ
+  L.DomEvent.stop(e);
+  const point = findTappedPoint(e.containerPoint);
+  if (point) {
+    point.openPopup();
+    return;
+  }
+  L.popup().setLatLng(e.latlng).setContent(html).openOn(mapInstance);
+}
+
+// 押した位置(コンテナ座標)に当たっているポイントのうち、一番近いものを返す(無ければ null)。
+// 対象はポップアップを持つマーカー(緊急ポイント・スポット・通行止め・通行困難地点)で、表示中のレイヤーのみ
+function findTappedPoint(containerPoint) {
+  let best = null;
+  let bestDist = Infinity;
+  for (const group of [emergencyLayer, closureLayer, hikingLayer]) {
+    if (!group || !mapInstance.hasLayer(group)) continue;
+    group.eachLayer((layer) => {
+      if (!(layer instanceof L.Marker) || !layer.getPopup()) return;
+      const iconSize = layer.options.icon?.options?.iconSize?.[0] || 0;
+      const dist = mapInstance.latLngToContainerPoint(layer.getLatLng()).distanceTo(containerPoint);
+      if (dist <= iconSize / 2 + TAP_TOLERANCE && dist < bestDist) {
+        best = layer;
+        bestDist = dist;
+      }
+    });
+  }
+  return best;
 }
 
 export function setHikingRouteStyle(style) {
