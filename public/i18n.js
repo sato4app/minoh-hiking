@@ -378,10 +378,10 @@ const DICT = {
   'guide.mapOverlayBody': {
     ja: '緊急ポイント・ハイキングルート・スポット・通行止め地点は常に表示されます(切り替えスイッチはありません)。\n' +
         'マーカーや線をタップすると、緊急ポイント番号・スポット名・通行止めの理由などが吹き出しで出ます。\n' +
-        '赤い丸に白い横棒(⛔)が通行止め、黄色の三角に「!」が通行困難地点です。',
+        '赤い輪と斜線に歩く人(🚷)が通行止め、黄色のひし形に「!」が通行困難地点です。',
     en: 'Emergency points, hiking routes, spots and closures are always shown (there is no switch to hide them).\n' +
         'Tap a marker or a line to see the emergency point number, the spot name, the reason for a closure and so on in a popup.\n' +
-        'A red circle with a white bar (⛔) shows a closed point, and a yellow triangle with "!" shows a point that is difficult to pass.'
+        'A walking person in a red circle with a slash (🚷) shows a closed point, and a yellow diamond with "!" shows a point that is difficult to pass.'
   },
 
   'guide.mapControlsTitle': { ja: '画面の右下', en: 'The Bottom Right of the Screen' },
@@ -489,14 +489,14 @@ const DICT = {
   'markerType.track': { ja: '移動記録経路', en: 'Track Route' },
 
   // マーカー形状(config.js の MARKER_SHAPES の value と一致)。
-  // line / noEntry / warning は形状を変更できない種別の読み上げ用
+  // line / noThoroughfare / warning は形状を変更できない種別の読み上げ用
   'markerShape.circle': { ja: '円', en: 'Circle' },
   'markerShape.square': { ja: '四角', en: 'Square' },
   'markerShape.triangle': { ja: '三角', en: 'Triangle' },
   'markerShape.diamond': { ja: 'ひし形', en: 'Diamond' },
   'markerShape.star': { ja: '星', en: 'Star' },
   'markerShape.line': { ja: '線', en: 'Line' },
-  'markerShape.noEntry': { ja: '進入禁止', en: 'No Entry' },
+  'markerShape.noThoroughfare': { ja: '通行止め', en: 'No Thoroughfare' },
   'markerShape.warning': { ja: '警戒', en: 'Warning' },
 
   // ----- 通行止め・通行困難地点(closures) -----

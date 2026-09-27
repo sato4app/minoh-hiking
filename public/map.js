@@ -200,18 +200,38 @@ export function shapeToSVG(shape, color, size) {
       return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><polygon points="${starPoints(s)}" fill="${color}" stroke="${stroke}" stroke-width="1"/></svg>`;
     case 'line':
       return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><line x1="1" y1="${c}" x2="${s - 1}" y2="${c}" stroke="${color}" stroke-width="${Math.max(2, Math.round(s / 3))}"/></svg>`;
-    case 'noEntry': {
-      // 進入禁止(⛔)。色の円に白の横棒
-      const bw = (s * 0.6).toFixed(1);
-      const bh = Math.max(2, Math.round(s * 0.18));
-      return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}"><circle cx="${c}" cy="${c}" r="${r}" fill="${color}" stroke="${stroke}" stroke-width="1"/>` +
-        `<rect x="${(s * 0.2).toFixed(1)}" y="${(c - bh / 2).toFixed(1)}" width="${bw}" height="${bh}" rx="${(bh / 4).toFixed(1)}" fill="${stroke}"/></svg>`;
+    case 'noThoroughfare': {
+      // 通行止め(ISO 7010 P004「No thoroughfare」・道路標識「歩行者通行止め」風)。
+      // 白地に色の輪と斜線、中に黒の歩く人。斜線は人の上に重ねる。
+      // 赤丸に白の横棒(⛔)は車両進入禁止の標識と同じ形で誤解されやすいため使わない。
+      // 人の形は 100 四方で設計して輪の内側に収める(小さいサイズでは読めなくてもよい)
+      const glyph = '#111827';
+      const sw = Math.max(2, s * 0.13);          // 輪・斜線の太さ
+      const rr = s / 2 - 1 - sw / 2;             // 輪の中心半径(外側 1px は白の縁)
+      const ri = rr - sw / 2;                    // 輪の内側の半径
+      const k = (ri * 1.7) / 100;
+      const o = c - 50 * k;
+      const q = (x, y) => `${(o + x * k).toFixed(2)},${(o + y * k).toFixed(2)}`;
+      const body =
+        `M${q(52, 31)} L${q(46, 60)} ` +
+        `M${q(50, 36)} L${q(37, 50)} L${q(33, 62)} ` +
+        `M${q(50, 36)} L${q(62, 47)} L${q(72, 51)} ` +
+        `M${q(46, 60)} L${q(58, 76)} L${q(61, 93)} ` +
+        `M${q(46, 60)} L${q(37, 78)} L${q(25, 89)}`;
+      const d = ri * 0.74;
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}">` +
+        `<circle cx="${c}" cy="${c}" r="${(s / 2 - 0.5).toFixed(2)}" fill="${stroke}"/>` +
+        `<circle cx="${c}" cy="${c}" r="${rr.toFixed(2)}" fill="${stroke}" stroke="${color}" stroke-width="${sw.toFixed(2)}"/>` +
+        `<path d="${body}" fill="none" stroke="${glyph}" stroke-width="${(13 * k).toFixed(2)}" stroke-linecap="round" stroke-linejoin="round"/>` +
+        `<circle cx="${(o + 56 * k).toFixed(2)}" cy="${(o + 15 * k).toFixed(2)}" r="${(11 * k).toFixed(2)}" fill="${glyph}"/>` +
+        `<line x1="${(c - d).toFixed(2)}" y1="${(c - d).toFixed(2)}" x2="${(c + d).toFixed(2)}" y2="${(c + d).toFixed(2)}" stroke="${color}" stroke-width="${(sw * 0.9).toFixed(2)}"/></svg>`;
     }
     case 'warning': {
-      // 警戒(⚠ 風)。色の三角に黒の外枠と「!」、その外側に三角に沿った白の縁。
+      // 警戒(日本の道路標識の警戒標識風)。色のひし形に黒の外枠と「!」、その外側にひし形に沿った白の縁。
+      // 利用者に日本人が多いため、国際的な ⚠(三角)ではなく見慣れたひし形にしている。
       // 黄色は地理院地図の等高線(黄土色)・県道(黄色)に溶け込むため、黒枠で輪郭を出し、
       // 白の縁で背景の線から切り離す(丸い下地は通行止めの丸と形が紛れるため使わない)。
-      // 三角は s 四方のまま、縁の分だけ SVG を広げる(アイコンの大きさは shapeBoxSize)。
+      // ひし形は s 四方のまま、縁の分だけ SVG を広げる(アイコンの大きさは shapeBoxSize)。
       // 「!」はフォント差をなくすため文字ではなく棒と点で描く
       const glyph = '#111827';
       const pad = shapeHaloPad(shape, s);
@@ -220,13 +240,13 @@ export function shapeToSVG(shape, color, size) {
       const ring = Math.max(1.5, s * 0.1);      // 黒枠の外に見える白の縁の幅
       const inset = sw / 2 + 0.5;
       const p = (x, y) => `${(x + pad).toFixed(1)},${(y + pad).toFixed(1)}`;
-      const pts = `${p(c, inset)} ${p(s - inset, s - inset)} ${p(inset, s - inset)}`;
+      const pts = `${p(c, inset)} ${p(s - inset, c)} ${p(c, s - inset)} ${p(inset, c)}`;
       const w = Math.max(2, s * 0.11);
       return `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}">` +
         `<polygon points="${pts}" fill="${stroke}" stroke="${stroke}" stroke-width="${(sw + ring * 2).toFixed(1)}" stroke-linejoin="round"/>` +
         `<polygon points="${pts}" fill="${color}" stroke="${glyph}" stroke-width="${sw.toFixed(1)}" stroke-linejoin="round"/>` +
-        `<rect x="${(c - w / 2 + pad).toFixed(1)}" y="${(s * 0.36 + pad).toFixed(1)}" width="${w.toFixed(1)}" height="${(s * 0.28).toFixed(1)}" rx="${(w / 2).toFixed(1)}" fill="${glyph}"/>` +
-        `<circle cx="${c + pad}" cy="${(s * 0.76 + pad).toFixed(1)}" r="${(w * 0.55).toFixed(1)}" fill="${glyph}"/></svg>`;
+        `<rect x="${(c - w / 2 + pad).toFixed(1)}" y="${(s * 0.27 + pad).toFixed(1)}" width="${w.toFixed(1)}" height="${(s * 0.3).toFixed(1)}" rx="${(w / 2).toFixed(1)}" fill="${glyph}"/>` +
+        `<circle cx="${c + pad}" cy="${(s * 0.7 + pad).toFixed(1)}" r="${(w * 0.55).toFixed(1)}" fill="${glyph}"/></svg>`;
     }
     default:
       return shapeToSVG('circle', color, size);
@@ -345,10 +365,10 @@ export function setEmergencyPointsVisible(visible) {
 // ===== 通行止め・通行困難地点(closures) =====
 // データの取得(公開API `/api/closures`)は published-data.js 側が行い、
 // ここでは渡された GeoJSON の描画のみを担う。
-// kind でスタイルを分ける: closed(通行止め)=赤の進入禁止 / difficult(通行困難)=黄色の警戒。
+// kind でスタイルを分ける: closed(通行止め)=赤の通行止め(歩行者通行止め風) / difficult(通行困難)=黄色の警戒。
 // 色・形状は固定で、サイズのみマーカー設定で変更可能(setClosureClosedStyle / setClosureDifficultStyle)。
 const CLOSURE_FALLBACK_STYLES = {
-  closed: { color: '#DC2626', shape: 'noEntry', size: 20 },
+  closed: { color: '#DC2626', shape: 'noThoroughfare', size: 20 },
   difficult: { color: '#FACC15', shape: 'warning', size: 20 }
 };
 // kind → ポップアップ表示名の翻訳キー(表示名は i18n.js の辞書で管理)

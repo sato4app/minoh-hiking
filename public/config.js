@@ -134,8 +134,8 @@ export const MARKER_TYPES = [
     locked: ['shape'], note: 2 },
   { key: 'spot', color: '#1E90FF', shape: 'square', size: 14 },           // スポット
   // 通行止め・通行困難地点(closures)。kind=closed / difficult に対応
-  // 通行止め=進入禁止(赤丸に白の横棒)、通行困難=警戒(黄色の三角に黒の「!」)
-  { key: 'closureClosed', color: '#DC2626', shape: 'noEntry', size: 20,
+  // 通行止め=赤の輪と斜線に歩く人(歩行者通行止め風)、通行困難=警戒(黄色のひし形に黒の「!」)
+  { key: 'closureClosed', color: '#DC2626', shape: 'noThoroughfare', size: 20,
     locked: ['color', 'shape'], note: 1 },
   { key: 'closureDifficult', color: '#FACC15', shape: 'warning', size: 20,
     locked: ['color', 'shape'], note: 1 },
@@ -148,7 +148,7 @@ export const MARKER_TYPES = [
 
 // マーカー形状の選択肢(設定UIのドロップダウン)。
 // 表示名は i18n.js の辞書で管理する(キーは markerShape.<value> で導出)。
-// 形状を変更できない種別だけが使う形状(line / noEntry / warning)は選択肢に含めない。
+// 形状を変更できない種別だけが使う形状(line / noThoroughfare / warning)は選択肢に含めない。
 export const MARKER_SHAPES = ['circle', 'square', 'triangle', 'diamond', 'star'];
 
 // 設定UIのドロップダウンを開いたときに、名称の前に付ける記号(例: ● 円)。
