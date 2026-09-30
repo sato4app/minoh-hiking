@@ -20,6 +20,10 @@ import { t } from './i18n.js';
 let manifest = null;
 let downloadController = null;
 let isDownloading = false;
+// ダウンロードの開始から後処理(version の保存)までの間は true。
+// その間に届いたタイル一覧は pendingManifest に保留し、終わってから差し替える
+let tileJobActive = false;
+let pendingManifest = null;
 // ダウンロードモーダルを開いた時点のキャッシュ済みタイルURL集合。サイズ行の
 // 「更新分」を求めるために使う。全 gsi-* の走査は重いので、モーダルを開いたとき・
 // ダウンロード完了時・クリア時にだけ取り直し、詳細トグルの切替ではこの集合を
@@ -52,8 +56,8 @@ export function initTilesEvents() {
   // 対象レイヤーが変わるとサイズも変わる(キャッシュ済み集合は取り直さない)
   el.downloadDetailRow.hidden = !DOWNLOAD_DETAIL_ENABLED;
   el.toggleDetail.addEventListener('change', updateSizeRow);
-  el.btnUpdateDiff.addEventListener('click', () => startManifestUpdate('diff'));
-  el.btnUpdateAll.addEventListener('click', () => startManifestUpdate('all'));
+  el.btnUpdateDiff.addEventListener('click', () => runTileJob(() => startManifestUpdate('diff')));
+  el.btnUpdateAll.addEventListener('click', () => runTileJob(() => startManifestUpdate('all')));
   el.btnUpdateLater.addEventListener('click', hideUpdateBanner);
   el.btnUpdateClose.addEventListener('click', hideUpdateBanner);
   window.addEventListener('offline', handleOffline);
@@ -61,8 +65,31 @@ export function initTilesEvents() {
 
 // ===== マニフェストの受け取り / バージョン比較 =====
 // 配信データ(published-data.js)から渡される。オフラインでは前回取得分が渡る。
+// 起動時のほか、起動時画面のボタンをタップしたときの更新版の確認でも届く。
+// ダウンロード中に差し替えると、古い一覧で取ったタイルに新しい version を付けて
+// 保存してしまう(以後、更新バナーが出ず不足に気づけない)ため、終わるまで保留する。
 export function setTileManifest(data) {
+  if (tileJobActive) {
+    pendingManifest = data;
+    return;
+  }
   manifest = data;
+}
+
+// ダウンロード(後処理まで)を1件ずつ走らせ、終わったら保留中の一覧へ差し替える
+async function runTileJob(fn) {
+  if (tileJobActive) return;
+  tileJobActive = true;
+  try {
+    await fn();
+  } finally {
+    tileJobActive = false;
+    if (pendingManifest) {
+      manifest = pendingManifest;
+      pendingManifest = null;
+      evaluateManifestVersion();
+    }
+  }
 }
 
 // 現在のマニフェスト version(無ければ null)
@@ -173,7 +200,7 @@ function updatableLayerKeys() {
 }
 
 async function onDownloadMap() {
-  await startDownload(selectedLayerKeys());
+  await runTileJob(() => startDownload(selectedLayerKeys()));
 }
 
 async function startDownload(layerKeys) {

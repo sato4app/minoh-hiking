@@ -32,7 +32,8 @@ import {
   setOnTrackPointAppended, setOnTrackNotice
 } from './geolocation.js';
 import {
-  loadPublishedData, getMapdataVersion, getClosureVersion, getClosureCount
+  loadPublishedData, checkPublishedDataUpdate,
+  getMapdataVersion, getClosureVersion, getClosureCount
 } from './published-data.js';
 import {
   TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC,
@@ -188,7 +189,7 @@ async function init() {
   // タイル一覧の版の確認と履歴への記録は、配信データが揃ってから行う
   // (loadPublishedData の onApplied)。
   // アプリの更新版の確認は起動時には行わず、起動時画面のボタンをタップしたときに行う
-  // (bindEvents)。
+  // (bindEvents)。公開データの更新版は、起動時とボタンのタップ時の両方で確認する。
 
   // 共有地図を初期化(箕面大滝中心 / z=15、ホーム/マップで共通)
   initMap('map');
@@ -206,7 +207,8 @@ async function init() {
   setClosureClosedStyle(markerSettings.closureClosed);
   setClosureDifficultStyle(markerSettings.closureDifficult);
   // 公開API から配信データ(地図データ・通行止め)を取得。キャッシュからの初期描画と、
-  // 更新があったときの再描画で onApplied が呼ばれるため、そのつど表示状態と件数を合わせる。
+  // 更新があったときの再描画(起動時・起動画面のボタンのタップ時の確認)で onApplied が
+  // 呼ばれるため、そのつど表示状態と件数を合わせる。
   loadPublishedData({
     onApplied: () => {
       if (currentView === 'map') {
@@ -305,11 +307,13 @@ function bindEvents() {
   on(el.btnOpenQrCode, 'click', openQrCodeModal);
   // 起動画面の「使い方」ボタンは、アプリの使い方を順に案内するガイドを開く
   on(el.btnOpenGuide, 'click', openGuide);
-  // 起動画面のボタンのどれをタップしても、あわせてアプリの更新版を確認する
-  // (新しい版があれば更新するか尋ねる。確認の回数の制御は update.js 側)。
+  // 起動画面のボタンのどれをタップしても、あわせて更新版を確認する。
+  // - アプリ: 新しい版があれば更新するか尋ねる(確認の回数の制御は update.js 側)
+  // - 公開データ(地図データ・通行止め・タイル一覧): 新しい版があればそのまま取り込んで
+  //   描き直す(published-data.js。反映後の処理は loadPublishedData の onApplied)
   // 各ボタン本来の動作(画面切替・モーダル表示など)はそのまま行う
   for (const btn of el.views.home.querySelectorAll('.home-btn')) {
-    btn.addEventListener('click', checkAppShellUpdate);
+    btn.addEventListener('click', checkForUpdates);
   }
 
   // 言語/Language(設定モーダル): 現在の設定値を表示し、変更時は保存して
@@ -1129,9 +1133,16 @@ async function importTrackGpx(ev) {
   }
 }
 
+// ===== 更新版の確認(起動画面のボタンのタップ時) =====
+// アプリと公開データの更新版を、同じきっかけでまとめて確認する
+function checkForUpdates() {
+  checkAppShellUpdate();
+  checkPublishedDataUpdate();
+}
+
 // ===== 起動時のバージョン確認(履歴記録) =====
 // 起動時に確認したバージョン(地図/アプリ)を履歴に残す
-// onApplied はキャッシュ描画と更新取得で最大2回呼ばれるため、履歴への記録は1回に絞る
+// onApplied はキャッシュ描画と更新取得のつど呼ばれるため、履歴への記録は1回に絞る
 let startupVersionLogged = false;
 function logStartupVersionCheckOnce() {
   if (startupVersionLogged) return;

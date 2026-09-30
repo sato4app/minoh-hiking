@@ -4,10 +4,10 @@
 // MapPublisher が公開API へ送信したものを配信で受け取る。本アプリは GET のみ利用し、
 // 登録・公開は行わない。契約は docs/publish-api-202609.md。
 //
-// 起動フロー(仕様書 §10)。地図データは約 200KB あるため、毎起動のフル取得を避ける:
+// 読み込みの流れ(仕様書 §10)。地図データは約 200KB あるため、毎回のフル取得を避ける:
 //   1. localStorage から保存済み version を読む
 //   2. Cache API の geojson を読んで即描画   ← オフラインでもここまでで表示される
-//   3. GET /api/manifest で version を先読み
+//   3. GET /api/manifest で version を先読み  ← 更新版の確認(checkPublishedDataUpdate)
 //        ├ 失敗(オフライン等) → 終了
 //        ├ version が一致      → 終了(本体を取りに行かない)
 //        └ version が相違 → 4. 本体を GET → 5. Cache API に保存 → 6. 再描画
@@ -15,6 +15,11 @@
 //
 // 手順7を先に行ってはならない。本体の取得・保存に失敗したあとに version だけが進むと、
 // 以後その端末は永久に更新されなくなる。
+//
+// 更新版の確認(手順3以降)は、起動時と、起動時画面のボタンをタップしたときに行う
+// (アプリの更新版の確認と同じきっかけ。app.js の bindEvents)。3種類のデータセット
+// (mapdata / closures / tiles)はどれも同じ扱いで、1回の確認でまとめて調べる。
+// 起動時の1回だけだと、ホーム画面に追加して開いたままの端末は公開に気づけない。
 
 import { setMapdataGeoJSON, setClosureGeoJSON } from './map.js';
 import { setTileManifest } from './tiles.js';
@@ -51,20 +56,53 @@ const DATASETS = {
 // 現在マップに反映されているデータ(未取得は null)
 const active = { mapdata: null, closures: null };
 
+// 地図へ反映するたびに呼ぶ関数(loadPublishedData で受け取る)
+let onAppliedHandler = null;
+// キャッシュからの初期描画の完了待ち(loadPublishedData が始めるまでは null)
+let cachedReady = null;
+// 実行中の更新版の確認(無ければ null)
+let updateChecking = null;
+
 // 起動時の読み込み。onApplied は地図へ反映するたびに呼ぶ
-// (キャッシュからの初期描画と、更新取得後の再描画で最大2回)。
+// (キャッシュからの初期描画と、更新版を取得した後の再描画のつど)。
 export async function loadPublishedData({ onApplied } = {}) {
-  const keys = Object.keys(DATASETS);
+  onAppliedHandler = onApplied || null;
 
   // キャッシュから即描画(前回オンライン時に取得した内容。API に届かなくてもここまでは出る)
-  await Promise.all(keys.map((key) => applyCached(key)));
-  onApplied?.();
+  cachedReady = Promise.all(Object.keys(DATASETS).map((key) => applyCached(key)));
+  await cachedReady;
+  onAppliedHandler?.();
 
-  // version を先読みし、相違するデータセットだけ本体を取りに行く
+  await checkPublishedDataUpdate();
+}
+
+// 公開データの更新版の確認。version を先読みし、相違するデータセットだけ本体を取得して
+// 反映する(確認のための通信は manifest の取得1件)。反映したら true を返す。
+// - 起動時と、起動時画面のボタンをタップしたときに呼ぶ。
+// - 最新だった・取得できなかった(オフライン等)ときは、次に呼ばれたときに確認し直す
+//   (電波の届く場所へ戻った後や、開いたままの間に公開された更新にも気づけるようにする)。
+// - 確認中に続けて呼ばれても、確認は1本しか走らせない。
+// - アプリの更新と違って再読み込みが要らないため、confirm は出さずにそのまま反映する。
+export function checkPublishedDataUpdate() {
+  // キャッシュからの初期描画が始まる前(起動処理の途中)は、起動時の確認に任せる
+  if (!cachedReady) return Promise.resolve(false);
+  if (!updateChecking) {
+    updateChecking = runUpdateCheck().finally(() => { updateChecking = null; });
+  }
+  return updateChecking;
+}
+
+async function runUpdateCheck() {
+  // 初期描画より先に本体を反映すると、後からキャッシュの古い内容で上書きされるため待つ
+  await cachedReady;
   const manifest = await fetchManifest();
-  if (!manifest) return;
-  const updated = await Promise.all(keys.map((key) => refreshIfNeeded(key, manifest[key]?.version)));
-  if (updated.some(Boolean)) onApplied?.();
+  if (!manifest) return false;
+  const updated = await Promise.all(
+    Object.keys(DATASETS).map((key) => refreshIfNeeded(key, manifest[key]?.version))
+  );
+  if (!updated.some(Boolean)) return false;
+  onAppliedHandler?.();
+  return true;
 }
 
 // 現在表示中の地図データのバージョン(未取得は空文字)
@@ -105,7 +143,7 @@ async function refreshIfNeeded(key, publishedVersion) {
   active[key] = result.data;
   ds.apply(result.data);
   // version の保存は取得・保存・描画がすべて済んだ最後に行う。
-  // キャッシュ保存に失敗したときは保存せず、次回起動でもう一度取得させる。
+  // キャッシュ保存に失敗したときは保存せず、次の確認でもう一度取得させる。
   if (result.cached) {
     writeSavedVersion(ds, typeof result.data.version === 'string' ? result.data.version : publishedVersion);
   }
