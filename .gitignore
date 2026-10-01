@@ -1,0 +1,30 @@
+# ノードモジュール
+node_modules/
+
+# ビルド成果物
+dist/
+build/
+# デプロイ時に scripts/gen-shell-revisions.mjs が生成する(コミットしない)
+public/shell-revisions.json
+
+# 環境変数ファイル(vercel env pull で BLOB_READ_WRITE_TOKEN・MAP_PUBLISH_TOKEN が書き出される)
+.env
+.env.*
+
+# Vercel CLI のリンク情報(vercel link で生成)
+.vercel/
+
+# Temporaryファイル
+tmp/
+
+# IDEファイル
+.vscode/
+.idea/
+.claude/
+
+# OS生成ファイル
+.DS_Store
+Thumbs.db
+
+# ログファイル
+*.log
