@@ -68,6 +68,11 @@ function isSelectableShape(shape) {
   return MARKER_SHAPES.includes(shape);
 }
 
+// 保存済みの色が #rrggbb 形式か(色の値は SVG 文字列に埋め込むため、それ以外は既定値へ戻す)
+function isColor(color) {
+  return typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color);
+}
+
 // 保存済み設定を既定値で埋めて返す(初期スタイル適用にも使用)。
 // 変更不可の属性は保存値があっても既定値を使う。
 export function readMarkerSettings() {
@@ -80,7 +85,7 @@ export function readMarkerSettings() {
   for (const m of MARKER_TYPES) {
     const s = saved[m.key] || {};
     merged[m.key] = {
-      color: (!isLocked(m, 'color') && s.color) || m.color,
+      color: (!isLocked(m, 'color') && isColor(s.color) && s.color) || m.color,
       shape: (!isLocked(m, 'shape') && isSelectableShape(s.shape) && s.shape) || m.shape,
       size: Number.isFinite(s.size) ? s.size : m.size
     };

@@ -29,10 +29,15 @@
         crossorigin="" />
   <link rel="stylesheet" href="style.css" />
 
+  <!-- integrity: CDN 側でファイルが差し替えられたら読み込みを止める(SRI)。
+       未対応ブラウザでは無視される。Leaflet の版を変えるときはハッシュも計算し直す -->
   <script type="importmap">
     {
       "imports": {
         "leaflet": "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js"
+      },
+      "integrity": {
+        "https://unpkg.com/leaflet@1.9.4/dist/leaflet-src.esm.js": "sha384-zd+tdvh8fbJAYA8L9jwid1BxMzHku/D6vwnXYzTG7Euqsam73FrDLArv8nyvdlUg"
       }
     }
   </script>
