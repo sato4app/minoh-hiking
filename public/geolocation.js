@@ -1,24 +1,9 @@
-// 現在地表示 + 移動記録(移動経路の記録)モジュール(map.js から分離)
-// Geolocation API による現在地マーカー(青丸)。測位精度(accuracy)を半径とする
-// 精度円は表示しない(大きさが測位状況で変わり、意味が伝わらないため)。
-// 現在地点表示ボタンは、現在地を画面中央へ寄せたうえで現在地点を中心とする
-// 薄い青の円を出し、3秒かけて縮めてから消す(showCurrentLocationSpot)。
-// 監視(watchPosition)は、記録中は常に、それ以外はマップビュー表示中で
-// 「現在地点をマーカー表示」「現在地点は中央に表示」のいずれかが有効なときに動く
-// (refreshLocationWatch が制御)。記録中に起動時画面へ移動しても記録は継続する。
-// マーカー表示は showCurrentMarker、地図追従は followCurrentLocation で切り替える。
-// 地図追従は「現在地点をマーカー表示」も ON のときだけ働く(shouldFollowMap)。
-// マーカーが出ていないのに地図だけが動くと、何に追従しているのかが画面から分からないため。
-// 記録中(startTrackRecording 後)は、位置更新ごとに軌跡(ポリライン + 通過点マーカー)を追加する。
-// 記録点は「20m 以上移動」または「60秒以上経過」で追加するため、その間は経路の先端が
-// 現在地に届かない。そこで最終記録地点から現在地点までを同じスタイルの線でつなぐ。
-// 移動経路(経路)は複数保持できる。1回の記録、および読み込んだGPXの1セグメントが
-// それぞれ1本の経路になり、経路ごとに開始点・終了点のマーカーを持つ。
-// 記録中は画面スリープを防止し(Screen Wake Lock API)、他アプリへの切替などで
-// ページが非表示になった場合は、復帰時に監視の張り直しと現在地の取得を行う。
-// 表示中の経路は変化のたびに端末(IndexedDB)へ保存し、起動時に復元する
-// (最新の1件のみ。→ 「移動経路の保存」の節)。
-// 地図インスタンスは map.js の getMap() を通じて共有する。
+// 現在地表示 + 移動記録(移動経路の記録)モジュール
+// - 現在地マーカー(青丸)と地図の追従。監視の要否は needLocationWatch、追従の条件は shouldFollowMap。
+//   測位精度(accuracy)を半径とする精度円は出さない(大きさが測位状況で変わり、意味が伝わらないため)。
+// - 現在地点表示ボタンの単発表示(showCurrentLocationSpot)。
+// - 移動経路の記録。経路は複数持てる(1回の記録、または読み込んだGPXの1セグメントが1本)。
+//   記録中は画面スリープを防ぎ、起動時画面へ移っても記録を続ける。表示中の経路は端末に保存する。
 import * as L from 'leaflet';
 import { getMap, buildMarkerIcon, ensureMapSize } from './map.js';
 import { saveLatestTrack, loadLatestTrack, clearLatestTrack } from './db.js';
@@ -40,8 +25,7 @@ let followCurrentLocation = true;
 let recenterWithoutAnimation = true;
 // 直近に取得した現在地(トグル切替時の即時反映に使用)
 let lastKnownLatLng = null;
-// 直近の位置を取得した時刻[ms]。監視を止めているあいだ位置は更新されず古くなるため、
-// トグル切替時の即時反映では鮮度を確かめてから使う(isLastFixFresh)
+// 直近の位置を取得した時刻[ms](鮮度の判定は isLastFixFresh)
 let lastKnownAtMs = 0;
 // 直近の位置を「現在地」として即時反映してよい上限。これより古い位置は使わず次の取得を待つ。
 // 監視は両トグル OFF・マップ画面を離れたときに止まるため、再開直後の直近位置は
@@ -626,8 +610,6 @@ function onGeoSuccess(pos) {
     updateRecordingLive(latlng);
   }
 
-  // 「現在地点は中央に表示」ON のとき、現在地が画面中央に来るよう地図を追従させる。
-  // 記録中は起動時画面でも監視が続くため、マップ表示中に限って地図を動かす。
   if (shouldFollowMap()) moveMapToCurrentLocation(latlng);
 }
 
@@ -688,8 +670,7 @@ function removeCurrentMarker() {
 }
 
 // ===== 現在地点表示ボタン(ズームボタンの上)の単発表示(3秒) =====
-// 押すと現在地を画面中央へ寄せ、現在地点を中心とする薄い青の円を出して
-// 3秒かけて縮めてから消す、単発の操作。
+// 押すと現在地を画面中央へ寄せ、現在地点を中心とする薄い青の円を出して3秒かけて縮めてから消す。
 //
 // 円の大きさは地図の縮尺ではなく画面の大きさで決める(地図の短辺に対する割合)。
 // そのため半径をメートルで指定する L.circle ではなく、ピクセルで指定する
@@ -820,11 +801,8 @@ export function setLocationActiveForMapView(active, { onError } = {}) {
   refreshLocationWatch();
 }
 
-// 「現在地点をマーカー表示」トグル。OFF で青丸を消す。
-// ON にした直後は、直近の取得位置が新しければ即座にマーカーを再表示する。
-// 古い位置しか無いときは表示せず次の取得を待つ(実際とは違う地点に青丸を出さない)。
-// このトグルは地図追従の前提でもある(shouldFollowMap)。OFF のあいだは
-// 「現在地点は中央に表示」が ON でも地図は動かず、ON に戻した時点で追従を再開する。
+// 「現在地点をマーカー表示」トグル。OFF で青丸を消す。ON にした直後は、直近の位置が
+// 新しければ(isLastFixFresh)即座に再表示する。地図追従の前提でもある(shouldFollowMap)。
 export function setCurrentMarkerVisible(on) {
   showCurrentMarker = on;
   if (!on) {
@@ -834,9 +812,7 @@ export function setCurrentMarkerVisible(on) {
       showOrUpdateCurrentMarker(lastKnownLatLng);
     }
     // 追従が ON なら、ここで初めて条件がそろう。次の測位を待たずに寄せる
-    // (「現在地点は中央に表示」を ON にしたときと同じ振る舞いにそろえる)。
-    // OFF のあいだは地図を自由に動かせるため現在地が画面外のこともある。
-    // 1回目はアニメ無しで一気に寄せる。
+    // (「現在地点は中央に表示」を ON にしたときと同じ振る舞い)
     if (shouldFollowMap()) {
       recenterWithoutAnimation = true;
       if (isLastFixFresh()) moveMapToCurrentLocation(lastKnownLatLng);
@@ -845,16 +821,11 @@ export function setCurrentMarkerVisible(on) {
   refreshLocationWatch();
 }
 
-// 「現在地点は中央に表示」トグル。
-// ON にした直後は、直近の取得位置が新しければ即座に現在地を中央へ寄せる。
-// 古い位置しか無いときは寄せずに次の取得を待つ。監視は両トグル OFF・マップ画面を
-// 離れているあいだ止まるため、そこへ寄せると現在地から離れた地点が中央に表示されてしまう。
-// ただし「現在地点をマーカー表示」が OFF のあいだは、このトグルを ON にしても地図は
-// 動かない(shouldFollowMap)。マーカーを ON に戻した時点で追従が始まる。
+// 「現在地点は中央に表示」トグル。ON にした直後は、直近の位置が新しければ(isLastFixFresh)
+// 即座に現在地を中央へ寄せる。地図を動かす条件は shouldFollowMap。
 export function setFollowCurrentLocation(on) {
   followCurrentLocation = on;
   if (on) {
-    // 追従を始めてからの1回目はアニメ無しで寄せる(現在地が画面外のこともあるため)
     recenterWithoutAnimation = true;
     if (shouldFollowMap() && isLastFixFresh()) moveMapToCurrentLocation(lastKnownLatLng);
   }

@@ -1,7 +1,6 @@
 // 「ご利用の注意とよくある質問」の文言
-// 設定・情報/Settings & Info のトグルから表示する内容で、**本ファイルがこの文言の正本**。
-// 以前は docs/faq-202609.md にも同じ内容を置いていたが、同じ説明が2か所にあると
-// 片方だけ直して食い違うため、文書は廃止して本ファイルに一本化した(2026-09-06)。
+// 情報・言語/Info & Language の「ご利用の注意とよくある質問」で表示する内容で、**本ファイルがこの文言の正本**。
+// 文言を直すときは必ず本ファイルを直す(docs/i18n-*.md の対比表は、本ファイルから作り直す写し)。
 //
 // 構成:
 //   FAQ_NOTICES  … ご利用の注意(9項目)。1行の要約と、詳しい説明のある質問への参照
@@ -11,7 +10,7 @@
 // (注意側に本文を書くと、また二重管理になる)。
 //
 // 文言は { ja, en } の両方を持つ。en が無いときは ja を出す(faq.js の pick)。
-// 英文中の画面の名前(「設定・情報/Settings & Info」「Record track」など)は、i18n.js の
+// 英文中の画面の名前(「情報・言語/Info & Language」「Record Track」など)は、i18n.js の
 // 英語表記と必ず一致させること。食い違うと、英語表示の利用者が画面上で
 // 該当する項目を見つけられなくなる。
 
@@ -526,8 +525,8 @@ export const FAQ_SECTIONS = [
             en: 'The map is made of tiles from the Geospatial Information Authority of Japan (GSI). The hiking routes, spots, emergency points and closures are created and published by volunteers involved in running this app.'
           },
           {
-            ja: '詳細は「設定・情報/Settings & Info」の「このアプリについて」をご参照ください。',
-            en: 'For details, see "About This App" in 設定・情報/Settings & Info.'
+            ja: '詳細は「情報・言語/Info & Language」の「このアプリについて」をご参照ください。',
+            en: 'For details, see "About This App" in 情報・言語/Info & Language.'
           }
         ]
       },
@@ -539,8 +538,8 @@ export const FAQ_SECTIONS = [
         },
         a: [
           {
-            ja: '「設定・情報/Settings & Info」の「バージョン情報」をオンにすると、アプリバージョン・国土地理院地図タイル・ハイキングマップ・通行止め地点のバージョンと、各データの件数を確認できます。',
-            en: 'Turn on "Version Information" in 設定・情報/Settings & Info to see the versions of the app, the GSI map tiles, the hiking map and the closure data, along with how many items each holds.'
+            ja: '「情報・言語/Info & Language」の「バージョン情報」を開くと、アプリバージョン・国土地理院地図タイル・ハイキングマップ・通行止め地点のバージョンと、各データの件数を確認できます。',
+            en: 'Open "Version Information" in 情報・言語/Info & Language to see the versions of the app, the GSI map tiles, the hiking map and the closure data, along with how many items each holds.'
           }
         ]
       },
@@ -565,8 +564,8 @@ export const FAQ_SECTIONS = [
         },
         a: [
           {
-            ja: 'ホーム画面の「設定・情報/Settings & Info」(日英併記のまま変わりません)を開き、「言語の設定/Language Settings」で「日本語」を選んでください。',
-            en: 'Open 設定・情報/Settings & Info on the start screen (this label stays in both languages) and choose 日本語 under 言語の設定/Language Settings.'
+            ja: '起動時画面の「情報・言語/Info & Language」(日英併記のまま変わりません)を開き、「言語の設定/Language Settings」で「日本語」を選んでください。',
+            en: 'Open 情報・言語/Info & Language on the start screen (this label stays in both languages) and choose 日本語 under 言語の設定/Language Settings.'
           }
         ]
       }

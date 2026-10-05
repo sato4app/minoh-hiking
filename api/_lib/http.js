@@ -12,7 +12,7 @@ export function applyCors(res) {
 }
 
 // 公開トークンの検証。問題があればこの中で応答を返し false を返す。
-// 環境変数は2つのデータセットで共通(MAP_PUBLISH_TOKEN)。
+// 環境変数は全データセットで共通(MAP_PUBLISH_TOKEN)。
 export function requirePublishToken(req, res) {
   const expected = process.env.MAP_PUBLISH_TOKEN;
   if (!expected) {

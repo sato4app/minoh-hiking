@@ -1,10 +1,5 @@
 // 「ご利用の注意とよくある質問」の描画
-// 設定・情報/Settings & Info のトグルを ON にしたとき、faq-text.js の内容を組み立てて表示する。
-//
-// 中身は変わらないので、組み立ては最初の1回だけ行う。
-// よくある質問は、見出しと質問だけを表示し、答えは質問を押したときに開く。
-// トグルを ON にするたびに、開いていた答えを閉じて最初の表示に戻す。
-// 文言は日英の両方を持つ。英語が無い項目は日本語を出す。
+// 情報・言語/Info & Language の「ご利用の注意とよくある質問」を開いたとき、faq-text.js の内容を組み立てて表示する(showFaq)。
 
 import { getLang } from './i18n.js';
 import { FAQ_NOTICES, FAQ_SECTIONS } from './faq-text.js';
@@ -37,10 +32,13 @@ function jumpToQuestion(id) {
   const scroller = item.closest('.modal-body');
   if (scroller) {
     const top = item.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-    // 質問の上に少し余白を残す(枠の上端に貼り付くと見出しと区別しにくい)。
+    // 枠の上端には「ご利用の注意とよくある質問」の見出しが残る(position: sticky)ため、
+    // その下に出す。質問の上に少し余白も残す(貼り付くと見出しと区別しにくい)。
     // なめらかにスクロールさせると、後ろの方の質問では着くまでに1秒以上かかり、
     // 下の色付けが着く前に消えてしまうため、一度で移す
-    scroller.scrollTop = Math.max(0, top - 8);
+    const header = item.closest('.info-item')?.querySelector('.info-disclosure');
+    const headerHeight = header ? header.offsetHeight : 0;
+    scroller.scrollTop = Math.max(0, top - headerHeight - 8);
   }
   // どの質問に移ったか分かるよう、少しの間だけ色を付ける(続けて押しても毎回光らせる)
   question.classList.remove('faq-q-target');
@@ -144,7 +142,7 @@ function buildFaq(container) {
   container.append(buildQuestions());
 }
 
-// 「ご利用の注意とよくある質問」のトグルを ON にしたときに呼ぶ。
+// 「ご利用の注意とよくある質問」を開いたときに呼ぶ。
 // 初回は中身を組み立てる。2回目以降は、開いていた答えを閉じて最初の表示
 // (見出しと質問だけ)に戻す
 export function showFaq(container) {

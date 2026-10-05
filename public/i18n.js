@@ -51,7 +51,7 @@ const DICT = {
   // 起動時画面のボタンは幅を取らないよう短く「QR」とする。
   // QRコードモーダルの見出し(qr.title)は、何を出す画面か分かるよう「QRコード」のまま
   'home.qr': { ja: 'QR', en: 'QR' },
-  // 「設定・情報/Settings & Info」(起動画面のボタン・設定モーダルの見出し)は日英併記の固定文言のため
+  // 「情報・言語/Info & Language」(起動画面のボタン・情報・言語モーダルの見出し)は日英併記の固定文言のため
   // 翻訳キーを持たない(index.html に直接記述し、言語切替でも変えない)
 
   // ----- マップ画面 -----
@@ -184,7 +184,7 @@ const DICT = {
   'download.versionLabel': { ja: '端末の地図データ ⇒ 配信中の最新', en: 'On Device ⇒ Latest Available' },
   'download.notDownloaded': { ja: '未ダウンロード', en: 'Not downloaded' },
   'download.versionUpToDate': { ja: '{version}（最新）', en: '{version} (latest)' },
-  // サイズ行: サイズはダウンロード対象(選択中レイヤー)の総量、更新分はまだ端末に無いタイルの総量。
+  // サイズ行: サイズはダウンロード対象の総量、更新分はまだ端末に無いタイルの総量。
   // 未ダウンロード(サイズ＝更新分)のときはサイズだけを出す
   'download.size': { ja: 'サイズ：約{size}MB', en: 'Size: approx. {size} MB' },
   'download.sizeWithDelta': {
@@ -254,22 +254,15 @@ const DICT = {
   },
   'download.clearFailed': { ja: '削除失敗: {message}', en: 'Failed to delete: {message}' },
 
-  // ----- 設定・情報/Settings & Info モーダル -----
-  // 接頭辞 info. は、「バージョン情報等」モーダルだった頃の名残(キー名は据え置き)。
-  // 2026.9 で「バージョン情報」「設定/Settings」の2モーダルに分けたのち、2026.40 で
-  // バージョン情報を設定/Settings 内のトグルへ移し、再び1つのモーダルに戻った。
-  // 情報表示の項目が多くなったため、2026.41 で「設定・情報/Settings & Info」に改称した。内訳は次のとおり:
-  //   showFaq / showMessages / ariaClearMessages / noMessages /
+  // ----- 情報・言語/Info & Language モーダル -----
+  // 接頭辞 info. は、「バージョン情報等」モーダルだった頃の名残(キー名は据え置き)。内訳:
+  //   faq / messages / ariaClearMessages / noMessages /
   //   about / appName / appNameValue / url / sourceCode / credits / creditsNote / credit*
   //     (クレジットの見出しと役割名は訳す。担当は固有名詞を含むため翻訳対象外で辞書に持たない)
   //     区切りは日本語が全角「：」、英語が半角「:」。URL は語そのものは訳さないが、
   //     区切りを言語に合わせるため辞書に持つ。sourceCode はラベルだけを持ち、値の
   //     「Open Source (GitHub)」は英字だけで日英共通のため辞書に持たない
-  //   versionInfo(トグル名) / 各 version 系 / データ件数系 … バージョン情報
-  // 「起動時にアプリの更新版を確認」(info.startupUpdateCheck)は 2026.40 で廃止した
-  // (更新版の確認は起動時画面のボタンのタップで行う)。
-  // 「時刻を表示」「ズームレベルを表示」は 2026.37 で表示設定パネルへ移したため、
-  // map.toggleClock / map.toggleZoomLevel に改名した(上の map. 群)。
+  //   versionInfo(見出し) / 各 version 系 / データ件数系 … バージョン情報
   'info.versionInfo': { ja: 'バージョン情報', en: 'Version Information' },
   'info.appVersion': { ja: 'アプリバージョン：', en: 'App Version:' },
   'info.mapVersion': { ja: '国土地理院地図タイル：', en: 'GSI Map Tiles:' },
@@ -282,10 +275,10 @@ const DICT = {
   'info.countRoutes': { ja: 'ルート', en: 'Routes' },
   'info.countSpots': { ja: 'スポット', en: 'Spots' },
   'info.countClosures': { ja: '通行止め', en: 'Closures' },
-  'info.showMessages': { ja: 'メッセージ履歴の表示', en: 'Show Message History' },
-  // ご利用の注意とよくある質問(設定・情報/Settings & Info のトグル)。中身の文言は faq-text.js
-  // 開いた中身は「ご利用の注意」の見出しから始まる(全体の見出しは、トグル名と重なるため置かない)
-  'info.showFaq': { ja: 'ご利用の注意とよくある質問', en: 'Notes and FAQ' },
+  'info.messages': { ja: 'メッセージ履歴', en: 'Message History' },
+  // ご利用の注意とよくある質問(情報・言語/Info & Language の見出し)。中身の文言は faq-text.js
+  // 開いた中身は「ご利用の注意」の見出しから始まる(全体の見出しは、この見出しと重なるため置かない)
+  'info.faq': { ja: 'ご利用の注意とよくある質問', en: 'Notes and FAQ' },
   'info.ariaClearMessages': { ja: '履歴を消去', en: 'Clear History' },
   'info.noMessages': { ja: '履歴はありません。', en: 'No messages.' },
   'info.about': { ja: 'このアプリについて', en: 'About This App' },
@@ -356,12 +349,12 @@ const DICT = {
         'Press "Clear" to delete all downloaded map data.'
   },
 
-  'guide.settingsTitle': { ja: '設定・情報/Settings & Info', en: 'Settings & Info' },
+  'guide.settingsTitle': { ja: '情報・言語/Info & Language', en: 'Info & Language' },
   'guide.settingsBody': {
-    ja: 'マーカーと言語の設定、ご利用の注意やバージョン情報などをまとめています。\n' +
+    ja: 'ご利用の注意やバージョン情報などのアプリの情報と、言語の設定をまとめています。\n' +
         '「ご利用の注意とよくある質問」は、山に入る前にお読みください。\n' +
         'ボタン名が日英併記なのは、英語表示のままでも日本語に戻せるようにするためです。',
-    en: 'Marker and language settings, plus notes and FAQ, version information and more.\n' +
+    en: 'Notes and FAQ, version information and other details about the app, plus the language setting.\n' +
         'Please read "Notes and FAQ" before you set off.\n' +
         'The label is in both Japanese and English so you can always switch the language here.'
   },

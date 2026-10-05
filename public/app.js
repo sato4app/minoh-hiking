@@ -13,7 +13,7 @@
 //   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
 //   qrcode.js         … QRコードの生成(外部ライブラリ非依存)
 //   guide.js          … 使い方ガイド(画面を順に案内するオーバーレイ)
-//   faq.js / faq-text.js … ご利用の注意とよくある質問(設定・情報/Settings & Info で表示)
+//   faq.js / faq-text.js … ご利用の注意とよくある質問(情報・言語/Info & Language で表示)
 
 import {
   initMap, resizeMap,
@@ -77,26 +77,25 @@ const el = {
   qrCodeImage: document.getElementById('qrCodeImage'),
   qrCodeUrl: document.getElementById('qrCodeUrl'),
 
-  // 設定モーダル(起動画面の「設定・情報/Settings & Info」から表示)
+  // 情報・言語モーダル(起動画面の「情報・言語/Info & Language」から表示)
   appSettingsModal: document.getElementById('appSettingsModal'),
   languageSelect: document.getElementById('languageSelect'),
-  toggleInfoMessages: document.getElementById('toggleInfoMessages'),
-  toggleInfoFaq: document.getElementById('toggleInfoFaq'),
+  // 押すと下に開く4項目(見出しのボタンと、開く中身)
+  btnInfoFaq: document.getElementById('btnInfoFaq'),
   infoFaqBody: document.getElementById('infoFaqBody'),
   faqContent: document.getElementById('faqContent'),
+  btnInfoMessages: document.getElementById('btnInfoMessages'),
   infoMessagesBody: document.getElementById('infoMessagesBody'),
-  toggleInfoAbout: document.getElementById('toggleInfoAbout'),
-  infoAboutBody: document.getElementById('infoAboutBody'),
-  // バージョン情報(設定モーダル内のトグルで表示)
-  toggleInfoVersion: document.getElementById('toggleInfoVersion'),
+  btnInfoVersion: document.getElementById('btnInfoVersion'),
   infoVersionBody: document.getElementById('infoVersionBody'),
+  btnInfoAbout: document.getElementById('btnInfoAbout'),
+  infoAboutBody: document.getElementById('infoAboutBody'),
   versionManifest: document.getElementById('versionManifest'),
   versionAppShell: document.getElementById('versionAppShell'),
   // 公開データのバージョン表示欄(バージョン情報内)
   versionMapdata: document.getElementById('versionMapdata'),
   versionClosures: document.getElementById('versionClosures'),
   btnClearMessages: document.getElementById('btnClearMessages'),
-  btnOpenMarkerSettings: document.getElementById('btnOpenMarkerSettings'),
 
   // マップ
   btnMapLayers: document.getElementById('btnMapLayers'),
@@ -186,10 +185,7 @@ async function init() {
   await migrateLegacyPackages();
   // ダウンロード済みのタイルがあれば、保存領域の永続化を依頼する(起動を待たせない)
   requestPersistentStorage();
-  // タイル一覧の版の確認と履歴への記録は、配信データが揃ってから行う
-  // (loadPublishedData の onApplied)。
-  // アプリの更新版の確認は起動時には行わず、起動時画面のボタンをタップしたときに行う
-  // (bindEvents)。公開データの更新版は、起動時とボタンのタップ時の両方で確認する。
+  // アプリの更新版の確認は起動時には行わず、起動時画面のボタンをタップしたときに行う(bindEvents)
 
   // 共有地図を初期化(箕面大滝中心 / z=15、ホーム/マップで共通)
   initMap('map');
@@ -238,7 +234,7 @@ async function init() {
 
   // 初期表示はホーム(オーバーレイは非表示のまま)
   showView('home');
-  // 言語変更によるリロード直後なら、設定モーダルを開いた状態に戻す。
+  // 言語変更によるリロード直後なら、情報・言語モーダルを開いた状態に戻す。
   // showView() は開いているモーダルを閉じるため、その後に呼ぶ
   restoreAppSettingsModalAfterReload();
 
@@ -301,7 +297,7 @@ function bindEvents() {
     btn.addEventListener('click', () => showView(btn.dataset.view));
   }
   on(el.btnOpenDownload, 'click', openDownloadModal);
-  // 起動画面の「設定・情報/Settings & Info」ボタンは設定モーダルを表示
+  // 起動画面の「情報・言語/Info & Language」ボタンは情報・言語モーダルを表示
   on(el.btnOpenAppSettings, 'click', openAppSettingsModal);
   // 起動画面の「QR」ボタンは、いま開いている URL の QRコードを表示
   on(el.btnOpenQrCode, 'click', openQrCodeModal);
@@ -316,35 +312,24 @@ function bindEvents() {
     btn.addEventListener('click', checkForUpdates);
   }
 
-  // 言語/Language(設定モーダル): 現在の設定値を表示し、変更時は保存して
+  // 言語/Language(情報・言語モーダル): 現在の設定値を表示し、変更時は保存して
   // リロードし、選択言語で全文言を再表示する。
   // リロードすると起動画面に戻ってしまうため、フラグを立てて再読み込み後に
-  // 設定モーダルを開き直す(操作を続けられるようにする)
+  // 情報・言語モーダルを開き直す(操作を続けられるようにする)
   el.languageSelect.value = getLang();
   on(el.languageSelect, 'change', (e) => {
     setLang(e.target.value);
     try { sessionStorage.setItem(REOPEN_APP_SETTINGS_KEY, '1'); } catch { /* noop */ }
     location.reload();
   });
-  // 設定: 各トグルで内容領域の表示/非表示を切替
-  on(el.toggleInfoMessages, 'change', (e) => {
-    el.infoMessagesBody.hidden = !e.target.checked;
-    if (e.target.checked) renderMessageList();
-  });
-  on(el.toggleInfoAbout, 'change', (e) => {
-    el.infoAboutBody.hidden = !e.target.checked;
-  });
-  // バージョン情報: ON にしたら、その時点の値を反映してから表示する
-  on(el.toggleInfoVersion, 'change', (e) => {
-    el.infoVersionBody.hidden = !e.target.checked;
-    if (e.target.checked) showVersionInfo();
-  });
+  // 情報・言語: 見出しを押すと下に開く/閉じる。第3引数は開いたときの処理
   // ご利用の注意とよくある質問: 初めて開いたときだけ中身を組み立てる。
   // 開くたびに、よくある質問は答えを閉じた最初の表示(見出しと質問だけ)に戻す
-  on(el.toggleInfoFaq, 'change', (e) => {
-    el.infoFaqBody.hidden = !e.target.checked;
-    if (e.target.checked) showFaq(el.faqContent);
-  });
+  bindInfoDisclosure(el.btnInfoFaq, el.infoFaqBody, () => showFaq(el.faqContent));
+  bindInfoDisclosure(el.btnInfoMessages, el.infoMessagesBody, renderMessageList);
+  // バージョン情報: 開いたら、その時点の値を反映する
+  bindInfoDisclosure(el.btnInfoVersion, el.infoVersionBody, showVersionInfo);
+  bindInfoDisclosure(el.btnInfoAbout, el.infoAboutBody);
 
   // モーダル閉じる(各モーダル内の [data-close-modal] が、その親モーダルを閉じる)
   for (const elem of document.querySelectorAll('[data-close-modal]')) {
@@ -352,7 +337,7 @@ function bindEvents() {
       const modal = elem.closest('.modal');
       // フォーカス解除(モバイルのキーボード対策)と用途の破棄は closeModal に集約
       closeModal(modal);
-      // 設定モーダルを閉じた後、現在のビュー状態(マップ画面の戻る/メニュー
+      // マーカーの設定モーダルを閉じた後、現在のビュー状態(マップ画面の戻る/メニュー
       // ボタン等)を正規化して表示崩れを防ぐ
       if (modal && modal.id === 'settingsModal' && currentView === 'map') {
         showView('map');
@@ -507,12 +492,6 @@ function bindEvents() {
     openMarkerSettingsModal();
   });
 
-  // 設定モーダルから「マーカーの設定」モーダルを開く(設定モーダルは閉じる)
-  on(el.btnOpenMarkerSettings, 'click', () => {
-    closeModal(el.appSettingsModal);
-    openMarkerSettingsModal();
-  });
-
   // メッセージ履歴
   on(el.btnClearMessages, 'click', clearMessageLog);
 }
@@ -545,7 +524,7 @@ function setClockVisible(on) {
 
 // ===== データ件数表示 =====
 // 読み込んだポイント/ルート/スポット/通行止めの件数を
-// 設定モーダルの「バージョン情報」内に横一列で反映(未読込は "-")。
+// 情報・言語モーダルの「バージョン情報」内に横一列で反映(未読込は "-")。
 function updateFeatureCounts() {
   const c = getFeatureCounts();
   el.countPoints.textContent = c.points == null ? '-' : String(c.points);
@@ -686,25 +665,45 @@ function showView(name) {
 }
 
 // ===== モーダル =====
-// 設定モーダル(起動画面の「設定・情報/Settings & Info」から表示)。
+// 情報・言語モーダル(起動画面の「情報・言語/Info & Language」から表示)。
 // ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・このアプリについて・
-// マーカーの設定・言語/Language をまとめる。
-// トグルをオフに戻し、内容を閉じる(要素が無い端末でも落ちないようにする)
-function closeInfoToggle(toggle, body) {
-  if (toggle) toggle.checked = false;
-  if (body) body.hidden = true;
+// 言語/Language をまとめる(マーカーの設定はマップ画面メニューから開く)。
+// 4項目は設定ではなく情報の表示なので、スイッチではなく押すと下に開く見出しにしている。
+
+// 見出しのボタンと中身の開閉状態をそろえる(要素が無い端末でも落ちないようにする)
+function setInfoDisclosure(button, body, open) {
+  if (button) button.setAttribute('aria-expanded', open ? 'true' : 'false');
+  if (body) body.hidden = !open;
+}
+
+// 見出しのボタンを押したときの開閉。onOpen は開いたときに呼ぶ
+function bindInfoDisclosure(button, body, onOpen) {
+  on(button, 'click', () => {
+    const open = button.getAttribute('aria-expanded') !== 'true';
+    setInfoDisclosure(button, body, open);
+    if (open) {
+      onOpen?.();
+      return;
+    }
+    // 開いた見出しは本文の上端に残る(CSS の position: sticky)ため、長い中身を読み進めた所で
+    // 閉じると、見出しが本来の位置(本文の上の外)へ戻って見えなくなる。その場合は見出しが
+    // 上端に来るよう本文だけをスクロールし直す(scrollIntoView は画面ごと動かすことがあるため使わない)
+    const scroller = button.closest('.modal-body');
+    if (!scroller) return;
+    const offset = button.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+    if (offset < 0) scroller.scrollTop += offset;
+  });
 }
 
 function openAppSettingsModal() {
-  // 内容を開くタイプのトグル(ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・
-  // このアプリについて)は開くたびに必ずオフへ戻す。開いたままだと、次に設定を開いたときに長い内容が
-  // 広がった状態で始まり、その下にある「マーカーの設定」「言語の設定」までスクロールが必要になるため
-  closeInfoToggle(el.toggleInfoFaq, el.infoFaqBody);
-  closeInfoToggle(el.toggleInfoMessages, el.infoMessagesBody);
-  closeInfoToggle(el.toggleInfoVersion, el.infoVersionBody);
-  closeInfoToggle(el.toggleInfoAbout, el.infoAboutBody);
+  // 4項目は開くたびに必ず閉じた状態へ戻す。開いたままだと、次に開いたときに長い内容が
+  // 広がった状態で始まり、その下にある「言語の設定」までスクロールが必要になるため
+  setInfoDisclosure(el.btnInfoFaq, el.infoFaqBody, false);
+  setInfoDisclosure(el.btnInfoMessages, el.infoMessagesBody, false);
+  setInfoDisclosure(el.btnInfoVersion, el.infoVersionBody, false);
+  setInfoDisclosure(el.btnInfoAbout, el.infoAboutBody, false);
 
-  // 履歴はトグルを開いたときにすぐ見えるよう事前に描画しておく
+  // 履歴は開いたときにすぐ見えるよう事前に描画しておく
   renderMessageList();
 
   el.appSettingsModal.hidden = false;
@@ -729,7 +728,7 @@ function openQrCodeModal() {
   el.qrCodeModal.hidden = false;
 }
 
-// 「言語の設定/Language Settings」の変更でリロードした直後だけ、設定モーダルを
+// 「言語の設定/Language Settings」の変更でリロードした直後だけ、情報・言語モーダルを
 // 開き直す。フラグは一度きりの復元用なので、読み取ったら必ず削除する
 // (以降の通常起動では起動画面のまま)。
 function restoreAppSettingsModalAfterReload() {
@@ -741,7 +740,7 @@ function restoreAppSettingsModalAfterReload() {
   if (shouldReopen) openAppSettingsModal();
 }
 
-// 設定モーダルの「バージョン情報」を ON にしたとき、その時点の値を反映する。
+// 情報・言語モーダルの「バージョン情報」を開いたとき、その時点の値を反映する。
 async function showVersionInfo() {
   el.versionManifest.textContent = getManifestVersion() || t('common.unknown');
   // 公開データ: 現在反映されているデータのバージョン
@@ -756,7 +755,7 @@ async function showVersionInfo() {
   // (オフライン地図を未ダウンロードの場合は saved が無く、対象外)。
   // 新しければ「地図データのダウンロード」からの手動更新を案内する(自動更新はしない)。
   // アプリ本体の更新確認はここでは行わない(起動時画面のボタンのタップで行う。
-  // この画面を開く「設定・情報/Settings & Info」もその1つ)
+  // この画面を開く「情報・言語/Info & Language」もその1つ)
   const savedMap = getSavedManifestVersion();
   const latestMap = getManifestVersion();
   if (savedMap && latestMap && savedMap !== latestMap) {
@@ -824,10 +823,8 @@ async function restoreTrackFromStorage() {
   logHistory(t('track.restored', { summary: formatTrackSummary(stats, 0, 1) }), '');
 }
 
-// 記録地点数・移動距離の統計文言(記録終了時のメッセージに使用)。
-// 移動距離は統計表と同じ小数点以下1位までの表記にそろえる。
-// 経路が複数あるときは、どの経路の統計かが分かるよう「経路 n:」を先頭に付ける。
-// 地点数0(位置が一度も取得できなかった記録)の経路は残らないため番号は付けない。
+// 記録地点数・移動距離の統計文言(履歴・トースト用。距離は統計表と同じ小数点以下1位)。
+// 経路が複数あるときは「経路 n:」を先頭に付ける。地点数0の経路は残らないため番号は付けない。
 function formatTrackSummary(stats, index, total) {
   const km = (stats.distanceM / 1000).toFixed(1);
   const summary = t('track.summary', { points: stats.pointCount, km });
@@ -835,9 +832,8 @@ function formatTrackSummary(stats, index, total) {
   return `${t('track.routeIndex', { n: index + 1 })}: ${summary}`;
 }
 
-// レイヤーパネル内の統計表を現在の記録内容で更新する。経路1本につき1行を出し、
-// 移動距離は小数点以下1位までの km 表記(例: 0.2 (km))。
-// 経路が複数あるときのみ、行の左に「経路 n」を添える(1本以下では付けない)。
+// レイヤーパネル内の統計表を更新する。経路1本につき1行で、経路が複数あるときだけ
+// 行の左に「経路 n」を添える。
 function updateTrackStatsDisplay() {
   const list = getTrackStatsList();
   // 経路が無いときも 0 の行を1行出す(表の枠が消えて見えなくなるのを避ける)
@@ -924,16 +920,12 @@ function startTrackRecordingNow(append) {
   showToast(t('track.started'));
 }
 
-// 移動記録を終了(記録停止/トグルOFF/画面遷移)。記録中だったときのみ、
-// いま記録していた経路の地点数・移動距離を履歴(メッセージ)に出力する。
-// 記録中の経路は常に最後の経路なので、統計の末尾がその経路のもの。
+// 移動記録を終了(記録停止ボタン/トグルOFF)。記録中だったときのみ、いま記録していた経路の
+// 地点数・移動距離を履歴とトーストに出す(記録中の経路は常に最後の経路)。
 // 軌跡が消去される前に統計を取得する必要がある点に注意。
-//
-// stopBy には停止のきっかけとなった操作の文言キーを渡す
-// ('track.stopByButton' / 'track.stopByToggle')。履歴にだけ添えて残し、
-// 「操作していないのに止まっていた」ときにどちらの操作が走ったのか
-// (あるいはどちらも走っていないのか)を後から切り分けられるようにする。
-// トーストは操作直後に本人が見るものなので、従来どおり内訳を付けない。
+// stopBy には停止のきっかけとなった操作の文言キー('track.stopByButton' / 'track.stopByToggle')を
+// 渡し、履歴にだけ添える(「操作していないのに止まっていた」ときの切り分け用。
+// トーストは操作直後に本人が見るものなので付けない)。
 function finishTrackRecording(stopBy) {
   const wasRecording = isTrackRecording;
   const list = getTrackStatsList();

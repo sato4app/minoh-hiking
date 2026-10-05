@@ -630,7 +630,7 @@ body.view-state-map .leaflet-control-container {
 }
 
 /* データ件数(ポイント/ルート/スポット/通行止め):
-   設定・情報/Settings & Info モーダルの「バージョン情報」内に、横一列・中央寄せで表示する。
+   情報・言語/Info & Language モーダルの「バージョン情報」内に、横一列・中央寄せで表示する。
    ラベル行(1行目)+値行(2行目)の2行表・罫線なし。
    margin-left: auto で表を右に寄せ、右余白は info-value の
    padding-right(1.5rem)と同じにして、表の右端を上の info-row の
@@ -1275,7 +1275,7 @@ body.view-state-map .leaflet-control-container {
   font-variant-numeric: tabular-nums;
 }
 
-/* バージョン情報(設定・情報/Settings & Info モーダル内): ラベルを左、値を右寄せに配置 */
+/* バージョン情報(情報・言語/Info & Language モーダル内): ラベルを左、値を右寄せに配置 */
 #infoVersionBody .info-row {
   justify-content: space-between;
   align-items: baseline;
@@ -1305,7 +1305,7 @@ body.view-state-map .leaflet-control-container {
 }
 
 /* 参照先URL: 長い URL は途中でも折り返して枠からはみ出さないようにする
-   (「このアプリについて」は設定・情報/Settings & Info モーダル側にあるため、モーダルを限定しない) */
+   (「このアプリについて」は情報・言語/Info & Language モーダル側にあるため、モーダルを限定しない) */
 .info-value-url {
   overflow-wrap: anywhere;
   word-break: break-all;
@@ -1362,7 +1362,7 @@ body.view-state-map .leaflet-control-container {
   text-underline-offset: 2px;
 }
 
-/* ===== 設定・情報/Settings & Info モーダル: セクション ===== */
+/* ===== 情報・言語/Info & Language モーダル: セクション ===== */
 .info-section {
   padding: 0.5rem 1rem 1rem;
   border-bottom: 1px solid #eee;
@@ -1372,8 +1372,9 @@ body.view-state-map .leaflet-control-container {
   border-bottom: none;
 }
 
-/* 言語/Language の選択行: ラベル左・選択右に配置 */
+/* 言語/Language の選択行: ラベル左・選択右に配置。上の情報の4項目とは区切り線で分ける */
 .language-row {
+  border-top: 1px solid #eee;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1396,26 +1397,70 @@ body.view-state-map .leaflet-control-container {
   background: #fff;
 }
 
-/* 設定モーダル内の画面遷移ボタン(マーカーの設定など)。
-   右寄せにし、右余白は language-row の横パディング(0.75rem)と同じにして
-   下の言語ドロップダウンの右端にボタンの右端を合わせる */
-.settings-link-btn {
-  display: block;
-  margin: 0.5rem 0.75rem 0.25rem auto;
-  padding: 0.45rem 0.9rem;
-  font: inherit;
-  border: 1px solid #1d4ed8;
+/* 押すと下に開く4項目(ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・このアプリについて)。
+   設定ではなく情報の表示なので、スイッチではなく開閉の印(下向き / 上向き)の付いた見出しにする。
+   よくある質問の質問(.faq-q)も同じ形の印で開閉するため、こちらは文字を大きくし、項目の間に
+   区切り線を入れて、外側の見出しだと分かるようにする */
+.info-item + .info-item {
+  border-top: 1px solid #eee;
+}
+
+.info-disclosure {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  border-radius: 0;
   background: #fff;
-  color: #1d4ed8;
-  border-radius: 6px;
+  font: inherit;
+  color: #222;
+  text-align: left;
   cursor: pointer;
 }
 
-.settings-link-btn:hover {
-  background: #eef2ff;
+.info-disclosure-text {
+  flex: 1;
+  min-width: 0;
 }
 
-/* トグルで開閉する内容領域 */
+.info-disclosure::after {
+  content: '';
+  flex-shrink: 0;
+  width: 0.55rem;
+  height: 0.55rem;
+  margin: -0.25rem 0.15rem 0 0;
+  border-right: 2px solid #666;
+  border-bottom: 2px solid #666;
+  transform: rotate(45deg);
+}
+
+/* 開いている見出し。長い中身(よくある質問)を読み進めても、その場で閉じられるよう
+   本文(.modal-body)の上端に残す。残る範囲は .info-item の中だけ(次の項目の見出しは押し上げない)。
+   sticky は本文の内側の余白(.modal-body の padding-top 0.5rem)の下で止まり、その隙間から中身が
+   透けて見えるため、余白の分だけ上で止める */
+.info-disclosure[aria-expanded="true"] {
+  position: sticky;
+  top: -0.5rem;
+  z-index: 1;
+  background: #eef6f1;
+  font-weight: 600;
+}
+
+.info-disclosure[aria-expanded="true"]::after {
+  margin-top: 0.3rem;
+  transform: rotate(-135deg);
+}
+
+.info-disclosure:focus-visible {
+  outline: 2px solid #1f7a4d;
+  outline-offset: -2px;
+}
+
+/* 見出しで開閉する内容領域 */
 .info-collapse {
   padding: 0.25rem 0 0.5rem;
 }
@@ -1424,7 +1469,7 @@ body.view-state-map .leaflet-control-container {
   display: none;
 }
 
-/* ===== ご利用の注意とよくある質問(設定・情報/Settings & Info のトグルから表示) ===== */
+/* ===== ご利用の注意とよくある質問(情報・言語/Info & Language から表示) ===== */
 /* 中身は faq.js が faq-text.js から組み立てる。分量が多いため、
    見出し・質問・答えの区別を色と余白ではっきり付け、拾い読みできるようにする */
 /* 「ご利用の注意」と、質問のまとまりの見出し */
@@ -1556,7 +1601,7 @@ body.view-state-map .leaflet-control-container {
   padding: 0.5rem 1.5rem;
 }
 
-/* 「設定・情報/Settings & Info」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
+/* 「情報・言語/Info & Language」モーダル内のメッセージ履歴: 高さを抑えてスクロール表示 */
 .info-collapse .message-list {
   flex: none;
   max-height: 240px;

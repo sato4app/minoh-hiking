@@ -4,7 +4,7 @@
 
 import { head, put, copy } from '@vercel/blob';
 
-// 採番の基準・GET /api/manifest の実体
+// 公開中の version 等の一覧(重複公開の判定と GET /api/manifest の実体)
 export const MANIFEST_PATH = 'manifest.json';
 
 const GEOJSON_CONTENT_TYPE = 'application/geo+json';
@@ -57,7 +57,7 @@ export async function copyBlob(from, to, contentType = GEOJSON_CONTENT_TYPE) {
 }
 
 // manifest.json を読む。未作成・取得失敗・壊れた JSON は空オブジェクト
-// (採番は「パースできなければ n=1 から」で復旧する)
+// (公開は止めない。次の公開で書き直され、それまで GET /api/manifest は本体から復元する)
 export async function readManifest() {
   const data = await readBlobJSON(MANIFEST_PATH);
   return (data && typeof data === 'object') ? data : {};

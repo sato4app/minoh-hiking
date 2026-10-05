@@ -2,14 +2,14 @@
 //
 // Service Worker の install は、この一覧と「前回インストール時の一覧」を突き合わせ、
 // 内容が変わっていないファイルを旧キャッシュから複製する(ネットワークに出ない)。
-// これが無いと、SHELL_CACHE を上げるたびにシェル全 25 件を取り直すことになり、
+// これが無いと、SHELL_CACHE を上げるたびにシェル全件を取り直すことになり、
 // 弱電波では更新直後の起動がそのぶん待たされる。
 //
 // 実行タイミング: デプロイ時に自動実行する(手で書き換える一覧ではない)。
 //   - Vercel        : vercel.json の buildCommand
 //   - GitHub Pages  : .github/workflows/pages.yml のステップ
 // ローカル配信(python -m http.server 等)では未生成のことがあるが、その場合
-// Service Worker は従来どおり全件をネットワークから取り直すだけで、動作は壊れない。
+// Service Worker は全件をネットワークから取り直すだけで、動作は壊れない。
 //
 // 対象は service-worker.js の SHELL_LOCAL_PATHS から読み取るため、
 // シェルにファイルを足したときにこのスクリプトを直す必要はない。

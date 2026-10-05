@@ -1,11 +1,7 @@
 // 【廃止予定】通行止め・通行困難地点(closures)モジュール(表示専用)
-//
-// 公開データの取得は published-data.js に統合した(地図データと共通の version ゲート方式)。
-// このファイルは現行のアプリからは読み込まれない。端末に残った旧 index.html / 旧 app.js が
-// 参照して 404 になるのを避けるため、1リリース分だけ残す(削除は同梱 geojson と同時に行う)。
-//
-// - 起動時に公開API(GET /api/closures)から最新データを取得し、地図へ反映する
-// データの登録・公開は本アプリでは行わない(外部の運用アプリが公開APIへ送信する)。
+// 現行のアプリからは読み込まれない(公開データの取得は published-data.js に統合した)。
+// 端末に残った旧版の app.js が import するため残している
+// (消してよい時期は service-worker.js の SHELL_LOCAL_PATHS の注)。
 
 import { setClosureGeoJSON } from './map.js';
 import { CLOSURE_API_URL } from './config.js';
@@ -13,9 +9,7 @@ import { CLOSURE_API_URL } from './config.js';
 // 現在マップに反映されている closures データ(未取得は null)
 let activeClosureData = null;
 
-// 廃止した編集・公開機能が運用端末の localStorage に残した値の後始末。
-// 公開トークンは秘密情報のため確実に消す(反映データも参照されなくなったため削除)。
-// この処理は一度きりで良いため、次のリリースで取り除く。
+// 廃止した編集・公開機能が運用端末の localStorage に残した値の後始末(公開トークンは秘密情報)
 try {
   localStorage.removeItem('minoh-hiking.closure-publish-token');
   localStorage.removeItem('minoh-hiking.closure-data');

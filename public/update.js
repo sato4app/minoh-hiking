@@ -46,10 +46,8 @@ let appShellUpdatePromptShown = false;
 let appShellUpdateChecking = false;
 export async function checkAppShellUpdate() {
   if (appShellUpdatePromptShown || appShellUpdateChecking) return;
-  // アプリ更新による再読み込みの直後は、同じ更新確認を再表示しない(1回で十分)。
-  // updateAppToLatest() は SW の切替完了を待たずに再読み込みするため、切替が
-  // 間に合わないと再読み込み後もバージョンが不一致に見え、confirm が二重に出る。
-  // フラグが立っていればこのセッションの確認はスキップし、フラグは消費する。
+  // アプリ更新による再読み込みの直後は確認しない。updateAppToLatest() は SW の切替完了を
+  // 待たずに再読み込みするため、切替が間に合わないと版が不一致に見え、confirm が二重に出る。
   try {
     if (sessionStorage.getItem(APP_UPDATED_FLAG_KEY) === '1') {
       sessionStorage.removeItem(APP_UPDATED_FLAG_KEY);
@@ -126,7 +124,7 @@ function waitForNewWorker(reg, timeoutMs) {
 }
 
 // 更新版のダウンロード完了を待つ。service-worker.js の install は
-// アプリシェル一式(HTML/CSS/JS・CDN・GeoJSON)をキャッシュしてから終わるため、
+// アプリシェル一式(HTML/CSS/JS・CDN・アイコン)をキャッシュしてから終わるため、
 // state が installed 以降になった時点でダウンロードは完了している。
 // 失敗(redundant)・タイムアウト時も解決し、呼び出し側は再読み込みへ進む。
 function waitForWorkerInstalled(worker, timeoutMs) {

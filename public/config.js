@@ -1,6 +1,4 @@
-// アプリ設定のデフォルト値・共有定数。
-// 変更可能な設定は localStorage に保存され、次回起動時はその値が優先される。
-// (このファイルは defaults を提供するだけで、永続化は各モジュール側で行う)
+// アプリ設定の既定値・共有定数。永続化(localStorage)は各モジュール側で行う。
 
 // ===== localStorage キー(全モジュール共通) =====
 export const MARKER_SETTINGS_KEY = 'minoh-hiking.marker-settings';
@@ -9,47 +7,34 @@ export const MARKER_SETTINGS_KEY = 'minoh-hiking.marker-settings';
 export const MARKER_SETTINGS_REV_KEY = 'minoh-hiking.marker-settings-rev';
 export const VERSION_STORAGE_KEY = 'minoh-hiking.tile-manifest-version';
 export const MESSAGE_LOG_KEY = 'minoh-hiking.message-log';
-// 移動記録の実行中フラグ。記録開始で立て、停止操作で降ろす。
-// 起動時に立ったまま残っていれば、前回は停止操作を経ずに終わった(アプリの
-// 再読み込み・破棄・強制終了)ことになるため、その旨を履歴に残す手がかりに使う。
+// 移動記録の実行中フラグ。記録開始で立て、停止操作で降ろす。起動時に立ったまま残っていれば、
+// 前回は停止操作を経ずに終わった(再読み込み・破棄・強制終了)ため、その旨を履歴に残す。
 export const TRACK_RECORDING_FLAG_KEY = 'minoh-hiking.track-recording';
-// 表示言語(「言語/Language」ドロップダウン)。'ja'(日本語・既定) / 'en'(English)。
-// 読み書きと文言の切替は i18n.js(getLang/setLang/t/applyStaticTranslations)が担う。
+// 表示言語。'ja'(日本語・既定) / 'en'(English)。読み書きは i18n.js が担う。
 export const LANGUAGE_KEY = 'minoh-hiking.language';
-// 移動経路のGPX出力で使った連番。{ date: 'yyyymmdd', seq: n } の JSON で保存し、
-// 同日の次回出力ではデフォルトの連番を +1 して提示する(日付が変われば 01 に戻る)。
+// 移動経路のGPX出力で使った連番。{ date: 'yyyymmdd', seq: n } の JSON(同日の次回は +1 を提示)。
 export const TRACK_EXPORT_SEQ_KEY = 'minoh-hiking.track-export-seq';
-// 「使い方」ガイドを一度でも開いたかどうか。初回起動時だけ自動で表示するために使う
-// (2回目以降は起動画面の「使い方」ボタンから開く)。保存できない環境では
-// 「開いた」扱いとし、起動のたびに自動表示されないようにする。
+// 「使い方」ガイドを一度でも開いたかどうか(初回起動時だけ自動表示するために使う)。
 // ガイドの内容を変えても、キー名は変えないこと(変えると、アプリを更新した全端末で
 // 再び自動表示される。自動表示は初回の1度だけで、更新では出さない決まり)。
 export const GUIDE_SEEN_KEY = 'minoh-hiking.guide-seen';
 // マップのメニュー(表示設定パネル)のトグルの状態。{ <トグルの id>: true/false } の JSON。
-// 切り替えるたびに保存し、起動時に戻す(再起動・アプリの更新・言語切替の再読み込みでも前回のまま)。
-// 保存が無い・読めないトグルは HTML の初期値(移動経路を記録のみ OFF)で始める。
+// 保存が無い・読めないトグルは HTML の初期値で始める。
 export const MAP_TOGGLES_KEY = 'minoh-hiking.map-toggles';
 
 // ===== sessionStorage キー =====
-// アプリ更新(updateAppToLatest)による再読み込み直後であることを示すフラグ。
-// 再読み込み前にセットし、再読み込み後の最初の更新確認(起動時画面のボタンの
-// タップ)で同じ更新確認を再表示しないために使う。SW の切替が未完了でも二重に
-// confirm を出さない。sessionStorage なのでタブを閉じるまで有効(次回の本当の
-// 起動では再度確認する)。
+// アプリ更新による再読み込み直後であることを示すフラグ。SW の切替が未完了で版が不一致に
+// 見えても、再読み込み後の最初の更新確認で同じ confirm を二重に出さないために使う。
 export const APP_UPDATED_FLAG_KEY = 'minoh-hiking.app-updated';
 
-// 「言語の設定/Language Settings」の変更による再読み込み直後であることを示すフラグ。
-// 言語切替はリロード方式のため、そのままでは起動画面に戻ってしまう。再読み込み前に
-// セットし、起動時に読み取って設定モーダルを開き直す(読んだら即削除する)。
+// 言語の変更による再読み込み直後であることを示すフラグ。そのままでは起動画面に戻って
+// しまうため、起動時に読み取って情報・言語モーダルを開き直す(読んだら即削除する)。
 export const REOPEN_APP_SETTINGS_KEY = 'minoh-hiking.reopen-app-settings';
 
 // ===== 公開API(Vercel Function + Blob) =====
-// 地図データ(ポイント・ルート・スポット)と通行止め・通行困難地点は、外部の運用アプリ
-// MapPublisher が公開したものを配信で受け取る。本アプリは表示専用のため GET のみ利用する。
-// 契約は docs/publish-api-202609.md(契約バージョン 2.0)。
-// 公開ストアは Vercel 側にあるため、GitHub Pages 版アプリからは Vercel 本番の
-// 絶対 URL を参照して同じデータソースに一本化する(API 側で CORS 許可済み)。
-// Vercel・ローカル(vercel dev)では同一オリジンの相対パスで良い。
+// 地図データと通行止めは、外部の運用アプリ MapPublisher が公開したものを受け取る(GET のみ)。
+// 仕様は docs/publish-api-202609.md。公開ストアは Vercel 側にあるため、GitHub Pages 版からは
+// Vercel 本番の絶対 URL を参照する(API 側で CORS 許可済み)。
 const PUBLISH_API_ORIGIN = 'https://minoh-hiking.vercel.app';
 const PUBLISH_API_BASE = location.hostname.endsWith('github.io')
   ? `${PUBLISH_API_ORIGIN}/api`
@@ -62,8 +47,7 @@ export const CLOSURE_API_URL = `${PUBLISH_API_BASE}/closures`;
 // version 判定は他の2つとまったく同じ仕組みに乗せる(published-data.js)
 export const TILES_API_URL = `${PUBLISH_API_BASE}/tiles`;
 
-// 公開データの保存先(Cache API)と、表示済み version の保存キー(localStorage)。
-// キャッシュは Service Worker ではなくアプリ側(published-data.js)が管理する。
+// 公開データの保存先(Cache API。SW ではなく published-data.js が管理)と、表示済み version のキー。
 export const MAPDATA_CACHE = 'mapdata-cache';
 export const CLOSURE_CACHE = 'closures-cache';
 export const TILES_CACHE = 'tiles-cache';
@@ -76,8 +60,7 @@ export const CLOSURES_VERSION_KEY = 'minoh-hiking.closures-version';
 export const TILES_VERSION_KEY = 'minoh-hiking.tiles-version';
 
 // ===== 地理院タイル =====
-// タイルキャッシュ名は `gsi-{version}` 形式(version は公開API のタイル一覧から)。
-// 旧 version のキャッシュは保持し、SW・アプリ双方で全 gsi-* を横断参照する。
+// タイルキャッシュ名は `gsi-{version}`。旧 version のキャッシュも保持し、全 gsi-* を横断参照する。
 export const TILE_CACHE_PREFIX = 'gsi-';
 export const TILE_URL_BASE = 'https://cyberjapandata.gsi.go.jp/xyz/std';
 
@@ -103,10 +86,8 @@ export const TILE_AVG_KB_BY_Z = {
 export const TILE_AVG_KB_FALLBACK = 10.3;
 
 // ===== アプリ更新制御(update.js) =====
-// アプリの更新版(アプリシェル一式)のダウンロード完了を待つ上限(ミリ秒)。
-// ダウンロード中は全画面オーバーレイで操作を受け付けないため、通信が極端に遅い・
-// 途切れた場合に待ち続けないよう上限を設ける(超えたら待たずに再読み込みする。
-// 未取得分はオンライン時に自動で取得される)。
+// アプリの更新版のダウンロード完了を待つ上限(ミリ秒)。待つ間は全画面オーバーレイで操作を
+// 受け付けないため、通信が途切れても待ち続けないよう上限を設ける(超えたら再読み込みする)。
 export const APP_UPDATE_DOWNLOAD_TIMEOUT_MS = 90000;
 // 更新要求後に新しい Service Worker(ダウンロードの実行役)が現れるのを待つ上限。
 export const APP_UPDATE_WORKER_WAIT_MS = 5000;
@@ -119,8 +100,7 @@ export const DOWNLOAD_DETAIL_ENABLED = false;
 // ===== メッセージ履歴 =====
 export const MESSAGE_LOG_MAX = 100;
 
-// 画面に表示するトースト(一時メッセージ)の表示秒数。
-// 移動記録の開始・終了時などに表示し、この秒数で自動的に閉じる。
+// トースト(一時メッセージ)の表示秒数
 export const TOAST_DURATION_SEC = 3;
 
 // マーカー設定の対象種別と既定値。

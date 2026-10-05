@@ -1,31 +1,10 @@
-// Service Worker
-// - gsi-{version}: 地理院標準地図タイル(明示ダウンロードでのみ書込)
-//   {version} は公開API から受け取ったタイル一覧の version を埋め込む。
-//   旧 version のキャッシュは自動削除しない(ユーザーがDL済みのタイル資産を保持)。
-// - app-shell-vN: アプリシェル(HTML/CSS/JS、CDN、アイコン)。
-//
-// 公開API(/api/*)は横取りしない。地図データ・通行止め・タイル一覧の取得とキャッシュは
-// アプリ側(published-data.js)が version を見て制御する。SW はアプリシェルと
-// 地理院タイルのみを担当する。
-//
-// タイルはキャッシュ優先(あれば返す、無ければネット取得・自動キャッシュしない)。
-// 全 gsi-* キャッシュを横断検索するため、version 変更後も旧タイルは引き続き利用可能。
-//
-// アプリシェルの取得戦略:
-// - 同一オリジン(HTML/CSS/JS 等): stale-while-revalidate(キャッシュ即返し+裏で
-//   ネット更新)。高速・弱電波に強く、オンライン時は次回読み込みで最新化される。
-//   新バージョンの明示更新は、アプリ側の「起動時画面のボタンをタップしたときの更新確認」
-//   (SHELL_CACHE 比較→confirm→再読み込み)が担う。
-// - CDN(Leaflet 等の安定資産): cache-first(高速・通信節約)。
-//
-// SHELL_CACHE を上げたときの install は、shell-revisions.json(デプロイ時に
-// scripts/gen-shell-revisions.mjs が生成する内容ハッシュ一覧)を見て、
-// 内容が変わっていないファイルを旧キャッシュから複製する(ネットワークに出ない)。
-// 一覧を取得できたキャッシュは「デプロイ時の内容と一致する」ことが確認済みなので、
-// 上記 stale-while-revalidate の裏取得も省く(毎起動の全件再検証が無駄なため)。
-// 一覧が無い環境(ローカル配信など)では、従来どおり全件取得 + 裏取得で動作する。
+// Service Worker。担当はアプリシェルと地理院タイルだけ。
+// - gsi-{version}: 地理院標準地図タイル(明示ダウンロードでのみ書込)。{version} はタイル一覧の
+//   version。旧 version のキャッシュは自動削除しない(利用者がDL済みのタイルを保持する)。
+// - app-shell-{日付}.{連番}: アプリシェル(HTML/CSS/JS、CDN、アイコン)。取得戦略は handleShellRequest。
+// 公開API(/api/*)は横取りしない。取得とキャッシュはアプリ側(published-data.js)が version を見て行う。
 
-const SHELL_CACHE = 'app-shell-2026-10-01.2';
+const SHELL_CACHE = 'app-shell-2026-10-05.4';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 
@@ -80,20 +59,8 @@ const SHELL_LOCAL_PATHS = [
 //   - closures.js                … 公開データ取得を published-data.js に統合する前の版
 //   - orientation.js             … 現在地点表示ボタンで方角(扇形)を出していた版の app.js が
 //                                  import している。方角は示す向きが安定しないため 2026-09-04 に廃止した
-// なお起動画像の元データ(LibreOffice Draw の .odg)は public/ ではなく assets/ に置く。
-//   public/ は Vercel の outputDirectory で全ファイルが配信されるため、
-//   配信不要の作業用ファイルは入れない。差し替えと再変換の手順は
-//   docs/deployGuide-202609.md の 5.3 を参照。
-// 注2: public/data/ は 2026-08-23 に廃止した(tile_manifest.json / tile_buffers.geojson を削除)。
-//   タイル一覧は公開API 配信に移したため、現行シェルは参照しない。移行前のシェルを
-//   キャッシュしたままの端末は旧 tiles.js が 404 を受けるが、取得失敗のメッセージが
-//   出るだけで起動と表示は続く(影響は「地図データのダウンロード」画面に限られる)。
-//   tile_buffers.geojson はどのシェルからも参照されていなかった。
-// 注3: data/minoh-emergency-points.geojson / data/minoh-hiking-routes-spots.geojson
-//   (公開API 配信に移行する前の同梱データ)は 2026-08-20 に削除した。旧シェルを
-//   キャッシュしたままの端末が旧 app.js から取得を試みると 404 になるが、旧 app.js は
-//   取得失敗を warn するだけで表示は続行するため、影響は地図データが出ないことに留まる。
-//   アプリ更新を通せば公開API から取得するようになる。
+// なお起動画像の元データ(.odg)は public/ ではなく assets/ に置く(public/ は全ファイルが
+//   配信されるため)。差し替えの手順は docs/deployGuide-202609.md の 5.3。
 
 // 外部CDN(完全URL一致で判定)
 const SHELL_CDN_URLS = [
@@ -106,9 +73,10 @@ const SHELL_CDN_URLS = [
 
 const SHELL_ASSETS = [...SHELL_LOCAL_PATHS, ...SHELL_CDN_URLS];
 
-// インストール: アプリシェルをキャッシュ。
-// 内容が変わっていないファイルは旧キャッシュから複製し、ネットワークには出ない。
-// (バージョンを上げただけでシェル全件を取り直すと、弱電波では更新直後の起動が待たされる)
+// インストール: アプリシェルをキャッシュ。内容が変わっていないファイルは、shell-revisions.json
+// (デプロイ時に scripts/gen-shell-revisions.mjs が生成する内容ハッシュ一覧)と照らして
+// 旧キャッシュから複製し、ネットワークには出ない(全件を取り直すと、弱電波では更新直後の起動が
+// 待たされる)。一覧が無い環境(ローカル配信など)では全件を取得する。
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
@@ -161,7 +129,7 @@ function canReuse(url, revisions, previousRevisions) {
   return !!now && now === previousRevisions[url];
 }
 
-// 今回デプロイされた内容ハッシュ一覧。取得できなければ null(従来どおり全件取得になる)
+// 今回デプロイされた内容ハッシュ一覧。取得できなければ null(全件取得になる)
 async function fetchRevisions() {
   try {
     const res = await fetch(REVISIONS_URL, { cache: 'no-store' });
@@ -283,7 +251,7 @@ async function handleTileRequest(req) {
   try {
     return await fetch(req);
   } catch {
-    // オフラインで未キャッシュ: 透明な空PNGを返す(地図に大穴が空くより親切)
+    // オフラインで未キャッシュ: 空の 504 を返す(Leaflet はそのタイルを描かないだけ)
     return new Response('', { status: 504, statusText: 'Tile not cached and offline' });
   }
 }
@@ -302,12 +270,10 @@ function stripRedirect(response) {
 }
 
 // アプリシェルの取得。
-// - swr=true(同一オリジンのシェル): stale-while-revalidate。
-//   キャッシュを即返して高速・弱電波に強く、裏でネット取得して次回用に更新する。
-//   ただし install で内容一致を確認済み(REVISIONS_KEY あり)のキャッシュでは裏取得を省く。
-//   バージョン更新の検知と適用は、いずれの場合もアプリ側の
-//   「起動時画面のボタンをタップしたときの更新確認」(SHELL_CACHE 比較→confirm)が担う。
-// - swr=false(CDN 等の安定資産): cache-first(高速・通信節約)。
+// - swr=true(同一オリジンのシェル): stale-while-revalidate。キャッシュを即返し、裏でネット取得して
+//   次回用に更新する。install で内容一致を確認済み(REVISIONS_KEY あり)のキャッシュでは裏取得を省く。
+//   新版の検知と適用は、アプリ側の更新確認(update.js。SHELL_CACHE 比較→confirm)が担う。
+// - swr=false(CDN 等の安定資産): cache-first。
 async function handleShellRequest(event, { swr = false } = {}) {
   const req = event.request;
   const cache = await caches.open(SHELL_CACHE);
@@ -316,8 +282,7 @@ async function handleShellRequest(event, { swr = false } = {}) {
   const cached = await cache.match(req, { ignoreSearch: true });
 
   if (swr) {
-    // install で内容一致を確認済みのキャッシュは、再検証せずそのまま返す。
-    // (毎起動でシェル全件を再検証すると、弱電波では往復のぶんだけ遅くなる)
+    // 確認済みのキャッシュは再検証しない(毎起動で全件を再検証すると、弱電波では遅くなる)
     if (cached && await isShellVerified()) return stripRedirect(cached);
     // 裏でネット取得→キャッシュ更新(失敗時は null)。SW が早期終了しないよう待機登録。
     const networkUpdate = fetch(req)

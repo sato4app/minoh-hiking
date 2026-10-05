@@ -94,7 +94,7 @@ function checkPosition(pos, label) {
 // ===== タイルマニフェスト(tiles)の検証 =====
 // GeoJSON ではないため専用の検証を持つ(仕様書 §6.4)。
 // 構造: { version?, source?, layers: { <キー>: { z, tile_count?, tiles: [[x, y], ...] } } }
-// version / updatedAt はサーバーが採番・付与するため、ここでは検証しない。
+// version は publish.js が検証し、updatedAt はサーバーが付与するため、ここでは検証しない。
 
 const ZOOM_RANGE = [10, 18];   // アプリの minZoom / maxZoom に合わせる
 

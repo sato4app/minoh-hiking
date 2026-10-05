@@ -1,5 +1,5 @@
 // データセット1本ぶんの公開エンドポイント(GET 配信 / POST 公開)の共通実装。
-// 仕様: docs/publish-api-202609.md(契約バージョン 3.0)— 本書が正本。
+// 仕様: docs/publish-api-202609.md — 本書が正本。
 //
 // ⚠ POST は外部の運用アプリ MapPublisher(別リポジトリ)から呼ばれている。
 //   検証・レスポンスを変えるときは仕様書の契約バージョンを更新し、
@@ -61,7 +61,7 @@ async function handlePost(dataset, req, res) {
 
   const manifest = await readManifest();
 
-  // version は送信側が決める(契約 3.0 §4)。サーバーは形式と重複だけを見る。
+  // version は送信側が決める(仕様書 §4)。サーバーは形式と重複だけを見る。
   const version = req.body?.version;
   if (!isValidVersion(version)) {
     res.status(400).json({

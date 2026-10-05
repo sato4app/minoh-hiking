@@ -52,7 +52,7 @@
   <!-- 一時メッセージ(トースト): 移動記録の開始・終了時などに表示し自動で閉じる -->
   <div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
 
-  <!-- 全ビュー共通の固定トップエリア(オンライン状態 + マニフェスト更新バナー) -->
+  <!-- 地図タイルの更新バナー(全ビュー共通の上部に固定。tiles.js が表示を制御) -->
   <div id="updateBanner" class="update-banner" hidden role="status" aria-live="polite">
     <div class="update-banner-message" id="updateBannerMessage"></div>
     <div class="update-banner-actions">
@@ -63,8 +63,8 @@
     </div>
   </div>
 
-  <!-- 初期画面(ホーム)。メニューのどのボタンをタップしても、あわせてアプリの
-       更新版を確認する(app.js → update.js の checkAppShellUpdate) -->
+  <!-- 初期画面(ホーム)。メニューのどのボタンをタップしても、あわせてアプリと公開データの
+       更新版を確認する(app.js の checkForUpdates) -->
   <section class="view view-home" id="viewHome">
     <img class="home-image" src="icons/Startup-1024x1836.webp" alt="" aria-hidden="true" />
     <nav class="home-menu" aria-label="メインメニュー" data-i18n-aria="home.ariaMainMenu">
@@ -72,9 +72,9 @@
       <button type="button" class="home-btn" id="btnOpenQrCode" data-guide="homeQr" data-i18n="home.qr">QR</button>
       <button type="button" class="home-btn" data-view="map" data-guide="homeShowMap" data-i18n="home.showMap">ハイキングマップ表示</button>
       <button type="button" class="home-btn" id="btnOpenDownload" data-guide="homeDownload" data-i18n="download.title">地図データのダウンロード</button>
-      <!-- 設定・情報/Settings & Info(設定モーダルを開く。設定中の言語が分からない人でもここから
+      <!-- 情報・言語/Info & Language(情報・言語モーダルを開く。設定中の言語が分からない人でもここから
            言語を変更できると分かるよう、ボタン名は日英併記とし翻訳対象外(言語切替で不変) -->
-      <button type="button" class="home-btn" id="btnOpenAppSettings" data-guide="homeSettings">設定・情報/Settings &amp; Info</button>
+      <button type="button" class="home-btn" id="btnOpenAppSettings" data-guide="homeSettings">情報・言語/Info &amp; Language</button>
       <!-- 使い方(アプリの使い方を1ページずつ案内するガイドを開く。初回起動時は自動で開く) -->
       <button type="button" class="home-btn" id="btnOpenGuide" data-guide="homeGuide" data-i18n="guide.title">使い方</button>
     </nav>
@@ -103,7 +103,7 @@
     </div>
     <div class="map-layer-panel" id="mapLayerPanel" hidden>
       <!-- 画面に重ねて出す表示の切替。どちらもマップ画面にしか効かないため、
-           起動画面の「設定・情報/Settings & Info」ではなくここに置く -->
+           起動画面の「情報・言語/Info & Language」ではなくここに置く -->
       <!-- 時刻を表示(メニューボタン(≡)の左に現在時刻を表示) -->
       <label class="toggle toggle-switch" data-guide="panelClock">
         <input type="checkbox" id="toggleClock" checked />
@@ -144,6 +144,8 @@
       <!-- 「読み込み」で開くファイル選択(GPX)。ボタンから click() して呼び出す -->
       <input type="file" id="trackImportInput" accept=".gpx,application/gpx+xml" hidden />
       <hr class="panel-divider" />
+      <!-- マーカーの設定(マーカーの設定モーダルを開く)。マーカーはマップ画面でしか見えないため、
+           起動画面の「情報・言語/Info & Language」ではなくここからだけ開く -->
       <button type="button" class="panel-btn" id="btnMapOpenMarkerSettings" data-guide="panelMarkerSettings" data-i18n="markerSettings.title">マーカーの設定</button>
       <hr class="panel-divider" />
       <button type="button" class="panel-btn panel-btn-back" data-view="home" data-guide="panelBack" data-i18n="map.backToHome">起動時の画面に戻る</button>
@@ -237,169 +239,168 @@
     </div>
   </div>
 
-  <!-- 設定モーダル(起動画面の「設定・情報/Settings & Info」から表示)。
-       ご利用の注意とよくある質問・メッセージ履歴の表示・バージョン情報・
-       このアプリについてと、マーカーの設定・言語の設定をまとめる。
-       「時刻を表示」「ズームレベルを表示」は、効果が出るのがマップ画面だけのため
+  <!-- 情報・言語モーダル(起動画面の「情報・言語/Info & Language」から表示)。
+       ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・
+       このアプリについて(押すと下に開く。設定項目ではないためスイッチにしない)と、言語の設定をまとめる。
+       「時刻を表示」「ズームレベルを表示」「マーカーの設定」は、効果が出るのがマップ画面だけのため
        表示設定パネル(≡)側に置いている。 -->
   <div class="modal" id="appSettingsModal" hidden role="dialog" aria-modal="true" aria-labelledby="appSettingsTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <!-- 見出しは起動画面の「設定・情報/Settings & Info」ボタンと対応させるため日英併記とし、
+        <!-- 見出しは起動画面の「情報・言語/Info & Language」ボタンと対応させるため日英併記とし、
              翻訳対象外(言語切替で不変)にする -->
-        <h2 id="appSettingsTitle">設定・情報/Settings &amp; Info</h2>
+        <h2 id="appSettingsTitle">情報・言語/Info &amp; Language</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
       </header>
       <div class="modal-body">
         <section class="info-section">
 
-          <!-- ご利用の注意とよくある質問(既定オフ)。中身は faq.js が faq-text.js から
+          <!-- 4項目とも、見出しのボタンを押すと下に開く(開くたびに閉じた状態から始める)。
+               見出しと中身を info-item で包むのは、開いた見出しをその項目の範囲でだけ
+               本文の上端に残す(position: sticky)ため -->
+          <!-- ご利用の注意とよくある質問。中身は faq.js が faq-text.js から
                組み立てる(初回に開いたときの1回だけ)。文言の正本は public/faq-text.js -->
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleInfoFaq" />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text" data-i18n="info.showFaq">ご利用の注意とよくある質問</span>
-          </label>
-          <div class="info-collapse" id="infoFaqBody" hidden>
-            <div id="faqContent"></div>
-          </div>
-
-          <!-- メッセージ履歴の表示(既定オフ) -->
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleInfoMessages" />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text" data-i18n="info.showMessages">メッセージ履歴の表示</span>
-          </label>
-          <div class="info-collapse" id="infoMessagesBody" hidden>
-            <div class="info-messages-actions">
-              <button type="button" class="btn-icon" id="btnClearMessages" aria-label="履歴を消去" data-i18n-aria="info.ariaClearMessages">🗑</button>
-            </div>
-            <ul class="message-list" id="messageList"></ul>
-            <p class="message-empty" id="messageEmpty" hidden data-i18n="info.noMessages">履歴はありません。</p>
-          </div>
-
-          <!-- バージョン情報(既定オフ)。値はトグルを ON にしたときに app.js が
-               その時点の最新で反映する -->
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleInfoVersion" />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text" data-i18n="info.versionInfo">バージョン情報</span>
-          </label>
-          <div class="info-collapse" id="infoVersionBody" hidden>
-            <!-- アプリシェルのバージョン(補足なし) -->
-            <div class="info-row">
-              <span class="info-label" data-i18n="info.appVersion">アプリバージョン：</span>
-              <span class="info-value" id="versionAppShell">-</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">
-                <span data-i18n="info.mapVersion">国土地理院地図タイル：</span>
-                <span class="info-sublabel" data-i18n="info.mapVersionNote">（ダウンロード対象の地図指定）</span>
-              </span>
-              <span class="info-value" id="versionManifest">-</span>
-            </div>
-            <!-- 公開データのバージョン(公開API から取得した値) -->
-            <div class="info-row">
-              <span class="info-label">
-                <span data-i18n="info.mapdataVersion">ハイキングマップ：</span>
-                <span class="info-sublabel" data-i18n="info.mapdataVersionNote">（緊急ポイント等を含む）</span>
-              </span>
-              <span class="info-value" id="versionMapdata">-</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label" data-i18n="info.closuresVersion">通行止め・通行困難地点：</span>
-              <span class="info-value" id="versionClosures">-</span>
-            </div>
-            <!-- データ件数: ラベル行(1行目)+値行(2行目)の2行表・罫線なし(未読込は "-")。
-                 右端は上の info-row の値の右端に合わせる。
-                 ポイント=緊急ポイント、ルート・スポット=ハイキングデータ、通行止め=反映中データ。 -->
-            <table class="feature-counts-table" aria-label="データ件数" data-i18n-aria="info.ariaDataCounts">
-              <thead>
-                <tr>
-                  <th data-i18n="info.countPoints">ポイント</th>
-                  <th data-i18n="info.countRoutes">ルート</th>
-                  <th data-i18n="info.countSpots">スポット</th>
-                  <th data-i18n="info.countClosures">通行止め</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td id="countPoints">-</td>
-                  <td id="countRoutes">-</td>
-                  <td id="countSpots">-</td>
-                  <td id="countClosures">-</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- このアプリについて(既定オフ) -->
-          <label class="toggle toggle-switch">
-            <input type="checkbox" id="toggleInfoAbout" />
-            <span class="toggle-slider" aria-hidden="true"></span>
-            <span class="toggle-text" data-i18n="info.about">このアプリについて</span>
-          </label>
-          <div class="info-collapse" id="infoAboutBody" hidden>
-            <div class="info-row">
-              <span class="info-label" data-i18n="info.appName">アプリ名：</span>
-              <span class="info-value" data-i18n="info.appNameValue">箕面の森ハイキングマップ</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label" data-i18n="info.url">URL：</span>
-              <span class="info-value info-value-url">https://minoh-hiking.vercel.app/</span>
-            </div>
-            <!-- ソースコード: このアプリのリポジトリへのリンク。URL と同じく「このアプリがどこにあるか」の
-                 情報のため、クレジット(誰が何をしたか)ではなく URL の下に置く。
-                 ラベルは言語で区切りを変えるため辞書に持つ(info.sourceCode)。値は英字だけで日英共通のため
-                 訳さず、括弧も半角にする。ライセンスの種類(MIT)までは書かない(GitHub で分かる) -->
-            <div class="info-row">
-              <span class="info-label" data-i18n="info.sourceCode">ソースコード：</span>
-              <span class="info-value info-value-source">Open Source (<a class="info-link" href="https://github.com/sato4app/minoh-hiking" target="_blank" rel="noopener">GitHub</a>)</span>
-            </div>
-            <!-- クレジット: 役割ごとの担当。
-                 見出し(クレジット / Credits)と役割名は訳す(info.credits / info.credit*)。
-                 担当は団体名などの固有名詞を含むため翻訳対象外とし、言語切替でも日本語のまま
-                 (data-i18n を付けない)。そのことを見出しの補足(info.creditsNote)で断っておく。
-                 担当が2行になるもの(プロジェクト統括 / 地図の出典)は、2行目を
-                 ラベル無しの続き行(info-row-cont)として値の列に右寄せで置く。
-                 幅が足りない端末では語句の区切り(wbr)で折り返す。
-                 アプリの企画・開発の担当名(さとう)は作者のポートフォリオへのリンク(人の名前から
-                 その人の紹介ページへ飛ぶ、クレジットで一般的な形)。外部サイトのため別タブで開く -->
-            <div class="info-row">
-              <span class="info-label">
-                <span data-i18n="info.credits">クレジット：</span>
-                <span class="info-sublabel info-sublabel-wrap" data-i18n="info.creditsNote">（各担当は、固有名詞を含むため翻訳対象外）</span>
-              </span>
-            </div>
-            <div class="info-contributors">
-              <div class="info-row">
-                <span class="info-label" data-i18n="info.creditPlanning">アプリの企画・開発：</span>
-                <span class="info-value"><a class="info-link" href="https://sato4app.github.io/Portfolio/" target="_blank" rel="noopener">さとう</a></span>
-              </div>
-              <div class="info-row">
-                <span class="info-label" data-i18n="info.creditMapData">ハイキングマップ情報：</span>
-                <span class="info-value">山麓<wbr>アプリ部会</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label" data-i18n="info.creditOversight">プロジェクト統括：</span>
-                <span class="info-value">みのお山麓<wbr>保全委員会</span>
-              </div>
-              <div class="info-row info-row-cont">
-                <span class="info-value">明治の森<wbr>箕面自然休養林<wbr>管理運営協議会</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label" data-i18n="info.creditMapSource">地図の出典：</span>
-                <span class="info-value">国土地理院<wbr>ウェブサイト</span>
-              </div>
-              <div class="info-row info-row-cont">
-                <span class="info-value">地理院タイルに<wbr>ハイキングマップ情報を<wbr>追記して作成</span>
-              </div>
+          <div class="info-item">
+            <button type="button" class="info-disclosure" id="btnInfoFaq" aria-expanded="false" aria-controls="infoFaqBody">
+              <span class="info-disclosure-text" data-i18n="info.faq">ご利用の注意とよくある質問</span>
+            </button>
+            <div class="info-collapse" id="infoFaqBody" hidden>
+              <div id="faqContent"></div>
             </div>
           </div>
 
-          <!-- マーカーの設定(マーカーの設定モーダルを開く) -->
-          <button type="button" class="settings-link-btn" id="btnOpenMarkerSettings" data-i18n="markerSettings.title">マーカーの設定</button>
+          <!-- メッセージ履歴 -->
+          <div class="info-item">
+            <button type="button" class="info-disclosure" id="btnInfoMessages" aria-expanded="false" aria-controls="infoMessagesBody">
+              <span class="info-disclosure-text" data-i18n="info.messages">メッセージ履歴</span>
+            </button>
+            <div class="info-collapse" id="infoMessagesBody" hidden>
+              <div class="info-messages-actions">
+                <button type="button" class="btn-icon" id="btnClearMessages" aria-label="履歴を消去" data-i18n-aria="info.ariaClearMessages">🗑</button>
+              </div>
+              <ul class="message-list" id="messageList"></ul>
+              <p class="message-empty" id="messageEmpty" hidden data-i18n="info.noMessages">履歴はありません。</p>
+            </div>
+          </div>
+
+          <!-- バージョン情報。値は開いたときに app.js がその時点の最新で反映する -->
+          <div class="info-item">
+            <button type="button" class="info-disclosure" id="btnInfoVersion" aria-expanded="false" aria-controls="infoVersionBody">
+              <span class="info-disclosure-text" data-i18n="info.versionInfo">バージョン情報</span>
+            </button>
+            <div class="info-collapse" id="infoVersionBody" hidden>
+              <!-- アプリシェルのバージョン(補足なし) -->
+              <div class="info-row">
+                <span class="info-label" data-i18n="info.appVersion">アプリバージョン：</span>
+                <span class="info-value" id="versionAppShell">-</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">
+                  <span data-i18n="info.mapVersion">国土地理院地図タイル：</span>
+                  <span class="info-sublabel" data-i18n="info.mapVersionNote">（ダウンロード対象の地図指定）</span>
+                </span>
+                <span class="info-value" id="versionManifest">-</span>
+              </div>
+              <!-- 公開データのバージョン(公開API から取得した値) -->
+              <div class="info-row">
+                <span class="info-label">
+                  <span data-i18n="info.mapdataVersion">ハイキングマップ：</span>
+                  <span class="info-sublabel" data-i18n="info.mapdataVersionNote">（緊急ポイント等を含む）</span>
+                </span>
+                <span class="info-value" id="versionMapdata">-</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label" data-i18n="info.closuresVersion">通行止め・通行困難地点：</span>
+                <span class="info-value" id="versionClosures">-</span>
+              </div>
+              <!-- データ件数: ラベル行(1行目)+値行(2行目)の2行表・罫線なし(未読込は "-")。
+                   右端は上の info-row の値の右端に合わせる。
+                   ポイント=緊急ポイント、ルート・スポット=ハイキングデータ、通行止め=反映中データ。 -->
+              <table class="feature-counts-table" aria-label="データ件数" data-i18n-aria="info.ariaDataCounts">
+                <thead>
+                  <tr>
+                    <th data-i18n="info.countPoints">ポイント</th>
+                    <th data-i18n="info.countRoutes">ルート</th>
+                    <th data-i18n="info.countSpots">スポット</th>
+                    <th data-i18n="info.countClosures">通行止め</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td id="countPoints">-</td>
+                    <td id="countRoutes">-</td>
+                    <td id="countSpots">-</td>
+                    <td id="countClosures">-</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- このアプリについて -->
+          <div class="info-item">
+            <button type="button" class="info-disclosure" id="btnInfoAbout" aria-expanded="false" aria-controls="infoAboutBody">
+              <span class="info-disclosure-text" data-i18n="info.about">このアプリについて</span>
+            </button>
+            <div class="info-collapse" id="infoAboutBody" hidden>
+              <div class="info-row">
+                <span class="info-label" data-i18n="info.appName">アプリ名：</span>
+                <span class="info-value" data-i18n="info.appNameValue">箕面の森ハイキングマップ</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label" data-i18n="info.url">URL：</span>
+                <span class="info-value info-value-url">https://minoh-hiking.vercel.app/</span>
+              </div>
+              <!-- ソースコード: このアプリのリポジトリへのリンク。URL と同じく「このアプリがどこにあるか」の
+                   情報のため、クレジット(誰が何をしたか)ではなく URL の下に置く。
+                   ラベルは言語で区切りを変えるため辞書に持つ(info.sourceCode)。値は英字だけで日英共通のため
+                   訳さず、括弧も半角にする。ライセンスの種類(MIT)までは書かない(GitHub で分かる) -->
+              <div class="info-row">
+                <span class="info-label" data-i18n="info.sourceCode">ソースコード：</span>
+                <span class="info-value info-value-source">Open Source (<a class="info-link" href="https://github.com/sato4app/minoh-hiking" target="_blank" rel="noopener">GitHub</a>)</span>
+              </div>
+              <!-- クレジット: 役割ごとの担当。
+                   見出し(クレジット / Credits)と役割名は訳す(info.credits / info.credit*)。
+                   担当は団体名などの固有名詞を含むため翻訳対象外とし、言語切替でも日本語のまま
+                   (data-i18n を付けない)。そのことを見出しの補足(info.creditsNote)で断っておく。
+                   担当が2行になるもの(プロジェクト統括 / 地図の出典)は、2行目を
+                   ラベル無しの続き行(info-row-cont)として値の列に右寄せで置く。
+                   幅が足りない端末では語句の区切り(wbr)で折り返す。
+                   アプリの企画・開発の担当名(さとう)は作者のポートフォリオへのリンク(人の名前から
+                   その人の紹介ページへ飛ぶ、クレジットで一般的な形)。外部サイトのため別タブで開く -->
+              <div class="info-row">
+                <span class="info-label">
+                  <span data-i18n="info.credits">クレジット：</span>
+                  <span class="info-sublabel info-sublabel-wrap" data-i18n="info.creditsNote">（各担当は、固有名詞を含むため翻訳対象外）</span>
+                </span>
+              </div>
+              <div class="info-contributors">
+                <div class="info-row">
+                  <span class="info-label" data-i18n="info.creditPlanning">アプリの企画・開発：</span>
+                  <span class="info-value"><a class="info-link" href="https://sato4app.github.io/Portfolio/" target="_blank" rel="noopener">さとう</a></span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label" data-i18n="info.creditMapData">ハイキングマップ情報：</span>
+                  <span class="info-value">山麓<wbr>アプリ部会</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label" data-i18n="info.creditOversight">プロジェクト統括：</span>
+                  <span class="info-value">みのお山麓<wbr>保全委員会</span>
+                </div>
+                <div class="info-row info-row-cont">
+                  <span class="info-value">明治の森<wbr>箕面自然休養林<wbr>管理運営協議会</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label" data-i18n="info.creditMapSource">地図の出典：</span>
+                  <span class="info-value">国土地理院<wbr>ウェブサイト</span>
+                </div>
+                <div class="info-row info-row-cont">
+                  <span class="info-value">地理院タイルに<wbr>ハイキングマップ情報を<wbr>追記して作成</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <!-- 言語の設定/Language Settings(表示言語の選択。既定: 日本語。変更すると保存して
                リロードし、選択言語でUI文言を再表示する。設定中の言語が分からない人でも
@@ -468,13 +469,7 @@
     </div>
   </div>
 
-  <!-- 使い方ガイド(起動時画面の「使い方」から表示。初回起動時は自動で開く)。
-       画面全体を暗くし、説明している場所だけを明るく残して1ページずつ案内する。
-       ページによっては起動時画面とハイキングマップ表示を行き来し、表示設定
-       パネル(≡)も開くため、閉じたときは開く前の状態に戻す。
-       案内中の操作は「戻る」「次へ」「閉じる」だけ(明るく残した場所も含め、
-       画面全体をこのオーバーレイがタップを受け止める)。説明と食い違う操作で
-       案内の位置がずれないようにするため。
+  <!-- 使い方ガイド(動作の説明は guide.js の先頭)。
        文言は guide.js が i18n の翻訳キーから設定するため data-i18n は付けない。 -->
   <div class="guide" id="guideOverlay" hidden role="dialog" aria-modal="true" aria-labelledby="guideTitle">
     <!-- 明るく残す場所の上下左右を覆う4枚の帯(位置と大きさは guide.js が設定)。

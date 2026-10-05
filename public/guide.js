@@ -13,7 +13,7 @@
 // 文言は i18n の翻訳キー(guide.<キー>Title / guide.<キー>Body)から取る。ページを増やすときは
 // GUIDE_STEPS に足し、i18n.js に同じキーの ja/en を追加する。
 
-import { GUIDE_SEEN_KEY } from './config.js';
+import { GUIDE_SEEN_KEY, MARKER_SETTINGS_REV_KEY } from './config.js';
 import { t } from './i18n.js';
 
 // 明るく残す場所の外側に取る余白(px)
@@ -131,15 +131,17 @@ function writeGuideSeen() {
 }
 
 // 以前からアプリを使っている端末かどうか(本アプリの保存データが既にあるか)。
-// 自動表示は「初めて起動したとき」の1度だけで、アプリを更新しても出さない。
-// 使い方ガイドを入れる前(2026-09-03 より前)の版から更新した端末には「開いた」記録が無いため、
-// これで見分けないと、更新後の起動で初回と同じように自動表示してしまう。
-// 起動処理の途中で履歴などが保存される前に調べる必要があるため、読み込み時に1回だけ判定する
+// ガイドを入れる前の版から更新した端末には「開いた」記録が無いため、これで見分けないと
+// 更新後の起動で初回と同じように自動表示してしまう。
+// 起動処理の途中で履歴などが保存される前に調べる必要があるため、読み込み時に1回だけ判定する。
+// 本モジュールより先に読み込まれるモジュールが読み込み時に書くキーは、初めての端末にも必ず
+// あるため数えない(数えると初回でも自動表示されなくなる)。そうしたキーを増やしたら、ここにも足すこと
+const NOT_USAGE_KEYS = new Set([GUIDE_SEEN_KEY, MARKER_SETTINGS_REV_KEY]);
 function hasSavedAppData() {
   try {
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('minoh-hiking.') && key !== GUIDE_SEEN_KEY) return true;
+      if (key && key.startsWith('minoh-hiking.') && !NOT_USAGE_KEYS.has(key)) return true;
     }
     return false;
   } catch {

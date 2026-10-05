@@ -1,8 +1,7 @@
 // Leaflet 地図表示モジュール
 // - 地図の初期化と共有インスタンスの提供(getMap)
 // - オーバーレイ(緊急ポイント / ハイキングルート+スポット / 通行止め)の描画・スタイル
-// 表示データはすべて published-data.js が公開API から取得して渡す(本モジュールは描画専用)。
-// 現在地表示・移動経路の記録は geolocation.js に分離している。
+// 表示データは published-data.js が取得して渡す(本モジュールは描画専用)。
 // leaflet-src.esm.js は名前空間exportのため `* as L` で受ける(default exportではない)
 import * as L from 'leaflet';
 import { t } from './i18n.js';
@@ -42,9 +41,6 @@ let hikingLayer = null;
 let hikingRouteStyle = null;
 let hikingSpotStyle = null;
 
-// 地図の初期化
-// 右下に下から: 国土地理院クレジット(attribution) → スケール(metric)
-//              → ズームレベル表示 → ズームボタン → 現在地マーカーの表示切替
 export function initMap(containerId) {
   const map = L.map(containerId, {
     center: INITIAL_CENTER,
@@ -54,7 +50,7 @@ export function initMap(containerId) {
     zoomControl: false,
     attributionControl: false,
     // 線をタップしやすくするため、ベクタ図形は Canvas で描く(→ TAP_TOLERANCE)。
-    // マーカー(divIcon)はこの指定の対象外で、従来どおり markerPane に置かれる
+    // マーカー(divIcon)はこの指定の対象外で、markerPane の DOM 要素のまま
     renderer: L.canvas({ tolerance: TAP_TOLERANCE })
   });
 
@@ -65,8 +61,8 @@ export function initMap(containerId) {
     crossOrigin: true
   }).addTo(map);
 
-  // bottomright は後から追加したものほど上に積まれる。
-  // 期待する並び(上から): zoom → zoom-display → scale → attribution なので、逆順に追加する。
+  // 右下に下から: 国土地理院クレジット → 縮尺 → ズームレベル → ズーム(＋/−) → 現在地点表示ボタン。
+  // bottomright は後から追加したものほど上に積まれるため、下から順に追加する。
   L.control.attribution({ position: 'bottomright' }).addTo(map);
   L.control.scale({ position: 'bottomright', metric: true, imperial: false, maxWidth: 150 }).addTo(map);
   new ZoomDisplayControl({ position: 'bottomright' }).addTo(map);
@@ -77,14 +73,12 @@ export function initMap(containerId) {
   return map;
 }
 
-// 共有の地図インスタンスを返す(未初期化なら null)。
-// 現在地・移動経路記録(geolocation.js)など他モジュールからの参照用。
+// 共有の地図インスタンスを返す(未初期化なら null)
 export function getMap() {
   return mapInstance;
 }
 
-// ===== 現在のズームレベル表示(ズームボタンの左に配置) =====
-// 表示/非表示は表示設定パネル(≡)の「ズームレベルを表示」トグルで切り替える(既定は表示)。
+// ===== 現在のズームレベル表示(ズームボタンの下) =====
 let zoomDisplayEl = null;
 
 const ZoomDisplayControl = L.Control.extend({
@@ -103,12 +97,10 @@ export function setZoomDisplayVisible(on) {
   if (zoomDisplayEl) zoomDisplayEl.hidden = !on;
 }
 
-// ===== 現在地点表示ボタン(ズームボタンの上に配置) =====
-// メニューの「現在地点をマーカー表示」トグルとは独立した単発の操作。
-// 押すと現在地へ地図を寄せ、現在地点を中心とする薄い青の円を出して3秒かけて縮め、
-// 消えたら灰色へ戻る(青丸を出すかは「現在地点をマーカー表示」に従う)。
-// このモジュールはボタンの見た目だけを持ち、表示そのものは geolocation.js が行う
-// (押されたら handler を呼び、終わったら setCurrentMarkerButtonState(false) で戻してもらう)。
+// ===== 現在地点表示ボタン(ズームボタンの上) =====
+// このモジュールはボタンの見た目だけを持ち、表示そのものは geolocation.js の
+// showCurrentLocationSpot が行う(押されたら handler を呼び、終わったら
+// setCurrentMarkerButtonState(false) で灰色へ戻してもらう)。
 let currentMarkerButtonEl = null;
 let currentMarkerButtonHandler = null;
 
@@ -363,8 +355,6 @@ export function setEmergencyPointsVisible(visible) {
 }
 
 // ===== 通行止め・通行困難地点(closures) =====
-// データの取得(公開API `/api/closures`)は published-data.js 側が行い、
-// ここでは渡された GeoJSON の描画のみを担う。
 // kind でスタイルを分ける: closed(通行止め)=赤の通行止め(歩行者通行止め風) / difficult(通行困難)=黄色の警戒。
 // 色・形状は固定で、サイズのみマーカー設定で変更可能(setClosureClosedStyle / setClosureDifficultStyle)。
 const CLOSURE_FALLBACK_STYLES = {
@@ -379,8 +369,7 @@ let closureLayer = null;
 let closureClosedStyle = null;
 let closureDifficultStyle = null;
 
-// 表示データを差し替える(初回読込・プレビュー・反映・キャンセル時の復元で共通)。
-// 表示中だった場合は差し替え後も表示を維持する。null で非表示・破棄。
+// 表示データを差し替える。表示中だった場合は差し替え後も表示を維持する。null で非表示・破棄。
 export function setClosureGeoJSON(geojson) {
   closureGeoJSON = geojson;
   closureLayer = replaceLayer(closureLayer, () =>
@@ -456,17 +445,10 @@ function sameCoord(a, b) {
   return !!a && !!b && a[0] === b[0] && a[1] === b[1];
 }
 
-// ルート線の表示用コピーを作る。
+// ルート線の表示用コピーを作る(元データは変更しない)。
 // 配信データの LineString は中間点のみのため、開始ポイント・終了ポイントの座標
 // (startPointGPS / endPointGPS。null は補わない)をつないで端点まで伸ばす。
-//
-// このとき1本のルートを「中間点どうしを結ぶ区間」と「端点をつなぐ区間」に分ける。
-// ポップアップを中間点間の線上だけに出すため(端点は緊急ポイントの位置であり、
-// その付近でルートのポップアップが開かないようにする)。
-// 分割しても色・太さは同じなので、見た目は1本の線のまま。
-// 元データは変更せず、表示用のコピーを返す。
-const ROUTE_PART = '__routePart';   // 'middle' = 中間点どうし / 'cap' = 端点をつなぐ区間
-
+// 中間点と同じ座標の端点は重ねない。線にならない(2点未満の)ルートは描かない。
 function expandRouteFeatures(gj) {
   if (!gj) return gj;
   const features = gj.features.flatMap((f) => {
@@ -474,20 +456,15 @@ function expandRouteFeatures(gj) {
     if (p?.type !== 'route' || f.geometry?.type !== 'LineString') return [f];
     const mid = f.geometry.coordinates;
     if (mid.length === 0) return [];
-    const part = (coords, kind) => ({
-      ...f,
-      properties: { ...p, [ROUTE_PART]: kind },
-      geometry: { ...f.geometry, coordinates: coords }
-    });
-    const parts = [];
-    // 中間点が2点以上あるときだけ「中間点どうしを結ぶ区間」ができる
-    if (mid.length >= 2) parts.push(part(mid, 'middle'));
     const start = p.startPointGPS;
     const end = p.endPointGPS;
-    const last = mid[mid.length - 1];
-    if (start && !sameCoord(start, mid[0])) parts.push(part([start, mid[0]], 'cap'));
-    if (end && !sameCoord(end, last)) parts.push(part([last, end], 'cap'));
-    return parts;
+    const coords = [
+      ...(start && !sameCoord(start, mid[0]) ? [start] : []),
+      ...mid,
+      ...(end && !sameCoord(end, mid[mid.length - 1]) ? [end] : [])
+    ];
+    if (coords.length < 2) return [];
+    return [{ ...f, geometry: { ...f.geometry, coordinates: coords } }];
   });
   return { ...gj, features };
 }
@@ -500,7 +477,7 @@ function routeSectionLabel(id) {
 }
 
 function buildHikingLayer() {
-  // ルートに開始/終了ポイントを補い、区間ごとに分けたコピーを描画する
+  // ルートに開始/終了ポイントを補ったコピーを描画する
   const data = expandRouteFeatures(mapdataGeoJSON);
   return L.geoJSON(data, {
     // 描画するのは route(線)と spot(点)のみ。緊急ポイント('ポイントGPS')は
@@ -513,12 +490,10 @@ function buildHikingLayer() {
       opacity: 0.85
     }),
     pointToLayer: (feature, latlng) => createPointMarker(latlng, hikingSpotStyle),
-    // ポップアップは「スポット」と「ルートの全区間」に付ける。
+    // ポップアップは「スポット」と「ルート(端点まで伸ばした線全体)」に付ける。
     // 配信データのスポットは名称と座標だけを持つ(id は編集用のため公開されない)。
     // ルートは名称を持たないため、id から区間表記を組み立てて表示する。
-    // 端点をつなぐ区間(cap)にも付ける。以前は「緊急ポイントのマーカーと重なるから」と
-    // 外していたが、マーカーは元々線より上の層にあり重なった場所ではマーカーが勝つ。
-    // 付けないと端点寄りがどこを押しても反応しない領域になってしまうため、付ける。
+    // 端点の緊急ポイントと重なる所は、マーカーが上の層にあって勝つ。
     onEachFeature: (feature, layer) => {
       const p = feature.properties || {};
       if (p.type === 'spot') {
@@ -536,8 +511,8 @@ function buildHikingLayer() {
 
 // ===== ルートのタップとポイントの優先 =====
 // ルート(線)は Canvas で「太さ/2 + TAP_TOLERANCE」の幅で当たるが、ポイント(divIcon)は
-// 見た目の大きさでしか当たらない。そのためポイントのすぐ外を押すと近くのルートが反応し、
-// ポイントのポップアップが開かなかった。ルートが押されたときは、ポイントにもルートと同じ余裕
+// 見た目の大きさでしか当たらない。そのままではポイントのすぐ外を押すと近くのルートが反応して
+// しまうため、ルートが押されたときは、ポイントにもルートと同じ余裕
 // (中心から アイコンの一辺/2 + TAP_TOLERANCE 以内)で当たっているかを調べ、当たっていれば
 // 一番近いポイントのポップアップを優先して開く。当たっていなければルートのポップアップを開く。
 // 地図の何も無い所を押したときは対象外(開いているポップアップを閉じる操作のため)。

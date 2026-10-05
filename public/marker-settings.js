@@ -49,7 +49,8 @@ function migrateMarkerSettings() {
     localStorage.setItem(MARKER_SETTINGS_REV_KEY, String(MARKER_SETTINGS_REV));
   } catch { /* 保存を読めない・書けない環境では何もしない(表示は既定値か保存値で続く) */ }
 }
-// 初期スタイルの読み出し(readMarkerSettings)より前に済ませるため、読み込み時に行う
+// 初期スタイルの読み出し(readMarkerSettings)より前に済ませるため、読み込み時に行う。
+// 初めての端末にも印を書くため、使い方ガイドの初回判定では数えない(guide.js の NOT_USAGE_KEYS)
 migrateMarkerSettings();
 
 // 設定UIの描画と「規定値に戻す」ボタンの登録(初期化時に一度呼ぶ)
@@ -251,7 +252,7 @@ function updateMarkerSetting(key, attr, value) {
   applyMarkerSettingToMap(key, settings[key]);
 }
 
-// 設定変更を地図側へ反映(未実装の種別は noop)
+// 設定変更を地図側へ反映する
 function applyMarkerSettingToMap(key, style) {
   if (key === 'emergency') setEmergencyStyle(style);
   else if (key === 'hikingRoute') setHikingRouteStyle(style);
