@@ -256,7 +256,7 @@ const DICT = {
 
   // ----- 情報・言語/Info & Language モーダル -----
   // 接頭辞 info. は、「バージョン情報等」モーダルだった頃の名残(キー名は据え置き)。内訳:
-  //   faq / messages / ariaClearMessages / noMessages /
+  //   notices / faq / messages / ariaClearMessages / noMessages /
   //   about / appName / appNameValue / url / sourceCode / credits / creditsNote / credit*
   //     (クレジットの見出しと役割名は訳す。担当は固有名詞を含むため翻訳対象外で辞書に持たない)
   //     区切りは日本語が全角「：」、英語が半角「:」。URL は語そのものは訳さないが、
@@ -276,9 +276,9 @@ const DICT = {
   'info.countSpots': { ja: 'スポット', en: 'Spots' },
   'info.countClosures': { ja: '通行止め', en: 'Closures' },
   'info.messages': { ja: 'メッセージ履歴', en: 'Message History' },
-  // ご利用の注意とよくある質問(情報・言語/Info & Language の見出し)。中身の文言は faq-text.js
-  // 開いた中身は「ご利用の注意」の見出しから始まる(全体の見出しは、この見出しと重なるため置かない)
-  'info.faq': { ja: 'ご利用の注意とよくある質問', en: 'Notes and FAQ' },
+  // ご利用の注意・よくある質問(情報・言語/Info & Language の見出し)。中身の文言は faq-text.js
+  'info.notices': { ja: 'ご利用の注意', en: 'Before You Go' },
+  'info.faq': { ja: 'よくある質問', en: 'FAQ' },
   'info.ariaClearMessages': { ja: '履歴を消去', en: 'Clear History' },
   'info.noMessages': { ja: '履歴はありません。', en: 'No messages.' },
   'info.about': { ja: 'このアプリについて', en: 'About This App' },
@@ -309,6 +309,7 @@ const DICT = {
   // ----- 使い方ガイド(起動画面の「使い方」・初回起動時の自動表示) -----
   // guide.<ページのkey>Title / guide.<ページのkey>Body が1ページ分の文言。
   // key は guide.js の GUIDE_STEPS と一致させる。本文の改行(\n)はそのまま表示される。
+  // 本文の {iconClosed} / {iconDifficult} は、地図と同じマーカーの図形に置き換えて表示する(guide.js の GUIDE_ICONS)。
   // 本文は、幅 360px 以上の画面(360×640 など)で吹き出し内のスクロールが出ない長さにする
   // (日英とも。収まらないと本文だけがスクロールし、続きに気づかれにくい)。
   // 余裕が最も少ないのは download・settings・mapMenu(英語)・mapTrack のページ。
@@ -352,10 +353,10 @@ const DICT = {
   'guide.settingsTitle': { ja: '情報・言語/Info & Language', en: 'Info & Language' },
   'guide.settingsBody': {
     ja: 'ご利用の注意やバージョン情報などのアプリの情報と、言語の設定をまとめています。\n' +
-        '「ご利用の注意とよくある質問」は、山に入る前にお読みください。\n' +
+        '「ご利用の注意」は、山に入る前にお読みください。\n' +
         'ボタン名が日英併記なのは、英語表示のままでも日本語に戻せるようにするためです。',
-    en: 'Notes and FAQ, version information and other details about the app, plus the language setting.\n' +
-        'Please read "Notes and FAQ" before you set off.\n' +
+    en: 'Notes before you go, the FAQ, version information and other details about the app, plus the language setting.\n' +
+        'Please read "Before You Go" before you set off.\n' +
         'The label is in both Japanese and English so you can always switch the language here.'
   },
 
@@ -371,10 +372,10 @@ const DICT = {
   'guide.mapOverlayBody': {
     ja: '緊急ポイント・ハイキングルート・スポット・通行止め地点は常に表示されます(切り替えスイッチはありません)。\n' +
         'マーカーや線をタップすると、緊急ポイント番号・スポット名・通行止めの理由などが吹き出しで出ます。\n' +
-        '赤い輪と斜線に歩く人(🚷)が通行止め、黄色のひし形に「!」が通行困難地点です。',
+        '赤い輪と斜線に歩く人({iconClosed})が通行止め、黄色のひし形に「!」({iconDifficult})が通行困難地点です。',
     en: 'Emergency points, hiking routes, spots and closures are always shown (there is no switch to hide them).\n' +
         'Tap a marker or a line to see the emergency point number, the spot name, the reason for a closure and so on in a popup.\n' +
-        'A walking person in a red circle with a slash (🚷) shows a closed point, and a yellow diamond with "!" shows a point that is difficult to pass.'
+        'A walking person in a red circle with a slash ({iconClosed}) shows a closed point, and a yellow diamond with "!" ({iconDifficult}) shows a point that is difficult to pass.'
   },
 
   'guide.mapControlsTitle': { ja: '画面の右下', en: 'The Bottom Right of the Screen' },

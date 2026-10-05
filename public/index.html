@@ -240,7 +240,7 @@
   </div>
 
   <!-- 情報・言語モーダル(起動画面の「情報・言語/Info & Language」から表示)。
-       ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・
+       ご利用の注意・よくある質問・メッセージ履歴・バージョン情報・
        このアプリについて(押すと下に開く。設定項目ではないためスイッチにしない)と、言語の設定をまとめる。
        「時刻を表示」「ズームレベルを表示」「マーカーの設定」は、効果が出るのがマップ画面だけのため
        表示設定パネル(≡)側に置いている。 -->
@@ -256,14 +256,24 @@
       <div class="modal-body">
         <section class="info-section">
 
-          <!-- 4項目とも、見出しのボタンを押すと下に開く(開くたびに閉じた状態から始める)。
+          <!-- 5項目とも、見出しのボタンを押すと下に開く(開くたびに閉じた状態から始める)。
                見出しと中身を info-item で包むのは、開いた見出しをその項目の範囲でだけ
                本文の上端に残す(position: sticky)ため -->
-          <!-- ご利用の注意とよくある質問。中身は faq.js が faq-text.js から
-               組み立てる(初回に開いたときの1回だけ)。文言の正本は public/faq-text.js -->
+          <!-- ご利用の注意・よくある質問。中身は faq.js が faq-text.js から
+               組み立てる(初回に開いたときの1回だけ)。文言の正本は public/faq-text.js。
+               ご利用の注意の参照リンク(→Q5 など)は、よくある質問を開いてその質問へ移る -->
+          <div class="info-item">
+            <button type="button" class="info-disclosure" id="btnInfoNotices" aria-expanded="false" aria-controls="infoNoticesBody">
+              <span class="info-disclosure-text" data-i18n="info.notices">ご利用の注意</span>
+            </button>
+            <div class="info-collapse" id="infoNoticesBody" hidden>
+              <div id="faqNotices"></div>
+            </div>
+          </div>
+
           <div class="info-item">
             <button type="button" class="info-disclosure" id="btnInfoFaq" aria-expanded="false" aria-controls="infoFaqBody">
-              <span class="info-disclosure-text" data-i18n="info.faq">ご利用の注意とよくある質問</span>
+              <span class="info-disclosure-text" data-i18n="info.faq">よくある質問</span>
             </button>
             <div class="info-collapse" id="infoFaqBody" hidden>
               <div id="faqContent"></div>

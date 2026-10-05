@@ -13,7 +13,7 @@
 //   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
 //   qrcode.js         … QRコードの生成(外部ライブラリ非依存)
 //   guide.js          … 使い方ガイド(画面を順に案内するオーバーレイ)
-//   faq.js / faq-text.js … ご利用の注意とよくある質問(情報・言語/Info & Language で表示)
+//   faq.js / faq-text.js … ご利用の注意・よくある質問(情報・言語/Info & Language で表示)
 
 import {
   initMap, resizeMap,
@@ -53,7 +53,7 @@ import {
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
 import { renderQrSvg } from './qrcode.js';
 import { initGuide, openGuide, maybeAutoOpenGuide } from './guide.js';
-import { showFaq } from './faq.js';
+import { showNotices, showQuestions } from './faq.js';
 
 // ===== 状態 =====
 let currentView = 'home';
@@ -80,7 +80,10 @@ const el = {
   // 情報・言語モーダル(起動画面の「情報・言語/Info & Language」から表示)
   appSettingsModal: document.getElementById('appSettingsModal'),
   languageSelect: document.getElementById('languageSelect'),
-  // 押すと下に開く4項目(見出しのボタンと、開く中身)
+  // 押すと下に開く5項目(見出しのボタンと、開く中身)
+  btnInfoNotices: document.getElementById('btnInfoNotices'),
+  infoNoticesBody: document.getElementById('infoNoticesBody'),
+  faqNotices: document.getElementById('faqNotices'),
   btnInfoFaq: document.getElementById('btnInfoFaq'),
   infoFaqBody: document.getElementById('infoFaqBody'),
   faqContent: document.getElementById('faqContent'),
@@ -323,9 +326,12 @@ function bindEvents() {
     location.reload();
   });
   // 情報・言語: 見出しを押すと下に開く/閉じる。第3引数は開いたときの処理
-  // ご利用の注意とよくある質問: 初めて開いたときだけ中身を組み立てる。
-  // 開くたびに、よくある質問は答えを閉じた最初の表示(見出しと質問だけ)に戻す
-  bindInfoDisclosure(el.btnInfoFaq, el.infoFaqBody, () => showFaq(el.faqContent));
+  // ご利用の注意: 初めて開いたときだけ中身を組み立てる。参照リンク(→Q5 など)で
+  // よくある質問へ移るときは、よくある質問が閉じていれば先に開く(openQuestions)
+  bindInfoDisclosure(el.btnInfoNotices, el.infoNoticesBody, () => showNotices(el.faqNotices, openQuestions));
+  // よくある質問: 初めて開いたときだけ中身を組み立てる。
+  // 開くたびに、答えを閉じた最初の表示(見出しと質問だけ)に戻す
+  bindInfoDisclosure(el.btnInfoFaq, el.infoFaqBody, () => showQuestions(el.faqContent));
   bindInfoDisclosure(el.btnInfoMessages, el.infoMessagesBody, renderMessageList);
   // バージョン情報: 開いたら、その時点の値を反映する
   bindInfoDisclosure(el.btnInfoVersion, el.infoVersionBody, showVersionInfo);
@@ -666,9 +672,9 @@ function showView(name) {
 
 // ===== モーダル =====
 // 情報・言語モーダル(起動画面の「情報・言語/Info & Language」から表示)。
-// ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・このアプリについて・
+// ご利用の注意・よくある質問・メッセージ履歴・バージョン情報・このアプリについて・
 // 言語/Language をまとめる(マーカーの設定はマップ画面メニューから開く)。
-// 4項目は設定ではなく情報の表示なので、スイッチではなく押すと下に開く見出しにしている。
+// 5項目は設定ではなく情報の表示なので、スイッチではなく押すと下に開く見出しにしている。
 
 // 見出しのボタンと中身の開閉状態をそろえる(要素が無い端末でも落ちないようにする)
 function setInfoDisclosure(button, body, open) {
@@ -695,9 +701,18 @@ function bindInfoDisclosure(button, body, onOpen) {
   });
 }
 
+// 「よくある質問」が閉じていれば開く(ご利用の注意の参照リンクから呼ぶ)。
+// 開いているときは何もしない(開くときの処理で、読んでいた答えが閉じてしまうため)
+function openQuestions() {
+  if (!el.btnInfoFaq || el.btnInfoFaq.getAttribute('aria-expanded') === 'true') return;
+  setInfoDisclosure(el.btnInfoFaq, el.infoFaqBody, true);
+  showQuestions(el.faqContent);
+}
+
 function openAppSettingsModal() {
-  // 4項目は開くたびに必ず閉じた状態へ戻す。開いたままだと、次に開いたときに長い内容が
+  // 5項目は開くたびに必ず閉じた状態へ戻す。開いたままだと、次に開いたときに長い内容が
   // 広がった状態で始まり、その下にある「言語の設定」までスクロールが必要になるため
+  setInfoDisclosure(el.btnInfoNotices, el.infoNoticesBody, false);
   setInfoDisclosure(el.btnInfoFaq, el.infoFaqBody, false);
   setInfoDisclosure(el.btnInfoMessages, el.infoMessagesBody, false);
   setInfoDisclosure(el.btnInfoVersion, el.infoVersionBody, false);

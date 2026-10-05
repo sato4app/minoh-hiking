@@ -1,5 +1,6 @@
-// 「ご利用の注意とよくある質問」の描画
-// 情報・言語/Info & Language の「ご利用の注意とよくある質問」を開いたとき、faq-text.js の内容を組み立てて表示する(showFaq)。
+// 「ご利用の注意」と「よくある質問」の描画
+// 情報・言語/Info & Language の各項目を開いたとき、faq-text.js の内容を組み立てて表示する
+// (showNotices / showQuestions)。
 
 import { getLang } from './i18n.js';
 import { FAQ_NOTICES, FAQ_SECTIONS } from './faq-text.js';
@@ -10,7 +11,10 @@ function pick(entry) {
   return entry[lang] ?? entry.ja;
 }
 
-let built = false;
+let noticesBuilt = false;
+let questionsBuilt = false;
+// 「よくある質問」を開く処理(app.js から受け取る。参照リンクで移る前に、閉じていれば開くため)
+let openQuestions = null;
 
 // 1問(質問と答え)のまとまりの id(参照リンク「→Q5」の飛び先)。
 // 画面内の他の id と重ならないよう接頭辞を付ける
@@ -23,6 +27,8 @@ const questionIds = new Set(FAQ_SECTIONS.flatMap((section) => section.items.map(
 // location.hash は変えない(URL に #faq-Q5 が付くと、「QR」で出すQRコードにも入ってしまうため)。
 // 動かすのはモーダルの本文(スクロールする枠)だけにし、画面全体はスクロールさせない。
 function jumpToQuestion(id) {
+  // 「よくある質問」が閉じていれば先に開く(中身もこのとき組み立てられる)
+  openQuestions?.();
   const item = document.getElementById(questionDomId(id));
   if (!item) return;
   // 先に開いてからスクロールする(末尾近くの質問は、答えを開いた分だけ下に余裕ができ、
@@ -32,7 +38,7 @@ function jumpToQuestion(id) {
   const scroller = item.closest('.modal-body');
   if (scroller) {
     const top = item.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop;
-    // 枠の上端には「ご利用の注意とよくある質問」の見出しが残る(position: sticky)ため、
+    // 枠の上端には「よくある質問」の見出しが残る(position: sticky)ため、
     // その下に出す。質問の上に少し余白も残す(貼り付くと見出しと区別しにくい)。
     // なめらかにスクロールさせると、後ろの方の質問では着くまでに1秒以上かかり、
     // 下の色付けが着く前に消えてしまうため、一度で移す
@@ -117,39 +123,41 @@ function buildQuestions() {
   return fragment;
 }
 
-// 内容を container に組み立てる(最初の1回だけ)
-function buildFaq(container) {
-  const noticeTitle = document.createElement('h4');
-  noticeTitle.className = 'faq-section-title faq-notice-title';
-  noticeTitle.textContent = pick({ ja: 'ご利用の注意', en: 'Before You Go' });
-  container.append(noticeTitle, buildNotices());
-
+// 前置きの1段落
+function buildLead(text) {
   const lead = document.createElement('p');
   lead.className = 'faq-lead';
-  lead.textContent = pick({
-    ja: '各項目の詳しい説明は、下の「よくある質問」にあります。番号を押すと、その質問へ移ります。',
-    en: 'Details for each item are in the questions below. Tap a number to jump to it.'
-  });
-  // よくある質問は答えを閉じて並べるため、開き方を添える
-  const leadQuestions = document.createElement('p');
-  leadQuestions.className = 'faq-lead';
-  leadQuestions.textContent = pick({
-    ja: 'よくある質問は、質問を押すと答えを表示します。',
-    en: 'Tap a question below to show its answer.'
-  });
-  container.append(lead, leadQuestions);
-
-  container.append(buildQuestions());
+  lead.textContent = pick(text);
+  return lead;
 }
 
-// 「ご利用の注意とよくある質問」を開いたときに呼ぶ。
-// 初回は中身を組み立てる。2回目以降は、開いていた答えを閉じて最初の表示
-// (見出しと質問だけ)に戻す
-export function showFaq(container) {
+// 「ご利用の注意」を開いたときに呼ぶ。中身は変わらないので、組み立ては最初の1回だけ。
+// 中の見出しは置かない(開いた項目の名前「ご利用の注意」と重なるため)。
+// onOpenQuestions は「よくある質問」を開く処理(参照リンクで移る前に呼ぶ)
+export function showNotices(container, onOpenQuestions) {
+  openQuestions = onOpenQuestions || null;
+  if (!container || noticesBuilt) return;
+  noticesBuilt = true;
+  container.append(
+    buildNotices(),
+    buildLead({
+      ja: '各項目の詳しい説明は、下の「よくある質問」にあります。番号を押すと、その質問へ移ります。',
+      en: 'Details for each item are in the FAQ below. Tap a number to jump to it.'
+    })
+  );
+}
+
+// 「よくある質問」を開いたときに呼ぶ。初回は中身を組み立てる。
+// 2回目以降は、開いていた答えを閉じて最初の表示(見出しと質問だけ)に戻す
+export function showQuestions(container) {
   if (!container) return;
-  if (!built) {
-    built = true;
-    buildFaq(container);
+  if (!questionsBuilt) {
+    questionsBuilt = true;
+    // 答えを閉じて並べるため、開き方を添える
+    container.append(
+      buildLead({ ja: '質問を押すと答えを表示します。', en: 'Tap a question to show its answer.' }),
+      buildQuestions()
+    );
     return;
   }
   for (const item of container.querySelectorAll('details.faq-item')) item.open = false;

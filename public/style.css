@@ -248,6 +248,23 @@ textarea {
   overflow-y: auto;
 }
 
+/* 本文中に描くマーカーの図形(通行止め・通行困難地点)。文字と同じ行に収める。
+   前後の括弧とはひとまとまりにし、間で改行しない */
+.guide-icon-group {
+  white-space: nowrap;
+}
+
+.guide-inline-icon {
+  display: inline-block;
+  margin: 0 0.1em;
+  line-height: 0;
+  vertical-align: middle;
+}
+
+.guide-inline-icon svg {
+  display: block;
+}
+
 .guide-tip-actions {
   display: flex;
   align-items: center;
@@ -1397,7 +1414,7 @@ body.view-state-map .leaflet-control-container {
   background: #fff;
 }
 
-/* 押すと下に開く4項目(ご利用の注意とよくある質問・メッセージ履歴・バージョン情報・このアプリについて)。
+/* 押すと下に開く5項目(ご利用の注意・よくある質問・メッセージ履歴・バージョン情報・このアプリについて)。
    設定ではなく情報の表示なので、スイッチではなく開閉の印(下向き / 上向き)の付いた見出しにする。
    よくある質問の質問(.faq-q)も同じ形の印で開閉するため、こちらは文字を大きくし、項目の間に
    区切り線を入れて、外側の見出しだと分かるようにする */
@@ -1469,10 +1486,10 @@ body.view-state-map .leaflet-control-container {
   display: none;
 }
 
-/* ===== ご利用の注意とよくある質問(情報・言語/Info & Language から表示) ===== */
+/* ===== ご利用の注意・よくある質問(情報・言語/Info & Language から表示) ===== */
 /* 中身は faq.js が faq-text.js から組み立てる。分量が多いため、
    見出し・質問・答えの区別を色と余白ではっきり付け、拾い読みできるようにする */
-/* 「ご利用の注意」と、質問のまとまりの見出し */
+/* よくある質問のまとまりの見出し */
 .faq-section-title {
   margin: 0.9rem 0 0.35rem;
   padding: 0 1rem;
@@ -1480,13 +1497,6 @@ body.view-state-map .leaflet-control-container {
   font-weight: 600;
   color: #0c4a6e;
   border-left: 3px solid #2c7a3d;
-}
-
-/* 「ご利用の注意」の見出しだけは、山に入る前に読む部分として目立たせる */
-.faq-notice-title {
-  margin-top: 0.35rem;
-  color: #b91c1c;
-  border-left-color: #b91c1c;
 }
 
 .faq-notice-list {

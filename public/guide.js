@@ -13,8 +13,9 @@
 // 文言は i18n の翻訳キー(guide.<キー>Title / guide.<キー>Body)から取る。ページを増やすときは
 // GUIDE_STEPS に足し、i18n.js に同じキーの ja/en を追加する。
 
-import { GUIDE_SEEN_KEY, MARKER_SETTINGS_REV_KEY } from './config.js';
+import { GUIDE_SEEN_KEY, MARKER_SETTINGS_REV_KEY, MARKER_TYPES } from './config.js';
 import { t } from './i18n.js';
+import { shapeToSVG } from './map.js';
 
 // 明るく残す場所の外側に取る余白(px)
 const GUIDE_PAD = 8;
@@ -23,6 +24,12 @@ const TIP_GAP = 10;
 // 明るく残した場所の上下に吹き出しを置くとき、これより狭ければ諦めて画面の中央に出す(px)。
 // 狭すぎる帯に押し込めると本文がほとんど読めなくなるため
 const TIP_MIN_HEIGHT = 120;
+
+// 本文中の目印({iconClosed} など)と、そこに描くマーカーの種別(config.js の MARKER_TYPES の key)。
+// 絵文字ではなく地図と同じ図形で描く(通行困難地点のひし形に当たる絵文字は無く、⚠️ は形が違うため。
+// 絵文字は端末のフォントでも見た目が変わる)。色・形は地図と同じ既定値、大きさは本文の文字に合わせる
+const GUIDE_ICONS = { iconClosed: 'closureClosed', iconDifficult: 'closureDifficult' };
+const GUIDE_ICON_SIZE = 16;
 
 // ガイドの各ページ。
 // - key     … 翻訳キーの一部(guide.<key>Title / guide.<key>Body)
@@ -258,7 +265,7 @@ function renderStep() {
   hooks.setLayerPanelOpen(step.view === 'map' && !!step.panel);
 
   el.title.textContent = t(`guide.${step.key}Title`);
-  el.body.textContent = t(`guide.${step.key}Body`);
+  renderBody(t(`guide.${step.key}Body`));
   el.count.textContent = `${stepIndex + 1} / ${GUIDE_STEPS.length}`;
   el.btnPrev.disabled = stepIndex === 0;
   el.btnNext.textContent = stepIndex === GUIDE_STEPS.length - 1 ? t('guide.finish') : t('guide.next');
@@ -267,6 +274,30 @@ function renderStep() {
   layoutGuide();
   // 画面を切り替えた直後は配置が定まっていないことがあるため、描画後にもう一度測る
   requestAnimationFrame(layoutGuide);
+}
+
+// 本文を表示する。目印({iconClosed} など)はマーカーの図形に置き換え、それ以外は文字として入れる
+// (innerHTML に文言を流さない。図形は shapeToSVG が組み立てる固定の SVG だけ)。
+// 目印を囲む括弧は図形とひとまとまりにする(図形の直後で改行され、「)」だけが次の行に行かないように)
+function renderBody(text) {
+  el.body.replaceChildren();
+  let last = 0;
+  for (const m of text.matchAll(/([(（]?)\{(\w+)\}([)）]?)/g)) {
+    const [whole, open, name, close] = m;
+    const type = MARKER_TYPES.find((mt) => mt.key === GUIDE_ICONS[name]);
+    if (!type) continue; // 知らない目印は文字のまま出す
+    if (m.index > last) el.body.append(text.slice(last, m.index));
+    const group = document.createElement('span');
+    group.className = 'guide-icon-group';
+    const icon = document.createElement('span');
+    icon.className = 'guide-inline-icon';
+    icon.setAttribute('aria-hidden', 'true'); // 図形の意味は前後の文で説明している
+    icon.innerHTML = shapeToSVG(type.shape, type.color, GUIDE_ICON_SIZE);
+    group.append(open, icon, close);
+    el.body.append(group);
+    last = m.index + whole.length;
+  }
+  if (last < text.length) el.body.append(text.slice(last));
 }
 
 // 表示設定パネルが入りきらずスクロールしているとき、明るく残す場所が見えている範囲の
