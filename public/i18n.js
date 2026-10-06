@@ -362,9 +362,18 @@ const DICT = {
 
   'guide.howToTitle': { ja: '使い方', en: 'How to Use' },
   'guide.howToBody': {
-    ja: 'この案内は、いつでも「使い方」から見直せます。\n' +
+    ja: 'この案内は、初めて開いたときに自動で表示されます。\n' +
+        'いつでも「使い方」から見直せます。',
+    en: 'This guide opens by itself the first time you use the app.\n' +
+        'You can reopen it at any time from "How to Use".'
+  },
+
+  // 起動時画面の最後のページ(「次へ」でハイキングマップ表示へ移ることもここで伝える)
+  'guide.qrTitle': { ja: 'QR', en: 'QR' },
+  'guide.qrBody': {
+    ja: 'いま開いているページのQRコードを表示します。別の端末のカメラで読み取ると、同じアプリをすぐ開けます。\n' +
         '「次へ」を押すと、ハイキングマップ表示に移って案内を続けます。',
-    en: 'You can reopen this guide at any time from "How to Use".\n' +
+    en: 'Shows a QR code for the page you are on. Scan it with another device with a camera to open the same app right away.\n' +
         'Press "Next" to move on to the hiking map and continue the guide.'
   },
 
@@ -408,23 +417,15 @@ const DICT = {
         '"Import" and "Export" handle GPX files; "Clear" removes all tracks.'
   },
 
+  // 案内の最後のページ(「案内は以上です」の締めくくりもここで伝える)
   'guide.mapFinishTitle': { ja: 'マーカーの設定と、画面の戻り方', en: 'Marker Settings and Going Back' },
   'guide.mapFinishBody': {
     ja: '「マーカーの設定」では、地図の目印の色・形・大きさを種類ごとに変えられます。\n' +
         '「起動時の画面に戻る」で最初の画面に戻ります。\n' +
-        '「次へ」を押すと、起動時画面に戻って最後のご案内をします。',
+        '案内は以上です。「終わり」を押すと、案内を開く前の画面に戻ります。',
     en: 'In "Marker Settings" you can change the color, shape and size of each kind of marker on the map.\n' +
         '"Back to Start Screen" returns you to the first screen.\n' +
-        'Press "Next" to return to the start screen for the last page.'
-  },
-
-  // 案内の最後のページ(起動時画面に戻して説明する)
-  'guide.qrTitle': { ja: 'QR', en: 'QR' },
-  'guide.qrBody': {
-    ja: 'いま開いているページのQRコードを表示します。別の端末のカメラで読み取ると、同じアプリをすぐ開けます。\n' +
-        '案内は以上です。この案内は、いつでも「使い方」から見直せます。',
-    en: 'Shows a QR code for the page you are on. Scan it with another device with a camera to open the same app right away.\n' +
-        'That is the whole tour. You can reopen this guide at any time from "How to Use".'
+        'That is the whole tour. Press "Done" to return to the screen you were on.'
   },
 
   'messages.clearConfirm': { ja: 'メッセージ履歴を全て削除します。よろしいですか?', en: 'Delete all message history?' },
