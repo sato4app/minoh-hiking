@@ -173,6 +173,28 @@
     </div>
   </div>
 
+  <!-- 移動経路の記録の停止を確認するモーダル。記録停止ボタン(■)の長押しと、
+       「移動経路を記録」トグルのオフで共用する。標準の confirm はページの処理を止め、
+       表示中は位置が記録されないため使わない。操作が無ければ app.js が数秒で閉じ、
+       記録を続ける。閉じる(×・背景・キャンセル)は停止の取り消し -->
+  <div class="modal" id="trackStopModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="trackStopTitle" aria-describedby="trackStopMessage">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="trackStopTitle" data-i18n="track.stopTitle">移動経路の記録の停止</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      </header>
+      <div class="modal-body">
+        <p class="modal-subtitle" id="trackStopMessage" data-i18n="track.stopConfirm">移動経路の記録を停止します。よろしいですか?</p>
+        <p class="modal-note" id="trackStopAutoClose"></p>
+        <div class="button-group button-group-row">
+          <button type="button" id="btnTrackStopOk" class="btn btn-danger" data-i18n="track.stopOk">停止する</button>
+          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.cancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 移動経路の出力(GPX)モーダル: ファイル名は yyyymmdd-nn を既定とし、全体を編集できる。
        拡張子(.gpx)は編集対象外のため画面には出さず、出力時に付ける -->
   <div class="modal" id="trackExportModal" hidden role="dialog" aria-modal="true" aria-labelledby="trackExportTitle">

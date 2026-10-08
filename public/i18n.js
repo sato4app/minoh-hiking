@@ -132,7 +132,7 @@ const DICT = {
     ja: '移動記録を終了しました[{by}]({summary})',
     en: 'Track recording finished [{by}] ({summary})'
   },
-  'track.stopByButton': { ja: '記録停止ボタン(■)をタップ', en: 'Stop button (■) tapped' },
+  'track.stopByButton': { ja: '記録停止ボタン(■)を長押し', en: 'Stop button (■) held' },
   'track.stopByToggle': { ja: '「移動経路を記録」をオフ', en: '"Record Track" switched off' },
   'track.interrupted': {
     ja: '前回の移動記録は停止操作なしで中断されました(アプリの再読み込み・終了など)',
@@ -146,6 +146,18 @@ const DICT = {
   'track.stopConfirm': {
     ja: '移動経路の記録を停止します。よろしいですか?',
     en: 'Stop recording the track?'
+  },
+  // 停止の確認(アプリ内のモーダル)。操作が無ければ {sec} 秒で閉じて記録を続ける
+  'track.stopTitle': { ja: '移動経路の記録の停止', en: 'Stop Track Recording' },
+  'track.stopAutoClose': {
+    ja: '操作が無いときは {sec} 秒で閉じ、記録を続けます。',
+    en: 'If you do nothing, this closes in {sec} seconds and recording continues.'
+  },
+  'track.stopOk': { ja: '停止する', en: 'Stop' },
+  // 記録停止ボタン(■)を短くタップしたとき(停止は長押しのみ)
+  'track.stopHoldHint': {
+    ja: '記録を停止するには、■を長押ししてください',
+    en: 'To stop recording, press and hold ■'
   },
   'track.cleared': { ja: '移動経路をクリアしました', en: 'Track cleared' },
   // 起動時に、端末に保存してある前回の移動経路を読み出して表示したときの履歴
@@ -402,9 +414,9 @@ const DICT = {
 
   'guide.mapTrackTitle': { ja: '移動経路の記録', en: 'Recording Your Track' },
   'guide.mapTrackBody': {
-    ja: '「移動経路を記録」をオンにすると≡の左に▶が出ます。▶で記録を始め、■で止めます。起動時画面に戻っても記録は続きます。\n' +
+    ja: '「移動経路を記録」をオンにすると≡の左に▶が出ます。▶で記録を始め、■の長押しで止めます。起動時画面に戻っても記録は続きます。\n' +
         '「読み込み」「出力」はGPXファイル用、「クリア」は表示中の経路を消します。',
-    en: 'Turn on "Record Track" and ▶ appears left of ≡. Press ▶ to record and ■ to stop. Recording continues on the start screen.\n' +
+    en: 'Turn on "Record Track" and ▶ appears left of ≡. Press ▶ to record; press and hold ■ to stop. Recording continues on the start screen.\n' +
         '"Import" and "Export" handle GPX files; "Clear" removes all tracks.'
   },
 

@@ -797,10 +797,39 @@ body.view-state-map .leaflet-control-container {
   display: none;
 }
 
-/* 記録開始・停止トグルのアイコンボタン(btn-float ベースだが静的配置) */
+/* 記録開始・停止トグルのアイコンボタン(btn-float ベースだが静的配置)。
+   relative は長押しの進み具合(::before)を重ねるため。
+   停止は長押しのため、長押しで出る文字選択・コンテキストメニューを抑える */
 .btn-track-action {
-  position: static;
+  position: relative;
+  top: auto;  /* btn-float の top を打ち消す(relative では位置がずれるため) */
+  overflow: hidden;
   color: #1f7a4d;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+}
+
+/* 停止の長押しの進み具合: 押している間、下から赤く満ちる(満ちたら停止の確認を出す)。
+   所要時間は app.js が TRACK_STOP_HOLD_MS から --hold-ms に入れる */
+.btn-track-action::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(178, 59, 59, 0.28);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  pointer-events: none;
+}
+
+.btn-track-action.is-holding::before {
+  transform: scaleY(1);
+  transition: transform var(--hold-ms, 1000ms) linear;
+}
+
+.btn-track-action svg {
+  position: relative;
 }
 
 /* 記録トグル: 既定は開始(▶)を表示、記録中(is-recording)は停止(■)を表示し赤色に */
@@ -963,6 +992,14 @@ body.view-state-map .leaflet-control-container {
   padding: 0.25rem 1rem 0.5rem;
   font-size: 0.85rem;
   color: #666;
+}
+
+/* モーダル内の補足(移動経路の記録の停止で、自動で閉じることの案内) */
+.modal-note {
+  margin: 0;
+  padding: 0 1rem 0.5rem;
+  font-size: 0.78rem;
+  color: #6b7280;
 }
 
 /* ===== QRコードモーダル ===== */

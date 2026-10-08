@@ -103,6 +103,13 @@ export const MESSAGE_LOG_MAX = 100;
 // トースト(一時メッセージ)の表示秒数
 export const TOAST_DURATION_SEC = 3;
 
+// ===== 移動記録の停止(app.js) =====
+// 記録停止ボタン(■)は、この時間(ミリ秒)押し続けたときだけ停止の確認を出す。
+// 記録中は画面が消えないため、ポケットの中で布越しに触れた短いタップで確認が出ないようにする。
+export const TRACK_STOP_HOLD_MS = 1000;
+// 停止の確認は、操作が無ければこの秒数で閉じて記録を続ける(誤って開いた確認を残さない)。
+export const TRACK_STOP_CONFIRM_SEC = 10;
+
 // マーカー設定の対象種別と既定値。
 // 表示名は i18n.js の辞書で管理する(キーは markerType.<key> で導出)。
 // locked: 設定UIで変更不可とする属性(常に既定値を使用)。

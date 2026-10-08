@@ -4,7 +4,7 @@
 **最終更新日:** 2026年10月5日
 **対象:** 運用・開発担当者
 **関連:**
-[機能仕様 `funcspec-202609.md`](funcspec-202609.md) /
+[機能仕様 `funcspec-202610.md`](funcspec-202610.md) /
 [公開API 仕様 `publish-api-202609.md`](publish-api-202609.md)
 
 ---

@@ -37,7 +37,8 @@ import {
 } from './published-data.js';
 import {
   TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC,
-  TRACK_RECORDING_FLAG_KEY, MAP_TOGGLES_KEY
+  TRACK_RECORDING_FLAG_KEY, MAP_TOGGLES_KEY,
+  TRACK_STOP_HOLD_MS, TRACK_STOP_CONFIRM_SEC
 } from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
@@ -130,6 +131,10 @@ const el = {
   trackExistingMessage: document.getElementById('trackExistingMessage'),
   btnTrackExistingClear: document.getElementById('btnTrackExistingClear'),
   btnTrackExistingAppend: document.getElementById('btnTrackExistingAppend'),
+  // 移動経路の記録の停止を確認するモーダル(■の長押し・トグルのオフで共用)
+  trackStopModal: document.getElementById('trackStopModal'),
+  trackStopAutoClose: document.getElementById('trackStopAutoClose'),
+  btnTrackStopOk: document.getElementById('btnTrackStopOk'),
   // 移動経路の出力(GPX)モーダル
   trackExportModal: document.getElementById('trackExportModal'),
   trackExportName: document.getElementById('trackExportName'),
@@ -404,10 +409,12 @@ function bindEvents() {
     const on = e.target.checked;
     if (!on) {
       // OFF: 軌跡が消去される前に終了処理(統計の出力)を行う。
-      // 記録中は確認を挟み、取り消されたらトグルを ON に戻して記録を続ける
-      // (誤って触れただけで記録が終わらないようにする)。
-      if (isTrackRecording && !confirm(t('track.stopConfirm'))) {
+      // 記録中は確認を挟む(誤って触れただけで記録が終わらないようにする)。確認は
+      // モーダルで答えを待たずに返るため、トグルはいったん ON に戻し、停止が選ばれたら
+      // OFF にする(→ confirmTrackStop)。この後の saveMapToggles も ON のまま保存する
+      if (isTrackRecording) {
         e.target.checked = true;
+        openTrackStopModal('track.stopByToggle');
         return;
       }
       finishTrackRecording('track.stopByToggle');
@@ -422,22 +429,26 @@ function bindEvents() {
 
   // 記録開始・停止トグルボタン: 移動経路を記録トグル ON のときのみ表示・操作可。
   // 記録中なら停止、停止中なら開始する(押下ごとにアイコンが切り替わる)。
-  on(el.btnTrackToggle, 'click', () => {
+  on(el.btnTrackToggle, 'click', (e) => {
     // ボタンが表示されている(=移動経路を記録 ON で現在地表示が有効)ときのみ動作。
     // checked の値に依存すると、位置情報エラーで checked が戻されたとき無言で
     // 効かなくなるため、ボタン自身の表示状態で判定する。
     if (el.btnTrackToggle.hidden) return;
-    // 停止だけ確認を挟む。このボタンはメニューボタン(≡)のすぐ左(間隔 8px)にあり、
-    // ≡ を狙った指が触れて記録が終わる誤操作が起きるため。
-    // 停止すると記録中の経路がその場で確定し、押す前の状態には戻せない
-    // (再開しても別の経路として記録される)。開始は取り消せるので確認しない。
-    if (isTrackRecording) {
-      if (!confirm(t('track.stopConfirm'))) return;
-      finishTrackRecording('track.stopByButton');
-    } else {
+    if (!isTrackRecording) {
       beginTrackRecording();
+      return;
     }
+    // キーボード(Enter/Space)での操作は click の detail が 0。意図した操作なので確認を出す
+    if (e.detail === 0) {
+      openTrackStopModal('track.stopByButton');
+      return;
+    }
+    // 記録中の停止は長押し(→ bindTrackStopHold)。
+    // 短いタップは停止の確認を出さず、長押しで止めることだけ伝える
+    showToast(t('track.stopHoldHint'));
   });
+  bindTrackStopHold();
+  on(el.btnTrackStopOk, 'click', confirmTrackStop);
 
   // 読み込み: GPX ファイルを選び、記録済みの移動経路として地図に表示する。
   // 記録中は経路が入れ替わると記録が壊れるため受け付けない。
@@ -593,6 +604,12 @@ function closeModal(modal) {
   modal.hidden = true;
   // 「クリア/追加/中止」モーダルを閉じたのは操作の中止。保持した用途を捨てる
   if (modal.id === 'trackExistingModal') trackExistingMode = null;
+  // 停止の確認を閉じたのは停止の取り消し(記録は続ける)。自動で閉じるタイマーも止める
+  if (modal.id === 'trackStopModal') {
+    trackStopBy = null;
+    clearTimeout(trackStopAutoCloseTimer);
+    trackStopAutoCloseTimer = null;
+  }
 }
 
 // 開いているモーダルをすべて閉じる(ビュー切替時の後始末)
@@ -933,6 +950,81 @@ function startTrackRecordingNow(append) {
   updateTrackStatsDisplay();
   logHistory(t('track.started'), 'success');
   showToast(t('track.started'));
+}
+
+// ===== 移動記録の停止(長押し → 確認) =====
+// 記録中は画面が消えないため、ポケットの中で布越しに触れて記録停止ボタン(■)が押され、
+// 停止の確認が出たままになることがあった。そこで停止は■の長押し(TRACK_STOP_HOLD_MS)に限り、
+// 確認は操作が無ければ TRACK_STOP_CONFIRM_SEC 秒で閉じて記録を続ける。
+// 確認を標準の confirm にしないのは、表示中はページの処理が止まり位置が記録されないため。
+// このボタンはメニューボタン(≡)のすぐ左(間隔 8px)にあり、≡ を狙った指が触れることもある。
+// 停止すると記録中の経路がその場で確定し、押す前の状態には戻せない
+// (再開しても別の経路として記録される)。開始は取り消せるので長押しも確認も要らない。
+let trackStopHoldTimer = null;       // 長押しの判定タイマー
+let trackStopHoldFired = false;      // 長押しで確認を出した(指を離したときの click を無視する)
+let trackStopBy = null;              // 停止の確認を開いた操作(履歴用の文言キー)
+let trackStopAutoCloseTimer = null;  // 停止の確認を自動で閉じるタイマー
+
+function bindTrackStopHold() {
+  const btn = el.btnTrackToggle;
+  if (!btn) return;
+  btn.style.setProperty('--hold-ms', `${TRACK_STOP_HOLD_MS}ms`);
+  const cancelHold = () => {
+    clearTimeout(trackStopHoldTimer);
+    trackStopHoldTimer = null;
+    btn.classList.remove('is-holding');
+  };
+  btn.addEventListener('pointerdown', (e) => {
+    if (!isTrackRecording || btn.hidden || e.button !== 0) return;
+    cancelHold();
+    trackStopHoldFired = false;
+    btn.classList.add('is-holding');
+    trackStopHoldTimer = setTimeout(() => {
+      cancelHold();
+      trackStopHoldFired = true;
+      openTrackStopModal('track.stopByButton');
+    }, TRACK_STOP_HOLD_MS);
+  });
+  // 指を離す・ボタンの外へずらす・地図の操作などに取られたら、長押しをやめる
+  for (const type of ['pointerup', 'pointerleave', 'pointercancel']) {
+    btn.addEventListener(type, cancelHold);
+  }
+  // 長押しで出る端末のメニュー(コンテキストメニュー)を出さない
+  btn.addEventListener('contextmenu', (e) => e.preventDefault());
+  // 長押しで確認を出した後、指を離したときの click を捨てる。端末によっては、指の下に
+  // 現れた確認の背景(押すと閉じる)へ click が届き、出した確認がすぐ閉じてしまうため。
+  // click が来ないまま次の操作に移ったときは、その pointerdown で印を降ろす
+  document.addEventListener('pointerdown', () => { trackStopHoldFired = false; }, true);
+  document.addEventListener('click', (e) => {
+    if (!trackStopHoldFired || e.detail === 0) return;
+    trackStopHoldFired = false;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+}
+
+// 停止の確認を開く。stopBy は履歴に添える操作の文言キー
+function openTrackStopModal(stopBy) {
+  if (!isTrackRecording) return;
+  trackStopBy = stopBy;
+  el.trackStopAutoClose.textContent = t('track.stopAutoClose', { sec: TRACK_STOP_CONFIRM_SEC });
+  el.trackStopModal.hidden = false;
+  clearTimeout(trackStopAutoCloseTimer);
+  trackStopAutoCloseTimer = setTimeout(() => closeModal(el.trackStopModal), TRACK_STOP_CONFIRM_SEC * 1000);
+}
+
+// 停止の確認で「停止する」が選ばれたとき
+function confirmTrackStop() {
+  const stopBy = trackStopBy;
+  closeModal(el.trackStopModal);
+  if (!isTrackRecording) return;
+  finishTrackRecording(stopBy);
+  // トグルのオフから開いたときは、ここでトグルを OFF にして保存する
+  if (stopBy === 'track.stopByToggle') {
+    el.toggleTrackRecording.checked = false;
+    updateTrackButtonState(false);
+    saveMapToggles();
+  }
 }
 
 // 移動記録を終了(記録停止ボタン/トグルOFF)。記録中だったときのみ、いま記録していた経路の

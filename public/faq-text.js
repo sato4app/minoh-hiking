@@ -4,7 +4,7 @@
 //
 // 構成:
 //   FAQ_NOTICES  … ご利用の注意(9項目)。1行の要約と、詳しい説明のある質問への参照
-//   FAQ_SECTIONS … よくある質問(7分類・27問)。説明の本体はこちらにだけ置く
+//   FAQ_SECTIONS … よくある質問(7分類・28問)。説明の本体はこちらにだけ置く
 //
 // ご利用の注意を増やすときは、対応する質問を FAQ_SECTIONS に用意し、ref で指すこと
 // (注意側に本文を書くと、また二重管理になる)。
@@ -533,6 +533,23 @@ export const FAQ_SECTIONS = [
       {
         id: 'Q25',
         q: {
+          ja: '国土地理院の地図を使うことについて、国土地理院の許可は得ていますか。',
+          en: 'Does this app have permission from GSI to use its map?'
+        },
+        a: [
+          {
+            ja: '本アプリの公開にあたり、国土地理院に申請が必要かを問い合わせ、「国土地理院コンテンツ利用規約」を守り、出典を明示することで、申請は不要との回答を得ています。',
+            en: 'Before publishing this app, we asked GSI whether an application was required. GSI replied that none is needed as long as the map is used in line with the GSI Content Terms of Use and the source is credited.'
+          },
+          {
+            ja: '出典は、地図の右下(国土地理院のクレジット)と、「情報・言語/Info & Language」の「このアプリについて」の「地図の出典」に表示しています。',
+            en: 'The source is credited at the bottom right of the map (the GSI credit) and under "Map Source" in "About This App" in 情報・言語/Info & Language.'
+          }
+        ]
+      },
+      {
+        id: 'Q26',
+        q: {
           ja: '地図やアプリのバージョンを確認したいです。',
           en: 'I want to check the map and app versions.'
         },
@@ -544,7 +561,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q26',
+        id: 'Q27',
         q: {
           ja: '端末の空き容量を増やしたいです。',
           en: 'I want to free up space on my device.'
@@ -557,7 +574,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q27',
+        id: 'Q28',
         q: {
           ja: '英語表示にしたら、戻し方が分からなくなりました。',
           en: 'I switched to English and cannot find my way back.'
