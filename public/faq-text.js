@@ -538,12 +538,16 @@ export const FAQ_SECTIONS = [
         },
         a: [
           {
-            ja: '本アプリの公開にあたり、国土地理院に申請が必要かを問い合わせ、「国土地理院コンテンツ利用規約」を守り、出典を明示することで、申請は不要との回答を得ています。',
-            en: 'Before publishing this app, we asked GSI whether an application was required. GSI replied that none is needed as long as the map is used in line with the GSI Content Terms of Use and the source is credited.'
+            ja: '本アプリの公開にあたり、国土地理院に申請の要否を問い合わせ、申請不要との回答を得ています。',
+            en: 'Before publishing this app, we asked GSI whether an application was required, and GSI replied that none is needed.'
           },
           {
             ja: '出典は、地図の右下(国土地理院のクレジット)と、「情報・言語/Info & Language」の「このアプリについて」の「地図の出典」に表示しています。',
             en: 'The source is credited at the bottom right of the map (the GSI credit) and under "Map Source" in "About This App" in 情報・言語/Info & Language.'
+          },
+          {
+            ja: '本アプリの利用者が公開等を行う場合、利用者にて申請要否の確認をしてください。',
+            en: 'If you, as a user of this app, publish or otherwise share material from it, please check for yourself whether an application is required.'
           }
         ]
       },
