@@ -1433,6 +1433,28 @@ body.view-state-map .leaflet-control-container {
   word-break: keep-all;
 }
 
+/* ソースコードのラベルは折り返さず、値(Open Source (GitHub↗))の側で折り返す
+   (クレジットの役割名と同じ扱い。狭い端末で「ソースコー/ド：」と切れないようにする) */
+.info-label-keep {
+  flex-shrink: 0;
+  margin-right: 0.5rem;
+}
+
+/* アプリの企画・開発: 値の「(Portfolio↗)」は折り返せない(下の .info-nowrap)ため、
+   それすら入らないほど狭い端末(英語の 320px 幅など)では、はみ出さないよう
+   役割名の側を折り返して値の幅を空ける。
+   値は最小の幅(「(Portfolio↗)」の幅)を基準に、空いた幅のぶん伸ばす(縮めない)。
+   役割名は、値の最小幅すら入らないときだけ縮む(入る幅があるときは役割名を切らず、
+   値の側を「さとう」の後ろで折り返す)。
+   後ろにある .info-contributors .info-label(flex-shrink: 0)より優先させるため詳細度を上げる */
+.info-contributors .info-label.info-label-yield {
+  flex-shrink: 1;
+}
+
+.info-contributors .info-label-yield + .info-value {
+  flex: 1 0 min-content;
+}
+
 /* 括弧付きのリンク「(GitHub↗)」「(Portfolio↗)」は途中で折り返さず、
    折り返すときは括弧ごと次の行へ送る(「さとう (」で切れないようにする) */
 .info-nowrap {
@@ -1483,15 +1505,16 @@ body.view-state-map .leaflet-control-container {
 }
 
 /* リンクの語の右に添える外部サイトのアイコン(四角に右上の矢印)。
-   文字の大きさに合わせ、リンクと同じ色で線だけを描く */
+   外部サイトへのリンクだと目に留まるよう文字より一回り大きくし、リンクと同じ色で線だけを描く。
+   下端を文字の下端(ディセンダー)近くまで下げ、文字の高さの中央に来るようにする */
 .icon-external {
-  width: 0.85em;
-  height: 0.85em;
-  margin-left: 0.15em;
-  vertical-align: -0.05em;
+  width: 1.2em;
+  height: 1.2em;
+  margin-left: 0.2em;
+  vertical-align: -0.25em;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.4;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
