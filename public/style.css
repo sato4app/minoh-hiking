@@ -1002,6 +1002,66 @@ body.view-state-map .leaflet-control-container {
   color: #6b7280;
 }
 
+/* ===== 外部サイトを開く確認 ===== */
+/* ふだんのモーダル(半透明の背景 + 緑の見出しのパネル)と見た目を変え、画面全体を
+   白で覆う。アプリの画面が透けて見えないことで「アプリから離れる」ことを示す。
+   情報・言語モーダル(1000)の上に重ねるため、それより前面・トースト(1100)より後ろに置く。
+   セーフエリア(ノッチ・ホームバー)にかからないよう内側に余白を取る */
+.modal-external {
+  z-index: 1050;
+  background: #fff;
+  padding: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left);
+  overflow-y: auto;
+}
+
+.external-site-panel {
+  width: min(420px, calc(100% - 2rem));
+  margin: auto;
+  padding: 1.5rem 0;
+  text-align: center;
+  color: #333;
+}
+
+.external-site-icon {
+  width: 48px;
+  height: 48px;
+  color: #2c7a3d;
+}
+
+.external-site-panel h2 {
+  margin: 0.5rem 0 1rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.external-site-message {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* 開く先の URL。長い URL は途中で折り返す */
+.external-site-url {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: #555;
+  background: #f3f4f6;
+  border-radius: 6px;
+  overflow-wrap: anywhere;
+}
+
+.external-site-note {
+  margin: 0 0 1.5rem;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* 横位置は本文に揃える(ボタン群の既定の左右余白は付けない) */
+.external-site-panel .button-group {
+  padding: 0;
+}
+
 /* ===== QRコードモーダル ===== */
 /* QRコード本体。パネル幅いっぱいには広げず、正方形を中央に置く。
    周囲の明色の余白(4モジュール)は SVG 側に含めている */

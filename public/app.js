@@ -94,6 +94,11 @@ const el = {
   infoVersionBody: document.getElementById('infoVersionBody'),
   btnInfoAbout: document.getElementById('btnInfoAbout'),
   infoAboutBody: document.getElementById('infoAboutBody'),
+  // 外部サイトを開く確認(このアプリについて のリンクから表示)
+  externalSiteModal: document.getElementById('externalSiteModal'),
+  externalSiteMessage: document.getElementById('externalSiteMessage'),
+  externalSiteUrl: document.getElementById('externalSiteUrl'),
+  btnExternalSiteOpen: document.getElementById('btnExternalSiteOpen'),
   versionManifest: document.getElementById('versionManifest'),
   versionAppShell: document.getElementById('versionAppShell'),
   // 公開データのバージョン表示欄(バージョン情報内)
@@ -341,16 +346,20 @@ function bindEvents() {
   // バージョン情報: 開いたら、その時点の値を反映する
   bindInfoDisclosure(el.btnInfoVersion, el.infoVersionBody, showVersionInfo);
   bindInfoDisclosure(el.btnInfoAbout, el.infoAboutBody);
-  // このアプリについて の外部サイトへのリンク: 開く前に確認し、キャンセルなら開かない。
-  // OK ならリンク本来の動作(target="_blank")で別ウインドウに開くため、
-  // アプリの画面(情報・言語モーダル)はそのまま残り、閉じれば元の画面に戻れる
+  // このアプリについて の外部サイトへのリンク: すぐには開かず、全画面の確認画面を出す。
+  // キャンセル(data-close-modal)なら開かずに情報・言語モーダルへ戻る。
+  // 「開く」なら別ウインドウで開き、確認画面は閉じておく。アプリの画面(情報・言語モーダル)は
+  // そのまま残るため、開いたウインドウを閉じれば元の画面に戻れる
   for (const link of el.infoAboutBody.querySelectorAll('a[data-external-site]')) {
     link.addEventListener('click', (e) => {
-      if (!confirm(t('info.externalConfirm', { site: t(link.dataset.externalSite) }))) {
-        e.preventDefault();
-      }
+      e.preventDefault();
+      openExternalSiteModal(link.href, t(link.dataset.externalSite));
     });
   }
+  on(el.btnExternalSiteOpen, 'click', () => {
+    if (externalSiteHref) window.open(externalSiteHref, '_blank', 'noopener');
+    closeModal(el.externalSiteModal);
+  });
 
   // モーダル閉じる(各モーダル内の [data-close-modal] が、その親モーダルを閉じる)
   for (const elem of document.querySelectorAll('[data-close-modal]')) {
@@ -614,6 +623,8 @@ function closeModal(modal) {
   modal.hidden = true;
   // 「クリア/追加/中止」モーダルを閉じたのは操作の中止。保持した用途を捨てる
   if (modal.id === 'trackExistingModal') trackExistingMode = null;
+  // 外部サイトの確認を閉じたら、開く先を捨てる
+  if (modal.id === 'externalSiteModal') externalSiteHref = null;
   // 停止の確認を閉じたのは停止の取り消し(記録は続ける)。自動で閉じるタイマーも止める
   if (modal.id === 'trackStopModal') {
     trackStopBy = null;
@@ -749,6 +760,17 @@ function openAppSettingsModal() {
   renderMessageList();
 
   el.appSettingsModal.hidden = false;
+}
+
+// 外部サイトを開く確認(このアプリについて のリンクから表示)。
+// 開く先は「開く」が押されるまで保持し、閉じたら捨てる(closeModal)
+let externalSiteHref = null;
+
+function openExternalSiteModal(href, siteName) {
+  externalSiteHref = href;
+  el.externalSiteMessage.textContent = t('info.externalMessage', { site: siteName });
+  el.externalSiteUrl.textContent = href;
+  el.externalSiteModal.hidden = false;
 }
 
 // QRコードモーダル(起動画面の「QR」から表示)。

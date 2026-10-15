@@ -402,7 +402,8 @@
                    アプリの企画・開発の担当名(さとう)は作者のポートフォリオへのリンク(人の名前から
                    その人の紹介ページへ飛ぶ、クレジットで一般的な形)。外部サイトのため別タブで開く。
                    外部サイトへのリンク(data-external-site)は、アプリ内の移動と混同しないよう
-                   開く前に確認する(app.js。値は確認文に入れるサイト名の辞書キー) -->
+                   開く前に確認画面(#externalSiteModal)を出す(app.js。値は確認文に入れる
+                   サイト名の辞書キー) -->
               <div class="info-row">
                 <span class="info-label">
                   <span data-i18n="info.credits">クレジット：</span>
@@ -447,6 +448,28 @@
             </select>
           </div>
         </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- 外部サイトを開く確認(情報・言語の「このアプリについて」のリンクから表示)。
+       アプリ内の移動と混同しないよう、ふだんのモーダル(緑の見出し + 半透明の背景)とは
+       見た目を変え、画面全体を白で覆ってアプリの画面から離れることをはっきり示す。
+       ブラウザ標準の confirm は上部に「(ドメイン)の内容」と出て消せないため使わない。
+       「開く」で別ウインドウに開き(app.js)、この画面は閉じて情報・言語モーダルに戻る。
+       サイト名・URL は開くリンクに合わせて app.js が入れる -->
+  <div class="modal modal-external" id="externalSiteModal" hidden role="alertdialog" aria-modal="true" aria-labelledby="externalSiteTitle" aria-describedby="externalSiteMessage">
+    <div class="external-site-panel" role="document">
+      <svg class="external-site-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2 id="externalSiteTitle" data-i18n="info.externalTitle">外部サイトを開きます</h2>
+      <p class="external-site-message" id="externalSiteMessage"></p>
+      <p class="external-site-url" id="externalSiteUrl"></p>
+      <p class="external-site-note" data-i18n="info.externalNote">開いたウインドウを閉じると、このアプリの画面に戻ります。</p>
+      <div class="button-group button-group-row">
+        <button type="button" id="btnExternalSiteOpen" class="btn btn-primary" data-i18n="info.externalOpen">開く</button>
+        <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.cancel">キャンセル</button>
       </div>
     </div>
   </div>
