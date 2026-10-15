@@ -308,6 +308,16 @@ const DICT = {
   'info.creditMapData': { ja: 'ハイキングマップ情報：', en: 'Hiking Map Data:' },
   'info.creditOversight': { ja: 'プロジェクト統括：', en: 'Project Oversight:' },
   'info.creditMapSource': { ja: '地図の出典：', en: 'Map Source:' },
+  // このアプリについて のリンク(ソースコード / アプリの企画・開発)は外部サイトのため、
+  // アプリ内の移動と混同しないよう開く前に確認する。{site} は下の externalSite* の文言
+  'info.externalConfirm': {
+    ja: '外部サイト({site})を別のウインドウで開きます。\n' +
+        '開いたウインドウを閉じると、このアプリの画面に戻ります。\n\nよろしいですか?',
+    en: 'This will open an external site ({site}) in a new window.\n' +
+        'Close that window to return to this app.\n\nContinue?'
+  },
+  'info.externalSiteGitHub': { ja: 'GitHub のソースコード', en: 'source code on GitHub' },
+  'info.externalSitePortfolio': { ja: '作者の紹介ページ', en: "the developer's profile page" },
 
   // ----- QRコード(起動画面の「QR」) -----
   'qr.title': { ja: 'QRコード', en: 'QR Code' },

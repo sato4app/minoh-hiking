@@ -341,6 +341,16 @@ function bindEvents() {
   // バージョン情報: 開いたら、その時点の値を反映する
   bindInfoDisclosure(el.btnInfoVersion, el.infoVersionBody, showVersionInfo);
   bindInfoDisclosure(el.btnInfoAbout, el.infoAboutBody);
+  // このアプリについて の外部サイトへのリンク: 開く前に確認し、キャンセルなら開かない。
+  // OK ならリンク本来の動作(target="_blank")で別ウインドウに開くため、
+  // アプリの画面(情報・言語モーダル)はそのまま残り、閉じれば元の画面に戻れる
+  for (const link of el.infoAboutBody.querySelectorAll('a[data-external-site]')) {
+    link.addEventListener('click', (e) => {
+      if (!confirm(t('info.externalConfirm', { site: t(link.dataset.externalSite) }))) {
+        e.preventDefault();
+      }
+    });
+  }
 
   // モーダル閉じる(各モーダル内の [data-close-modal] が、その親モーダルを閉じる)
   for (const elem of document.querySelectorAll('[data-close-modal]')) {

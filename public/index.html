@@ -390,7 +390,7 @@
                    訳さず、括弧も半角にする。ライセンスの種類(MIT)までは書かない(GitHub で分かる) -->
               <div class="info-row">
                 <span class="info-label" data-i18n="info.sourceCode">ソースコード：</span>
-                <span class="info-value info-value-source">Open Source (<a class="info-link" href="https://github.com/sato4app/minoh-hiking" target="_blank" rel="noopener">GitHub</a>)</span>
+                <span class="info-value info-value-source">Open Source (<a class="info-link" href="https://github.com/sato4app/minoh-hiking" target="_blank" rel="noopener" data-external-site="info.externalSiteGitHub">GitHub</a>)</span>
               </div>
               <!-- クレジット: 役割ごとの担当。
                    見出し(クレジット / Credits)と役割名は訳す(info.credits / info.credit*)。
@@ -400,7 +400,9 @@
                    ラベル無しの続き行(info-row-cont)として値の列に右寄せで置く。
                    幅が足りない端末では語句の区切り(wbr)で折り返す。
                    アプリの企画・開発の担当名(さとう)は作者のポートフォリオへのリンク(人の名前から
-                   その人の紹介ページへ飛ぶ、クレジットで一般的な形)。外部サイトのため別タブで開く -->
+                   その人の紹介ページへ飛ぶ、クレジットで一般的な形)。外部サイトのため別タブで開く。
+                   外部サイトへのリンク(data-external-site)は、アプリ内の移動と混同しないよう
+                   開く前に確認する(app.js。値は確認文に入れるサイト名の辞書キー) -->
               <div class="info-row">
                 <span class="info-label">
                   <span data-i18n="info.credits">クレジット：</span>
@@ -410,7 +412,7 @@
               <div class="info-contributors">
                 <div class="info-row">
                   <span class="info-label" data-i18n="info.creditPlanning">アプリの企画・開発：</span>
-                  <span class="info-value"><a class="info-link" href="https://sato4app.github.io/Portfolio/" target="_blank" rel="noopener">さとう</a></span>
+                  <span class="info-value"><a class="info-link" href="https://sato4app.github.io/Portfolio/" target="_blank" rel="noopener" data-external-site="info.externalSitePortfolio">さとう</a></span>
                 </div>
                 <div class="info-row">
                   <span class="info-label" data-i18n="info.creditMapData">ハイキングマップ情報：</span>
