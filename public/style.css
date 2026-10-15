@@ -1425,12 +1425,18 @@ body.view-state-map .leaflet-control-container {
   word-break: break-all;
 }
 
-/* ソースコード(Open Source (GitHub))。幅が足りず折り返すときも右寄せのまま、
+/* ソースコード(Open Source (GitHub))と、アプリの企画・開発(さとう (Portfolio))。幅が足りず折り返すときも右寄せのまま、
    語の途中ではなく空白で折り返す */
 .info-value-source {
   min-width: 0;
   text-align: right;
   word-break: keep-all;
+}
+
+/* 括弧付きのリンク「(GitHub↗)」「(Portfolio↗)」は途中で折り返さず、
+   折り返すときは括弧ごと次の行へ送る(「さとう (」で切れないようにする) */
+.info-nowrap {
+  white-space: nowrap;
 }
 
 /* このアプリについて: クレジットの明細(役割ごとの担当)。
@@ -1466,7 +1472,7 @@ body.view-state-map .leaflet-control-container {
 /* 「このアプリについて」の外部リンク(ソースコードのリポジトリ・クレジットのポートフォリオ)。
    周りの太字の黒と区別できるよう、FAQ の参照リンクと同じテーマ色+下線にする。
    上下に余白を足して指で押せる範囲を広げる(行の高さは変えない)。
-   クレジットの担当名(さとう)は値の列の右端に来るため、左右には広げない(広げると枠から数px はみ出す) */
+   リンク(GitHub / Portfolio)は前後に括弧が付くため、左右には広げない(広げると括弧との間が空き、値の列の右端からもはみ出す) */
 .info-link {
   display: inline-block;
   padding: 0.2rem 0;
@@ -1474,6 +1480,20 @@ body.view-state-map .leaflet-control-container {
   color: #2c7a3d;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* リンクの語の右に添える外部サイトのアイコン(四角に右上の矢印)。
+   文字の大きさに合わせ、リンクと同じ色で線だけを描く */
+.icon-external {
+  width: 0.85em;
+  height: 0.85em;
+  margin-left: 0.15em;
+  vertical-align: -0.05em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* ===== 情報・言語/Info & Language モーダル: セクション ===== */

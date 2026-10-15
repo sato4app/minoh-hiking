@@ -387,10 +387,12 @@
               <!-- ソースコード: このアプリのリポジトリへのリンク。URL と同じく「このアプリがどこにあるか」の
                    情報のため、クレジット(誰が何をしたか)ではなく URL の下に置く。
                    ラベルは言語で区切りを変えるため辞書に持つ(info.sourceCode)。値は英字だけで日英共通のため
-                   訳さず、括弧も半角にする。ライセンスの種類(MIT)までは書かない(GitHub で分かる) -->
+                   訳さず、括弧も半角にする。ライセンスの種類(MIT)までは書かない(GitHub で分かる)。
+                   リンクの語の右に外部サイトのアイコン(四角に右上の矢印)を付け、アプリ内の移動では
+                   ないことを示す(アイコンもリンクに含めて押せるようにする) -->
               <div class="info-row">
                 <span class="info-label" data-i18n="info.sourceCode">ソースコード：</span>
-                <span class="info-value info-value-source">Open Source (<a class="info-link" href="https://github.com/sato4app/minoh-hiking" target="_blank" rel="noopener" data-external-site="info.externalSiteGitHub">GitHub</a>)</span>
+                <span class="info-value info-value-source">Open Source <span class="info-nowrap">(<a class="info-link" href="https://github.com/sato4app/minoh-hiking" target="_blank" rel="noopener" data-external-site="info.externalSiteGitHub">GitHub<svg class="icon-external" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>)</span></span>
               </div>
               <!-- クレジット: 役割ごとの担当。
                    見出し(クレジット / Credits)と役割名は訳す(info.credits / info.credit*)。
@@ -399,8 +401,10 @@
                    担当が2行になるもの(プロジェクト統括 / 地図の出典)は、2行目を
                    ラベル無しの続き行(info-row-cont)として値の列に右寄せで置く。
                    幅が足りない端末では語句の区切り(wbr)で折り返す。
-                   アプリの企画・開発の担当名(さとう)は作者のポートフォリオへのリンク(人の名前から
-                   その人の紹介ページへ飛ぶ、クレジットで一般的な形)。外部サイトのため別タブで開く。
+                   アプリの企画・開発は「さとう (Portfolio)」とし、担当名(さとう)の後ろの括弧内に
+                   作者のポートフォリオへのリンクを置く(ソースコードの「Open Source (GitHub)」と同じ形。
+                   リンクは名前ではなく Portfolio に付け、外部サイトのアイコンを添える)。
+                   外部サイトのため別タブで開く。
                    外部サイトへのリンク(data-external-site)は、アプリ内の移動と混同しないよう
                    開く前に確認画面(#externalSiteModal)を出す(app.js。値は確認文に入れる
                    サイト名の辞書キー) -->
@@ -413,7 +417,7 @@
               <div class="info-contributors">
                 <div class="info-row">
                   <span class="info-label" data-i18n="info.creditPlanning">アプリの企画・開発：</span>
-                  <span class="info-value"><a class="info-link" href="https://sato4app.github.io/Portfolio/" target="_blank" rel="noopener" data-external-site="info.externalSitePortfolio">さとう</a></span>
+                  <span class="info-value info-value-source">さとう <span class="info-nowrap">(<a class="info-link" href="https://sato4app.github.io/Portfolio/" target="_blank" rel="noopener" data-external-site="info.externalSitePortfolio">Portfolio<svg class="icon-external" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></a>)</span></span>
                 </div>
                 <div class="info-row">
                   <span class="info-label" data-i18n="info.creditMapData">ハイキングマップ情報：</span>
