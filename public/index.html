@@ -141,8 +141,10 @@
         <button type="button" class="btn-track-mini" id="btnTrackExport" data-i18n="track.export">出力</button>
         <button type="button" class="btn-track-mini" id="btnTrackClear" data-i18n="common.clear">クリア</button>
       </div>
-      <!-- 「読み込み」で開くファイル選択(GPX)。ボタンから click() して呼び出す -->
-      <input type="file" id="trackImportInput" accept=".gpx,application/gpx+xml" hidden />
+      <!-- 「読み込み」で開くファイル選択(GPX)。ボタンから click() して呼び出す。
+           accept は付けない: スマホの OS は .gpx の種類(MIME/UTI)を知らないため、
+           絞り込むと GPX ファイルがグレイアウトして選べなくなる。内容は読み込み時に解析して判定する -->
+      <input type="file" id="trackImportInput" hidden />
       <hr class="panel-divider" />
       <!-- マーカーの設定(マーカーの設定モーダルを開く)。マーカーはマップ画面でしか見えないため、
            起動画面の「情報・言語/Info & Language」ではなくここからだけ開く -->
