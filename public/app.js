@@ -10,6 +10,9 @@
 //   marker-settings.js… マーカーの色・形状・サイズ設定
 //   map.js            … Leaflet 地図・オーバーレイ
 //   geolocation.js    … 現在地表示・移動経路の記録と端末への保存
+//   camera.js         … アプリ内カメラ(移動経路の記録中の撮影)
+//   photos.js         … 撮った写真の保持・地図への表示・端末への保存
+//   kmz.js            … 写真の出力・読み込み(KMZ)
 //   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
 //   qrcode.js         … QRコードの生成(外部ライブラリ非依存)
 //   guide.js          … 使い方ガイド(画面を順に案内するオーバーレイ)
@@ -29,8 +32,16 @@ import {
   setTrackStyle, setTrackStartStyle, setTrackCurrentStyle,
   startTrackRecording, stopTrackRecording, getTrackStats, getTrackStatsList,
   getTrackSegments, clearTrack, loadTrackSegments, fitMapToTrack, restoreSavedTrack,
-  setOnTrackPointAppended, setOnTrackNotice
+  setOnTrackPointAppended, setOnTrackNotice,
+  capturePhotoPosition, addPhotoPointToTrack, renameTrackPoint, findTrackPointTime
 } from './geolocation.js';
+import { isCameraSupported, openCamera, closeCamera, setCameraStatus } from './camera.js';
+import {
+  setPhotoHandlers, getPhotos, getPhotoCount, getPhoto, getPhotoLatLngs,
+  addPhoto, renamePhoto, clearPhotos, restorePhotos, importPhotos,
+  hasUnexportedPhotos, markPhotosExported
+} from './photos.js';
+import { isZipFile, loadPhotoBytes, buildPhotosKmz, parsePhotosKmz } from './kmz.js';
 import {
   loadPublishedData, checkPublishedDataUpdate,
   getMapdataVersion, getClosureVersion, getClosureCount
@@ -38,7 +49,7 @@ import {
 import {
   TRACK_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC,
   TRACK_RECORDING_FLAG_KEY, MAP_TOGGLES_KEY,
-  TRACK_STOP_HOLD_MS, TRACK_STOP_CONFIRM_SEC
+  TRACK_STOP_HOLD_MS, TRACK_STOP_CONFIRM_SEC, PHOTO_MAX_COUNT
 } from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
@@ -123,6 +134,8 @@ const el = {
   toggleTrackRecording: document.getElementById('toggleTrackRecording'),
   // 「移動経路を記録」ON のとき表示する記録開始・停止トグル(メニューボタンの左)
   btnTrackToggle: document.getElementById('btnTrackToggle'),
+  // 「移動経路を記録」ON のとき表示するカメラボタン(記録開始・停止トグルの左)
+  btnTrackCamera: document.getElementById('btnTrackCamera'),
   // レイヤーパネル内: 移動経路の統計表(経路ごとの地点数・移動距離)・出力・クリア。
   // 統計は経路の本数に応じて app.js が組み立てる
   trackStats: document.getElementById('trackStats'),
@@ -142,8 +155,23 @@ const el = {
   btnTrackStopOk: document.getElementById('btnTrackStopOk'),
   // 移動経路の出力(GPX)モーダル
   trackExportModal: document.getElementById('trackExportModal'),
+  trackExportTitle: document.getElementById('trackExportTitle'),
   trackExportName: document.getElementById('trackExportName'),
   btnTrackExportSave: document.getElementById('btnTrackExportSave'),
+  // 写真(KMZ)も出力するかの確認(GPX の出力後、写真があるときだけ)
+  photoExportModal: document.getElementById('photoExportModal'),
+  photoExportMessage: document.getElementById('photoExportMessage'),
+  btnPhotoExportOk: document.getElementById('btnPhotoExportOk'),
+  // 写真(KMZ)も読み込むかの確認(GPX の読み込み後)と、そのファイル選択
+  photoImportModal: document.getElementById('photoImportModal'),
+  photoImportMessage: document.getElementById('photoImportMessage'),
+  btnPhotoImportOk: document.getElementById('btnPhotoImportOk'),
+  photoImportInput: document.getElementById('photoImportInput'),
+  // 写真の表示(名前の変更)
+  photoViewModal: document.getElementById('photoViewModal'),
+  photoViewImage: document.getElementById('photoViewImage'),
+  photoViewName: document.getElementById('photoViewName'),
+  photoViewMeta: document.getElementById('photoViewMeta'),
 
   // マーカーの設定モーダル
   settingsModal: document.getElementById('settingsModal'),
@@ -242,6 +270,8 @@ async function init() {
   // 端末に保存してある移動経路を読み出して表示する。スタイルの設定より後に呼ぶこと
   // (復元時に線・マーカーを作るため、先に呼ぶと既定の見た目で描かれてしまう)
   await restoreTrackFromStorage();
+  // 写真も経路と一緒に端末から戻す(撮影地点の印を地図に出す)
+  await restorePhotosFromStorage();
   // 統計表の中身は経路の本数に応じて組み立てるため、初期状態(0件の1行)を描画しておく
   updateTrackStatsDisplay();
 
@@ -469,30 +499,51 @@ function bindEvents() {
   bindTrackStopHold();
   on(el.btnTrackStopOk, 'click', confirmTrackStop);
 
+  // カメラボタン: アプリ内カメラを開く(記録中かどうかにかかわらず撮影できる)
+  on(el.btnTrackCamera, 'click', openTrackCamera);
+  // 写真の表示: 地図のカメラの印から開く。枚数が変わったら統計表を更新する
+  setPhotoHandlers({ onClick: openPhotoView, onChanged: updateTrackStatsDisplay });
+  // 名前の入力を確定したとき(Enter・欄の外へ)に保存する。閉じたときも保存する(closeModal)
+  on(el.photoViewName, 'change', commitPhotoViewName);
+
   // 読み込み: GPX ファイルを選び、記録済みの移動経路として地図に表示する。
+  // 続けて写真(KMZ)も読み込むかを確認する。最初に KMZ を選んだときは写真だけを読み込む。
   // 記録中は経路が入れ替わると記録が壊れるため受け付けない。
-  // 既存の経路があるときは、クリア/追加/中止をモーダルで選んでからファイル選択へ進む。
+  // 既存の経路・写真があるときは、クリア/追加/中止をモーダルで選んでからファイル選択へ進む。
   on(el.btnTrackImport, 'click', () => {
     if (isTrackRecording) {
       showToast(t('track.importWhileRecording'));
       return;
     }
-    if (getTrackStats().pointCount > 0) {
+    if (hasTrackOrPhotos()) {
       openTrackExistingModal('import');
       return;
     }
     openTrackImportPicker(false);
   });
-  on(el.trackImportInput, 'change', importTrackGpx);
+  on(el.trackImportInput, 'change', importTrackFile);
+  // 写真(KMZ)も読み込むかの確認で「読み込む」: 2つ目のファイル選択を開く
+  on(el.btnPhotoImportOk, 'click', () => {
+    closeModal(el.photoImportModal);
+    el.photoImportInput.value = '';
+    el.photoImportInput.click();
+  });
+  on(el.photoImportInput, 'change', importPhotoFileAfterGpx);
 
   // 「クリア/追加/中止」モーダルの2ボタン。中止(キャンセル・×・背景)は
   // 共通の [data-close-modal] が閉じるだけで、経路には手を付けない。
   on(el.btnTrackExistingClear, 'click', () => resolveTrackExisting(false));
   on(el.btnTrackExistingAppend, 'click', () => resolveTrackExisting(true));
 
-  // 出力: 記録済みの移動経路を GPX 形式でファイルに出力する
+  // 出力: 記録済みの移動経路を GPX 形式でファイルに出力し、写真があれば続けて
+  // 写真(KMZ)も出力するかを確認する。経路が無く写真だけのときは KMZ だけを出力する
   on(el.btnTrackExport, 'click', openTrackExportModal);
-  on(el.btnTrackExportSave, 'click', exportTrackGpx);
+  on(el.btnTrackExportSave, 'click', handleTrackExportSave);
+  // 確認を閉じると読み出した画像を捨てるため、出力してから閉じる
+  on(el.btnPhotoExportOk, 'click', () => {
+    if (photoExportName) exportPhotosKmz(photoExportName);
+    closeModal(el.photoExportModal);
+  });
 
   // 記録点が追加されるたびにパネル内の統計表を最新化する
   setOnTrackPointAppended(updateTrackStatsDisplay);
@@ -505,15 +556,20 @@ function bindEvents() {
     setTimeout(() => showToast(msg), (TOAST_DURATION_SEC + 0.5) * 1000);
   });
 
-  // クリア: 記録した移動経路(線・開始点・現在地点)を消去
+  // クリア: 記録した移動経路(線・開始点・現在地点)と写真を消去。
+  // 写真はアプリの中にしか無いため、写真があるときは確認文で写真も消えることを伝え、
+  // 出力していない写真があれば先に出力するよう添える
   on(el.btnTrackClear, 'click', () => {
-    const stats = getTrackStats();
-    if (stats.pointCount === 0) {
+    if (!hasTrackOrPhotos()) {
       showToast(t('track.nothingToClear'));
       return;
     }
-    if (!confirm(t('track.clearConfirm'))) return;
+    const photoCount = getPhotoCount();
+    let message = photoCount > 0 ? t('track.clearConfirmPhotos', { photos: photoCount }) : t('track.clearConfirm');
+    if (hasUnexportedPhotos()) message += `\n\n${t('photo.unexportedWarning')}`;
+    if (!confirm(message)) return;
     clearTrack();
+    clearPhotos();
     isTrackRecording = false;
     writeTrackRecordingFlag(false);
     setTrackRecordingActive(false);
@@ -618,9 +674,20 @@ function blurActiveElement() {
 // ソフトキーボードや文字入力ウインドウが開いたままになる(非表示後は activeElement が
 // body へ移るため外せない)。モーダルを閉じるときは必ずこの関数を通す
 function closeModal(modal) {
+  // 写真の表示は、閉じる前に入力中の名前を保存する(フォーカスを外すと change が来ない端末があるため先に)
+  if (modal && modal.id === 'photoViewModal' && !modal.hidden) commitPhotoViewName();
   blurActiveElement();
   if (!modal) return;
   modal.hidden = true;
+  // 写真の表示を閉じたら、表示していた画像の URL を手放す
+  if (modal.id === 'photoViewModal') releasePhotoView();
+  // 写真(KMZ)の出力の確認を閉じたら、出力に使うファイル名と読み出した画像を捨てる
+  if (modal.id === 'photoExportModal') {
+    photoExportName = null;
+    releasePhotoBytes();
+  }
+  // 出力モーダルを閉じたときも捨てる。ただし続けて写真の確認を開いた場合(photoExportName あり)は残す
+  if (modal.id === 'trackExportModal' && !photoExportName) releasePhotoBytes();
   // 「クリア/追加/中止」モーダルを閉じたのは操作の中止。保持した用途を捨てる
   if (modal.id === 'trackExistingModal') trackExistingMode = null;
   // 外部サイトの確認を閉じたら、開く先を捨てる
@@ -647,9 +714,10 @@ function showView(name) {
   // 前の画面に残った入力状態を持ち込まない。
   // マーカーの設定のサイズ入力(数値入力欄)などにフォーカスが残っていると、
   // ハイキングマップ表示中にソフトキーボードや文字入力ウインドウが出てしまうため、
-  // フォーカスを外してから、開いたままのモーダルをすべて閉じる
+  // フォーカスを外してから、開いたままのモーダルをすべて閉じる。カメラも閉じる(映像を止める)
   blurActiveElement();
   closeAllModals();
+  closeCamera();
 
   for (const [key, view] of Object.entries(el.views)) {
     view.hidden = (key !== name);
@@ -836,6 +904,8 @@ function openMarkerSettingsModal() {
 // 移動経路を記録トグルの状態に応じて、記録開始/停止ボタンの表示を切替
 function updateTrackButtonState(enabled) {
   if (el.btnTrackToggle) el.btnTrackToggle.hidden = !enabled;
+  // カメラボタンも同じ条件で出す(アプリ内カメラが使えない端末では出さない)
+  if (el.btnTrackCamera) el.btnTrackCamera.hidden = !enabled || !isCameraSupported();
   // ボタンの見た目(開始▶/停止■)は実際の記録状態に合わせる。
   // 起動時画面へ移動しても記録は続くため、ここで一律に停止状態へは戻さない
   // (トグル OFF の場合は呼び出し元が先に finishTrackRecording している)。
@@ -887,6 +957,18 @@ async function restoreTrackFromStorage() {
   logHistory(t('track.restored', { summary: formatTrackSummary(stats, 0, 1) }), '');
 }
 
+// 端末に保存してある写真を読み出して、撮影地点の印を地図に出す(起動時に1回)
+async function restorePhotosFromStorage() {
+  const restored = await restorePhotos();
+  if (restored > 0) logHistory(t('photo.restored', { n: restored }), '');
+}
+
+// 表示中の経路(記録点)か写真が1つでもあるか。クリア・出力・記録開始/読み込みの確認の要否に使う
+// (写真は記録していないときにも撮れるため、経路が無く写真だけのこともある)
+function hasTrackOrPhotos() {
+  return getTrackStats().pointCount > 0 || getPhotoCount() > 0;
+}
+
 // 記録地点数・移動距離の統計文言(履歴・トースト用。距離は統計表と同じ小数点以下1位)。
 // 経路が複数あるときは「経路 n:」を先頭に付ける。地点数0の経路は残らないため番号は付けない。
 function formatTrackSummary(stats, index, total) {
@@ -916,6 +998,13 @@ function updateTrackStatsDisplay() {
       buildTrackStatPair(t('track.statDistance'), `${(stats.distanceM / 1000).toFixed(1)} (km)`)
     );
   });
+  // 写真があるときだけ、経路の行の下に写真の枚数を1行添える
+  const photoCount = getPhotoCount();
+  if (photoCount > 0) {
+    const pair = buildTrackStatPair(t('track.statPhotos'), t('track.statPhotoCount', { n: photoCount }));
+    pair.classList.add('track-stat-photos');
+    el.trackStats.appendChild(pair);
+  }
 }
 
 // 統計表のセル(「経路 n」など、ラベル単体のもの)
@@ -945,7 +1034,15 @@ function openTrackExistingModal(mode) {
   trackExistingMode = mode;
   const isRecord = mode === 'record';
   el.trackExistingTitle.textContent = t(isRecord ? 'track.existingTitleRecord' : 'track.existingTitleImport');
-  el.trackExistingMessage.textContent = t('track.existingMessage', { routes: getTrackStatsList().length });
+  // 写真があるときは、クリアで写真も消えることが分かるよう枚数も示す。
+  // 出力していない写真があれば、先に出力するよう添える
+  const routes = getTrackStatsList().length;
+  const photoCount = getPhotoCount();
+  let message = photoCount > 0
+    ? t('track.existingMessagePhotos', { routes, photos: photoCount })
+    : t('track.existingMessage', { routes });
+  if (hasUnexportedPhotos()) message += `\n${t('photo.unexportedWarning')}`;
+  el.trackExistingMessage.textContent = message;
   el.btnTrackExistingClear.textContent = t(isRecord ? 'track.existingClearRecord' : 'track.existingClearImport');
   el.btnTrackExistingAppend.textContent = t(isRecord ? 'track.existingAppendRecord' : 'track.existingAppendImport');
   el.trackExistingModal.hidden = false;
@@ -964,7 +1061,7 @@ function resolveTrackExisting(append) {
 // 移動記録を開始(記録開始ボタン)。既存の経路が表示されている場合は、
 // クリア/追加/中止をモーダルで選んでから開始する(→ resolveTrackExisting)。
 function beginTrackRecording() {
-  if (getTrackStats().pointCount > 0) {
+  if (hasTrackOrPhotos()) {
     openTrackExistingModal('record');
     return;
   }
@@ -974,6 +1071,8 @@ function beginTrackRecording() {
 // 実際に記録を開始する。開始を履歴に残す。
 // 軌跡は「クリア」まで移動記録と共に保持するため、追加時(append)はそのまま残す。
 function startTrackRecordingNow(append) {
+  // 「クリアして記録開始」は写真も消す(写真は経路に付くもの)
+  if (!append) clearPhotos();
   startTrackRecording({ append });
   setTrackRecordingActive(true);
   isTrackRecording = true;
@@ -1087,11 +1186,11 @@ function finishTrackRecording(stopBy) {
 }
 
 // ===== 移動経路の出力(GPX) =====
-// ファイル名の日付部分(yyyymmdd)。記録開始の当日=最初の記録点の記録日を使う
-// (記録点に時刻が無い場合のみ今日の日付で代替)。
+// ファイル名の日付部分(yyyymmdd)。記録開始の当日=最初の記録点の記録日を使う。
+// 経路が無く写真だけのときは最初の写真の撮影日(どちらも時刻が無い場合のみ今日の日付で代替)。
 function getTrackDateStr() {
   const first = getTrackSegments()[0]?.[0];
-  const firstMs = first?.timeMs || Date.now();
+  const firstMs = first?.timeMs || getPhotos().find((p) => p.timeMs)?.timeMs || Date.now();
   const d = new Date(firstMs);
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -1122,12 +1221,16 @@ function writeExportSeq(name) {
 
 // 出力モーダルを開く。ファイル名は yyyymmdd-nn を既定とし、拡張子(.gpx)を除く全体を編集できる。
 // 開いた直後は未選択(全選択しない)にして、編集位置(キャレット)を末尾に置く。
+// 経路が無く写真だけのときは、見出しを「写真の出力(KMZ)」にして KMZ だけを出力する。
+// 写真があるときは、ここで写真の画像の読み出しを始めておく(→ preparePhotoBytes)。
 function openTrackExportModal() {
-  const stats = getTrackStats();
-  if (stats.pointCount === 0) {
+  if (!hasTrackOrPhotos()) {
     showToast(t('track.nothingToExport'));
     return;
   }
+  const photosOnly = getTrackStats().pointCount === 0;
+  el.trackExportTitle.textContent = t(photosOnly ? 'photo.exportTitle' : 'track.exportTitle');
+  if (getPhotoCount() > 0) preparePhotoBytes();
   const dateStr = getTrackDateStr();
   const name = `${dateStr}-${String(readNextExportSeq(dateStr)).padStart(2, '0')}`;
   el.trackExportName.value = name;
@@ -1139,13 +1242,15 @@ function openTrackExportModal() {
 
 // GPX 1.1 文字列を生成(トラック1本・経路1本ごとに trkseg 1本、各点に記録時刻を含む)。
 // 経路を trkseg で分けるため、出力した GPX を読み込み直すと同じ経路構成に戻る。
+// 撮影地点として入れた記録点には写真の名前を <name> で付ける(GPX 1.1 の順序は <time> の後)。
 function buildTrackGpx(segments, name) {
   const esc = (s) => String(s)
     .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
   const trksegs = segments.map((points) => {
     const trkpts = points.map((p) => {
       const time = p.timeMs ? `<time>${new Date(p.timeMs).toISOString()}</time>` : '';
-      return `      <trkpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}">${time}</trkpt>`;
+      const pointName = p.name ? `<name>${esc(p.name)}</name>` : '';
+      return `      <trkpt lat="${p.lat.toFixed(6)}" lon="${p.lng.toFixed(6)}">${time}${pointName}</trkpt>`;
     }).join('\n');
     return `    <trkseg>\n${trkpts}\n    </trkseg>`;
   }).join('\n');
@@ -1158,27 +1263,8 @@ function buildTrackGpx(segments, name) {
     '</gpx>\n';
 }
 
-// 出力ボタン: GPX を生成してダウンロードし、連番を保存してモーダルを閉じる
-function exportTrackGpx() {
-  const segments = getTrackSegments();
-  if (segments.length === 0) {
-    showToast(t('track.nothingToExport'));
-    closeModal(el.trackExportModal);
-    return;
-  }
-  // ファイル名に使えない文字は除去し、拡張子まで入力された場合は二重に付かないよう落とす。
-  // 末尾に空白があると .gpx を末尾と判定できないため、除去 → trim → 拡張子落とし の順に行う
-  const name = el.trackExportName.value
-    .replace(/[\\/:*?"<>|]/g, '')
-    .trim()
-    .replace(/\.gpx$/i, '')
-    .trim();
-  if (!name) {
-    showToast(t('track.exportNeedName'));
-    return;
-  }
-  const fileName = `${name}.gpx`;
-  const blob = new Blob([buildTrackGpx(segments, name)], { type: 'application/gpx+xml' });
+// Blob をファイルとしてダウンロードさせる(GPX・KMZ で共用)
+function downloadBlob(blob, fileName) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -1186,10 +1272,116 @@ function exportTrackGpx() {
   a.click();
   // click 直後の revoke はダウンロード開始前に無効化される場合があるため遅延させる
   setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+// 出力ボタン: GPX を生成してダウンロードし、連番を保存してモーダルを閉じる。
+// 写真があれば続けて「写真(KMZ)も出力するか」の確認を開く(2つ目のダウンロードは、
+// その確認のタップで始める)。経路が無く写真だけのときは、ここで KMZ だけを出力する。
+function handleTrackExportSave() {
+  // ファイル名に使えない文字は除去し、拡張子まで入力された場合は二重に付かないよう落とす。
+  // 末尾に空白があると .gpx を末尾と判定できないため、除去 → trim → 拡張子落とし の順に行う
+  const name = el.trackExportName.value
+    .replace(/[\\/:*?"<>|]/g, '')
+    .trim()
+    .replace(/\.(gpx|kmz)$/i, '')
+    .trim();
+  if (!name) {
+    showToast(t('track.exportNeedName'));
+    return;
+  }
+  const segments = getTrackSegments().filter((seg) => seg.length > 0);
+  if (segments.length === 0) {
+    if (getPhotoCount() === 0) {
+      showToast(t('track.nothingToExport'));
+      closeModal(el.trackExportModal);
+      return;
+    }
+    // 写真だけ: 画像の読み出しが済んでいなければ待ってもらう(押したときに同期的にダウンロードするため)
+    if (!photoBytes) {
+      showToast(t('photo.exportPreparing'));
+      return;
+    }
+    exportPhotosKmz(name);
+    writeExportSeq(name);
+    closeModal(el.trackExportModal);
+    return;
+  }
+  const fileName = `${name}.gpx`;
+  downloadBlob(new Blob([buildTrackGpx(segments, name)], { type: 'application/gpx+xml' }), fileName);
   writeExportSeq(name);
-  closeModal(el.trackExportModal);
   logHistory(t('track.exported', { name: fileName }), 'success');
   showToast(t('track.exported', { name: fileName }));
+  // 写真の確認は、出力モーダルを閉じる前に開く(閉じるときに読み出し中の画像を捨てないように)
+  if (getPhotoCount() > 0) openPhotoExportModal(name);
+  closeModal(el.trackExportModal);
+}
+
+// ===== 写真の出力(KMZ) =====
+// KMZ を組み立てるには写真の画像を読み出す必要があり、これは非同期の処理になる。
+// 待ってからダウンロードすると、端末によっては操作の続きと見なされず止められるため、
+// 出力モーダルを開いた時点で読み出しを始め、ボタンを押したときは同期的にダウンロードする。
+let photoBytes = null;          // 読み出した画像(photoBytesFor と同順)
+let photoBytesFor = null;       // 読み出した対象の写真の一覧
+let photoBytesLoading = null;   // 読み出し中の Promise
+let photoExportName = null;     // 写真(KMZ)の出力の確認で使うファイル名(拡張子なし)
+
+// 写真の画像の読み出しを始める(済んでいれば何もしない)。済んだら resolve する
+function preparePhotoBytes() {
+  if (photoBytes || photoBytesLoading) return photoBytesLoading || Promise.resolve();
+  const targets = getPhotos();
+  const loading = loadPhotoBytes(targets).then((bytes) => {
+    if (photoBytesLoading !== loading) return;   // 途中で捨てられた
+    photoBytes = bytes;
+    photoBytesFor = targets;
+    photoBytesLoading = null;
+  }).catch((err) => {
+    if (photoBytesLoading === loading) photoBytesLoading = null;
+    const msg = t('photo.exportFailed', { message: err?.message || err?.name || '' });
+    logHistory(msg, 'error');
+    showToast(msg);
+  });
+  photoBytesLoading = loading;
+  return loading;
+}
+
+// 読み出した画像を捨てる(写真の出力の確認を閉じたとき。大きいため持ち続けない)
+function releasePhotoBytes() {
+  photoBytes = null;
+  photoBytesFor = null;
+  photoBytesLoading = null;
+}
+
+// GPX の出力後に開く「写真(KMZ)も出力するか」の確認。画像の読み出しが済むまで「出力する」は押せない
+function openPhotoExportModal(name) {
+  photoExportName = name;
+  el.photoExportMessage.textContent = t('photo.exportConfirm', { n: getPhotoCount(), name: `${name}.kmz` });
+  el.btnPhotoExportOk.disabled = !photoBytes;
+  el.photoExportModal.hidden = false;
+  preparePhotoBytes().then(() => {
+    if (!el.photoExportModal.hidden) el.btnPhotoExportOk.disabled = !photoBytes;
+  });
+}
+
+// 写真の KMZ を組み立ててダウンロードする(読み出し済みの画像を使い、同期的に行う)
+function exportPhotosKmz(name) {
+  if (!photoBytes || !photoBytesFor) {
+    showToast(t('photo.exportPreparing'));
+    return;
+  }
+  const fileName = `${name}.kmz`;
+  try {
+    downloadBlob(buildPhotosKmz(photoBytesFor, photoBytes, name), fileName);
+  } catch (err) {
+    const msg = t('photo.exportFailed', { message: err?.message || err?.name || '' });
+    logHistory(msg, 'error');
+    showToast(msg);
+    return;
+  } finally {
+    releasePhotoBytes();
+  }
+  markPhotosExported();
+  logHistory(t('photo.exported', { name: fileName }), 'success');
+  showToast(t('photo.exported', { name: fileName }));
 }
 
 // ===== 移動経路の読み込み(GPX) =====
@@ -1205,9 +1397,10 @@ function openTrackImportPicker(append) {
   el.trackImportInput.click();
 }
 
-// GPX 文字列から移動経路を取り出し、経路ごとの点列の配列で返す(<time> は任意)。
+// GPX 文字列から移動経路を取り出し、経路ごとの点列の配列で返す(<time> と <name> は任意)。
 // trkseg 1本を1本の経路として扱うため、記録を分けて出力した GPX
 // (本アプリの複数経路出力を含む)をそのまま複数の経路として復元できる。
+// <name> は撮影地点の記録点に付けた写真の名前で、そのまま保持して再出力に戻す。
 function parseTrackGpx(text) {
   const doc = new DOMParser().parseFromString(text, 'application/xml');
   if (doc.getElementsByTagName('parsererror').length > 0) throw new Error(t('track.importInvalidXml'));
@@ -1215,10 +1408,12 @@ function parseTrackGpx(text) {
     .map((node) => {
       const timeText = node.getElementsByTagName('time')[0]?.textContent;
       const ms = timeText ? Date.parse(timeText) : NaN;
+      const nameText = node.getElementsByTagName('name')[0]?.textContent.trim();
       return {
         lat: parseFloat(node.getAttribute('lat')),
         lng: parseFloat(node.getAttribute('lon')),
-        timeMs: Number.isFinite(ms) ? ms : null
+        timeMs: Number.isFinite(ms) ? ms : null,
+        name: nameText || null
       };
     })
     .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lng));
@@ -1232,36 +1427,233 @@ function parseTrackGpx(text) {
   return all.length > 0 ? [all] : [];
 }
 
-// ファイル選択後: GPX を解析して移動経路として表示し、統計と地図表示を合わせる
-async function importTrackGpx(ev) {
+// 拡張子を除いたファイル名(GPX と KMZ の名前がそろっているかの確認に使う)
+function baseFileName(name) {
+  return String(name || '').replace(/\.[^./\\]*$/, '');
+}
+
+// 読み込みの後始末: 読み込んだ経路は記録済みの状態として扱い(記録開始ボタンは停止表示に戻す)、
+// 統計表を更新して、読み込んだものが見えるようメニューを閉じて全体を表示する
+function finishImport() {
+  isTrackRecording = false;
+  writeTrackRecordingFlag(false);
+  setTrackRecordingActive(false);
+  updateTrackStatsDisplay();
+  el.mapLayerPanel.hidden = true;
+  fitMapToTrack(getPhotoLatLngs());
+}
+
+// 読み込みの失敗を履歴とトーストで知らせる
+function reportImportFailure(err) {
+  const msg = t('track.importFailed', { message: err?.message || err?.name || '' });
+  logHistory(msg, 'error');
+  showToast(msg);
+}
+
+// GPX を読み込んだ後に「写真(KMZ)も読み込むか」を確認するときの、GPX の名前(拡張子なし)
+let importedGpxBaseName = null;
+
+// ファイル選択後: 中身で GPX か KMZ かを判定する。
+// - GPX: 移動経路として表示し、続けて写真(KMZ)も読み込むかを確認する
+// - KMZ: 写真だけを読み込む(GPX をなくしたときなどのため)
+// どちらも、事前に選んだ「クリア/追加」に従う。クリアなら経路と写真の両方を消してから読み込む。
+async function importTrackFile(ev) {
   const file = ev.target.files?.[0];
   if (!file) return;
   try {
+    if (await isZipFile(file)) {
+      await importPhotoKmz(file, { append: importAppend });
+      return;
+    }
     const segments = parseTrackGpx(await file.text());
     if (segments.length === 0) {
       showToast(t('track.importNoPoints'));
       return;
     }
+    if (!importAppend) await clearPhotos();
     const count = loadTrackSegments(segments, { append: importAppend });
-    // 読み込んだ経路は記録済みの状態として扱う(記録開始ボタンは停止表示に戻す)
-    isTrackRecording = false;
-    writeTrackRecordingFlag(false);
-    setTrackRecordingActive(false);
-    updateTrackStatsDisplay();
-    // 読み込んだ経路が見えるよう、メニューを閉じて全体を表示する
-    el.mapLayerPanel.hidden = true;
-    fitMapToTrack();
+    finishImport();
     // 経路が複数含まれていた場合は経路数も添える
     const msg = segments.length > 1
       ? t('track.importedMulti', { name: file.name, routes: segments.length, count })
       : t('track.imported', { name: file.name, count });
     logHistory(msg, 'success');
     showToast(msg);
+    // 写真(KMZ)も読み込むかを確認する。ファイル選択は「読み込む」のタップから開く
+    importedGpxBaseName = baseFileName(file.name);
+    el.photoImportMessage.textContent = t('photo.importConfirm', { name: file.name });
+    el.photoImportModal.hidden = false;
   } catch (err) {
-    const msg = t('track.importFailed', { message: err.message });
+    reportImportFailure(err);
+  }
+}
+
+// GPX に続けて選んだ写真(KMZ)を読み込む。経路は GPX の読み込みで入れ替え済みのため、写真は追加する。
+// 名前が GPX と違うときは、取り違えでないか確かめてから読み込む(名前を変えた場合もあるため止めはしない)
+async function importPhotoFileAfterGpx(ev) {
+  const file = ev.target.files?.[0];
+  const gpxBase = importedGpxBaseName;
+  importedGpxBaseName = null;
+  if (!file) return;
+  try {
+    if (!(await isZipFile(file))) throw new Error(t('photo.importNotKmz'));
+    if (gpxBase && baseFileName(file.name) !== gpxBase
+        && !confirm(t('photo.importNameMismatch', { kmz: file.name, gpx: `${gpxBase}.gpx` }))) {
+      return;
+    }
+    await importPhotoKmz(file, { append: true });
+  } catch (err) {
+    reportImportFailure(err);
+  }
+}
+
+// KMZ から写真を読み込んで地図に出す。append=false なら経路と写真を消してから読み込む。
+// 写真の撮影地点と同じ位置の記録点があれば結び付け、名前の変更を記録点にも反映できるようにする。
+async function importPhotoKmz(file, { append }) {
+  const items = await parsePhotosKmz(await file.arrayBuffer());
+  if (items.length === 0) {
+    showToast(t('photo.importNoPhotos'));
+    return;
+  }
+  if (!append) {
+    clearTrack();
+    await clearPhotos();
+  }
+  const linked = items.map((item) => ({
+    ...item,
+    trackPointTimeMs: findTrackPointTime(item.lat, item.lng, item.name)
+  }));
+  let result;
+  try {
+    result = await importPhotos(linked, (n) => t('photo.defaultName', { n }));
+  } finally {
+    finishImport();
+  }
+  const msg = result.skipped > 0
+    ? t('photo.importedLimited', { name: file.name, n: result.added, skipped: result.skipped, max: PHOTO_MAX_COUNT })
+    : t('photo.imported', { name: file.name, n: result.added });
+  logHistory(msg, 'success');
+  showToast(msg);
+}
+
+// ===== 写真の撮影(アプリ内カメラ) =====
+// 撮影中(位置の取得・保存が終わっていない)の枚数。上限の判定と既定の名前の番号に含める
+let pendingShots = 0;
+
+// カメラボタン: アプリ内カメラを開く。上限に達していれば開かずに知らせる
+function openTrackCamera() {
+  if (el.btnTrackCamera.hidden) return;
+  if (getPhotoCount() >= PHOTO_MAX_COUNT) {
+    showToast(t('photo.limitReached', { max: PHOTO_MAX_COUNT }));
+    return;
+  }
+  el.mapLayerPanel.hidden = true;
+  openCamera({
+    canShoot: () => {
+      if (getPhotoCount() + pendingShots < PHOTO_MAX_COUNT) return true;
+      setCameraStatus(t('photo.limitReached', { max: PHOTO_MAX_COUNT }));
+      return false;
+    },
+    onShot: handlePhotoShot,
+    onThumb: () => {
+      const photos = getPhotos();
+      if (photos.length > 0) openPhotoView(photos[photos.length - 1].id);
+    },
+    onError: (msg) => {
+      logHistory(msg, 'error');
+      showToast(msg);
+    },
+    onIdleClose: () => showToast(t('camera.idleClosed'))
+  });
+}
+
+// 撮った1枚を保存する: 位置を取り直し、記録中なら撮影地点を経路に入れてから写真を保存する。
+// 位置が分からないときは保存しない(撮影地点の無い写真は地図に出せず、KMZ にも書けないため)
+async function handlePhotoShot({ blob, timeMs }) {
+  const name = t('photo.defaultName', { n: getPhotoCount() + pendingShots + 1 });
+  pendingShots++;
+  setCameraStatus(t('photo.locating', { name }));
+  let trackPointTimeMs = null;
+  try {
+    const latlng = await capturePhotoPosition();
+    if (!latlng) {
+      const msg = t('photo.noPosition');
+      setCameraStatus(msg);
+      logHistory(msg, 'error');
+      showToast(msg);
+      return;
+    }
+    trackPointTimeMs = addPhotoPointToTrack(latlng, name, timeMs);
+    await addPhoto({ name, timeMs, lat: latlng[0], lng: latlng[1], trackPointTimeMs, blob });
+    setCameraStatus(t('photo.saved', { name }));
+    logHistory(t('photo.saved', { name }), 'success');
+  } catch (err) {
+    // 保存できなかった(容量不足など)。経路に付けた写真の名前は外す(点そのものは位置の記録として残す)
+    if (trackPointTimeMs != null) renameTrackPoint(trackPointTimeMs, null);
+    const msg = t('photo.saveFailed', { message: err?.message || err?.name || '' });
+    setCameraStatus(msg);
     logHistory(msg, 'error');
     showToast(msg);
+  } finally {
+    pendingShots--;
+    updateTrackStatsDisplay();
   }
+}
+
+// ===== 写真の表示(名前の変更) =====
+let viewingPhotoId = null;
+let viewingPhotoUrl = null;
+
+// 撮影日時の表示(端末の現地時刻。言語に合わせた書式)
+function formatPhotoTime(ms) {
+  if (!Number.isFinite(ms)) return t('photo.takenAtUnknown');
+  const time = new Date(ms).toLocaleString(getLang() === 'en' ? 'en-US' : 'ja-JP', {
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+  });
+  return t('photo.takenAt', { time });
+}
+
+// 写真の表示を開く(地図のカメラの印・カメラ画面のサムネイルから)
+function openPhotoView(id) {
+  const photo = getPhoto(id);
+  if (!photo) return;
+  releasePhotoView();
+  viewingPhotoId = id;
+  viewingPhotoUrl = URL.createObjectURL(photo.blob);
+  el.photoViewImage.src = viewingPhotoUrl;
+  el.photoViewImage.alt = photo.name;
+  el.photoViewName.value = photo.name;
+  el.photoViewMeta.textContent = formatPhotoTime(photo.timeMs);
+  el.mapLayerPanel.hidden = true;
+  el.photoViewModal.hidden = false;
+}
+
+// 入力中の名前を保存する。空にされたときは元の名前に戻す。
+// 撮影地点として経路に入れた記録点があれば、その名前(GPX の <name>)も合わせて変える
+function commitPhotoViewName() {
+  const photo = viewingPhotoId ? getPhoto(viewingPhotoId) : null;
+  if (!photo) return;
+  const name = el.photoViewName.value.trim();
+  if (!name) {
+    el.photoViewName.value = photo.name;
+    return;
+  }
+  if (name === photo.name) return;
+  renamePhoto(photo.id, name).catch((err) => {
+    const msg = t('photo.saveFailed', { message: err?.message || err?.name || '' });
+    logHistory(msg, 'error');
+    showToast(msg);
+  });
+  renameTrackPoint(photo.trackPointTimeMs, name);
+  el.photoViewImage.alt = name;
+}
+
+// 写真の表示を閉じたとき: 表示していた画像の URL を手放す
+function releasePhotoView() {
+  viewingPhotoId = null;
+  if (viewingPhotoUrl) URL.revokeObjectURL(viewingPhotoUrl);
+  viewingPhotoUrl = null;
+  if (el.photoViewImage) el.photoViewImage.removeAttribute('src');
 }
 
 // ===== 更新版の確認(起動画面のボタンのタップ時) =====

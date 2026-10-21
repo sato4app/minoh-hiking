@@ -431,12 +431,13 @@ function handleOffline() {
 // 許可されなくても動作は変わらない(空き不足時に消される可能性が残るだけ)。
 // タイルが保存されているときだけ依頼する。Firefox は許可を尋ねるため、保存するものが無いうちには
 // 尋ねない。呼ぶのはダウンロード・更新の後と、起動時(ダウンロード済みの端末にも適用するため)。
+// 写真(photos.js)を保存したときも呼ぶ。そのときはタイルが無くても依頼する(hasPhotos)。
 // 許可されたときだけメッセージ履歴に残す(拒否は起動のたびに依頼し直すため、残すと履歴が埋まる)。
-export async function requestPersistentStorage() {
+export async function requestPersistentStorage({ hasPhotos = false } = {}) {
   try {
     if (!navigator.storage?.persist || !navigator.storage?.persisted) return;
     if (await navigator.storage.persisted()) return;
-    if ((await listTileCacheNames()).length === 0) return;
+    if (!hasPhotos && (await listTileCacheNames()).length === 0) return;
     if (await navigator.storage.persist()) {
       logHistory(t('download.persistGranted'), 'success');
     } else {

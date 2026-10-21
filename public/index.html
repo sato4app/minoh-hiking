@@ -84,11 +84,18 @@
   <section class="view view-map" id="viewMap" hidden>
     <button type="button" class="btn-float btn-menu-float" id="btnMapLayers" data-guide="mapMenuBtn" aria-label="表示設定" data-i18n-aria="map.ariaLayers">≡</button>
     <!-- メニューボタン(≡)の左に並べる上部操作群。右詰めで、右から順に
-         記録開始/停止ボタン → 時刻表示。各要素は個別に hidden を切り替え、
+         記録開始/停止ボタン → カメラボタン → 時刻表示。各要素は個別に hidden を切り替え、
          表示中のものだけがメニューボタンに隣接する(非表示分の隙間はできない)。 -->
     <div class="map-top-actions" id="mapTopActions">
       <!-- 時刻表示: 「時刻を表示」トグル ON のときのみ表示 -->
       <div class="map-clock" id="mapClock" hidden role="status" aria-live="off"></div>
+      <!-- カメラボタン(写真を撮る)。「移動経路を記録」ON のとき、記録中かどうかにかかわらず表示する。
+           アプリ内カメラ(getUserMedia)が使えない端末では出さない -->
+      <button type="button" class="btn-float btn-track-action btn-track-camera" id="btnTrackCamera" aria-label="写真を撮る" title="写真を撮る" data-i18n-aria="photo.take" data-i18n-title="photo.take" hidden>
+        <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
+          <path fill="currentColor" d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9zm3 5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/>
+        </svg>
+      </button>
       <!-- 記録開始/停止を兼ねるトグルボタン。「移動経路を記録」ON のときのみ表示。
            記録中は is-recording クラスで停止アイコンに切替。
            aria-label/title は app.js が記録状態に応じて動的に更新するため data-i18n は付けない -->
@@ -145,6 +152,8 @@
            accept は付けない: スマホの OS は .gpx の種類(MIME/UTI)を知らないため、
            絞り込むと GPX ファイルがグレイアウトして選べなくなる。内容は読み込み時に解析して判定する -->
       <input type="file" id="trackImportInput" hidden />
+      <!-- GPX の読み込みに続けて写真(KMZ)を読み込むときのファイル選択。accept を付けない理由は上と同じ -->
+      <input type="file" id="photoImportInput" hidden />
       <hr class="panel-divider" />
       <!-- マーカーの設定(マーカーの設定モーダルを開く)。マーカーはマップ画面でしか見えないため、
            起動画面の「情報・言語/Info & Language」ではなくここからだけ開く -->
@@ -216,6 +225,85 @@
           <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.cancel">キャンセル</button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- 写真(KMZ)も出力するかの確認。GPX を出力した後、写真があるときだけ開く。
+       2つ目のファイルのダウンロードを「出力する」のタップで始めるため(1回のタップで2つ続けて
+       ダウンロードすると、端末によっては2つ目が止められる)。写真の読み出しが済むまで「出力する」は押せない -->
+  <div class="modal" id="photoExportModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoExportTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="photoExportTitle" data-i18n="photo.exportTitle">写真の出力(KMZ)</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      </header>
+      <div class="modal-body">
+        <p class="modal-subtitle" id="photoExportMessage"></p>
+        <p class="modal-note" data-i18n="photo.exportNote">写真はこのアプリの中にだけ保存されています。移動経路をクリアすると写真も消えます。</p>
+        <div class="button-group button-group-row">
+          <button type="button" id="btnPhotoExportOk" class="btn btn-primary" data-i18n="photo.exportOk">出力する</button>
+          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="photo.exportSkip">出力しない</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 写真(KMZ)も読み込むかの確認。GPX を読み込んだ後に開く。「読み込む」のタップで
+       2つ目のファイル選択を開く(ファイル選択はタップの延長でしか開けないため) -->
+  <div class="modal" id="photoImportModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoImportTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="photoImportTitle" data-i18n="photo.importTitle">写真の読み込み(KMZ)</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      </header>
+      <div class="modal-body">
+        <p class="modal-subtitle" id="photoImportMessage"></p>
+        <div class="button-group button-group-row">
+          <button type="button" id="btnPhotoImportOk" class="btn btn-primary" data-i18n="photo.importOk">読み込む</button>
+          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="photo.importSkip">読み込まない</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 写真の表示(地図のカメラの印・カメラ画面のサムネイルから開く)。名前はここで変えられ、
+       閉じたとき・入力を確定したときに保存する(撮影地点の記録点の名前も合わせて変わる) -->
+  <div class="modal" id="photoViewModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoViewTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="photoViewTitle" data-i18n="photo.viewTitle">写真</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      </header>
+      <div class="modal-body">
+        <img class="photo-view-image" id="photoViewImage" alt="" />
+        <div class="track-export-row">
+          <label class="track-export-label" for="photoViewName" data-i18n="photo.nameLabel">名前</label>
+          <input type="text" id="photoViewName" autocomplete="off" maxlength="60" />
+        </div>
+        <p class="modal-note photo-view-meta" id="photoViewMeta"></p>
+        <div class="button-group">
+          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.close">閉じる</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- アプリ内カメラ(camera.js)。画面全体にカメラの映像を出し、シャッターで1コマ撮る。
+       端末のカメラアプリへ切り替えないので、撮影中も位置の記録が続く。
+       トースト(1100)より後ろ・モーダル(1000)より前に重ねる -->
+  <div class="camera-overlay" id="cameraOverlay" hidden role="dialog" aria-modal="true" aria-label="カメラ" data-i18n-aria="camera.aria">
+    <video class="camera-video" id="cameraVideo" playsinline muted autoplay></video>
+    <div class="camera-flash" id="cameraFlash" aria-hidden="true"></div>
+    <p class="camera-status" id="cameraStatus" role="status" aria-live="polite"></p>
+    <div class="camera-bar">
+      <button type="button" class="camera-close" id="btnCameraClose" aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      <button type="button" class="camera-shutter" id="btnCameraShutter" aria-label="撮影" data-i18n-aria="camera.shutter"></button>
+      <button type="button" class="camera-thumb is-empty" id="btnCameraThumb" aria-label="撮った写真を見る" data-i18n-aria="camera.viewLast" disabled>
+        <img id="cameraThumbImage" alt="" />
+      </button>
     </div>
   </div>
 

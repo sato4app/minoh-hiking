@@ -169,6 +169,108 @@ const DICT = {
     ja: 'この端末では記録中の画面消灯を止められません。画面が消えると記録が途切れることがあります',
     en: 'This device cannot keep the screen on while recording. Recording may pause when the screen turns off'
   },
+  // 写真があるときの、記録開始・読み込みの選択モーダルの説明とクリアの確認(写真も一緒に消えるため)
+  'track.existingMessagePhotos': {
+    ja: '表示中の移動経路が {routes} 本、写真が {photos} 枚あります。表示中の経路と写真をクリアするか、残したまま新しい経路として追加するかを選んでください。',
+    en: 'Routes on the map: {routes}. Photos: {photos}. Choose whether to clear the routes and photos, or keep them and add a new route.'
+  },
+  'track.clearConfirmPhotos': {
+    ja: '表示中の移動経路と写真({photos} 枚)をすべてクリアします。よろしいですか?',
+    en: 'Clear all tracks and photos ({photos}) currently shown on the map?'
+  },
+  // 統計表の写真の枚数(経路の行の下に1行)
+  'track.statPhotos': { ja: '写真', en: 'Photos' },
+  'track.statPhotoCount': { ja: '{n} 枚', en: '{n}' },
+
+  // ----- 写真(移動経路の記録中の撮影。camera.js / photos.js / kmz.js) -----
+  'photo.take': { ja: '写真を撮る', en: 'Take a Photo' },
+  // 写真の名前の既定値(撮影・読み込みの順の通し番号)
+  'photo.defaultName': { ja: '写真{n}', en: 'Photo {n}' },
+  'photo.locating': { ja: '{name}: 位置を取得しています…', en: '{name}: getting your location…' },
+  'photo.saved': { ja: '{name} を保存しました', en: 'Saved {name}' },
+  'photo.noPosition': {
+    ja: '位置を取得できなかったため、写真を保存しませんでした',
+    en: 'The photo was not saved because your location could not be found'
+  },
+  'photo.saveFailed': { ja: '写真を保存できませんでした: {message}', en: 'Could not save the photo: {message}' },
+  'photo.limitReached': {
+    ja: '写真は {max} 枚までです。これ以上は撮影できません',
+    en: 'Up to {max} photos can be kept. No more photos can be taken'
+  },
+  'photo.restored': { ja: '保存済みの写真を表示しました({n} 枚)', en: 'Showed the saved photos ({n})' },
+  // 写真の表示(地図のカメラの印・カメラ画面のサムネイルから)
+  'photo.viewTitle': { ja: '写真', en: 'Photo' },
+  'photo.nameLabel': { ja: '名前', en: 'Name' },
+  'photo.takenAt': { ja: '撮影日時: {time}', en: 'Taken: {time}' },
+  'photo.takenAtUnknown': { ja: '撮影日時: 不明', en: 'Taken: unknown' },
+  // 出力(GPX の後に確認。経路が無く写真だけのときは KMZ だけを出力する)
+  'photo.exportTitle': { ja: '写真の出力(KMZ)', en: 'Export Photos (KMZ)' },
+  'photo.exportConfirm': {
+    ja: '写真({n} 枚)も KMZ ファイル({name})で出力しますか?',
+    en: 'Also export the photos ({n}) as a KMZ file ({name})?'
+  },
+  'photo.exportNote': {
+    ja: '写真はこのアプリの中にだけ保存されています。移動経路をクリアすると写真も消えます。',
+    en: 'Photos are kept only inside this app. Clearing the track deletes them too.'
+  },
+  'photo.exportOk': { ja: '出力する', en: 'Export' },
+  'photo.exportSkip': { ja: '出力しない', en: 'Skip' },
+  'photo.exportPreparing': {
+    ja: '写真を準備しています。少し待ってから、もう一度押してください',
+    en: 'Preparing the photos. Wait a moment and press again'
+  },
+  'photo.exported': { ja: '写真を {name} に出力しました', en: 'Photos exported to {name}' },
+  'photo.exportFailed': { ja: '写真の出力に失敗しました: {message}', en: 'Photo export failed: {message}' },
+  'photo.unexportedWarning': {
+    ja: '出力していない写真があります。残したい場合は、先に「出力」で写真(KMZ)も出力してください。',
+    en: 'Some photos have not been exported. To keep them, first export the photos (KMZ) with "Export".'
+  },
+  // 読み込み(GPX の後に確認。最初に KMZ を選んだときは写真だけを読み込む)
+  'photo.importTitle': { ja: '写真の読み込み(KMZ)', en: 'Import Photos (KMZ)' },
+  'photo.importConfirm': {
+    ja: '写真(KMZ)も読み込みますか? {name} と同じ名前の KMZ ファイルを選んでください。',
+    en: 'Also import photos (KMZ)? Choose the KMZ file with the same name as {name}.'
+  },
+  'photo.importOk': { ja: '読み込む', en: 'Import' },
+  'photo.importSkip': { ja: '読み込まない', en: 'Skip' },
+  'photo.importNameMismatch': {
+    ja: '選んだファイル({kmz})の名前が GPX({gpx})と異なります。読み込みますか?',
+    en: 'The file you chose ({kmz}) has a different name from the GPX file ({gpx}). Import it anyway?'
+  },
+  'photo.importNotKmz': { ja: 'KMZファイルではありません', en: 'The file is not a KMZ file' },
+  'photo.importNoKml': { ja: 'KMZファイルの中に KML がありません', en: 'No KML found in the KMZ file' },
+  'photo.importInvalidKml': {
+    ja: 'KMZファイルの KML を解析できません',
+    en: 'The KML in the KMZ file could not be parsed'
+  },
+  'photo.importUnsupported': {
+    ja: 'KMZファイルの圧縮形式に対応していません',
+    en: 'The compression method of the KMZ file is not supported'
+  },
+  'photo.importNoPhotos': {
+    ja: '写真が見つかりませんでした(位置と画像を持つ地点がありません)',
+    en: 'No photos found (no placemarks with both a location and an image)'
+  },
+  'photo.imported': { ja: '{name} から写真を {n} 枚読み込みました', en: 'Imported photos from {name} ({n})' },
+  'photo.importedLimited': {
+    ja: '{name} から写真を {n} 枚読み込みました(上限の {max} 枚を超える {skipped} 枚は読み込んでいません)',
+    en: 'Imported photos from {name} ({n}; {skipped} not imported: the limit is {max})'
+  },
+
+  // ----- アプリ内カメラ(camera.js) -----
+  'camera.aria': { ja: 'カメラ', en: 'Camera' },
+  'camera.shutter': { ja: '撮影', en: 'Take Photo' },
+  'camera.viewLast': { ja: '撮った写真を見る', en: 'View the Last Photo' },
+  'camera.starting': { ja: 'カメラを起動しています…', en: 'Starting the camera…' },
+  'camera.denied': {
+    ja: 'カメラの使用が許可されていません。ブラウザや端末の設定で、このアプリのカメラの使用を許可してください',
+    en: 'Camera access is not allowed. Allow this app to use the camera in your browser or device settings'
+  },
+  'camera.failed': { ja: 'カメラを起動できませんでした: {message}', en: 'Could not start the camera: {message}' },
+  'camera.idleClosed': {
+    ja: 'しばらく操作が無かったため、カメラを閉じました',
+    en: 'The camera was closed because it was not used for a while'
+  },
 
   // ----- 位置情報 -----
   'geo.notSupported': { ja: 'この端末は位置情報に対応していません', en: 'This device does not support geolocation' },
@@ -429,10 +531,10 @@ const DICT = {
 
   'guide.mapTrackTitle': { ja: '移動経路の記録', en: 'Recording Your Track' },
   'guide.mapTrackBody': {
-    ja: '「移動経路を記録」をオンにすると≡の左に▶が出ます。▶で記録を始め、■の長押しで止めます。起動時画面に戻っても記録は続きます。\n' +
-        '「読み込み」「出力」はGPXファイル用、「クリア」は表示中の経路を消します。',
-    en: 'Turn on "Record Track" and ▶ appears left of ≡. Press ▶ to record; press and hold ■ to stop. Recording continues on the start screen.\n' +
-        '"Import" and "Export" handle GPX files; "Clear" removes all tracks.'
+    ja: '「移動経路を記録」をオンにすると≡の左に▶とカメラが出ます。▶で記録を始め、■の長押しで止めます。起動時画面でも続きます。\n' +
+        '「読み込み」「出力」は経路(GPX)・写真(KMZ)用、「クリア」は両方を消します。',
+    en: 'Turn on "Record Track" and ▶ and a camera appear left of ≡. Press ▶ to record; press and hold ■ to stop. Recording continues on the start screen.\n' +
+        '"Import" and "Export" handle tracks (GPX) and photos (KMZ); "Clear" removes both.'
   },
 
   'guide.mapFinishTitle': { ja: 'マーカーの設定と、画面の戻り方', en: 'Marker Settings and Going Back' },

@@ -854,6 +854,185 @@ body.view-state-map .leaflet-control-container {
   cursor: not-allowed;
 }
 
+/* カメラボタン(写真を撮る): 記録開始/停止ボタンの左。btn-float の display 指定が
+   hidden 属性より強いため、明示的に非表示にする */
+#btnTrackCamera[hidden] {
+  display: none;
+}
+
+.btn-track-camera {
+  color: #1f2937;
+}
+
+/* ===== 写真 ===== */
+/* 地図上の撮影地点の印(カメラの絵の白丸。マーカーの設定の対象外で見た目は固定) */
+.photo-marker {
+  background: none;
+  border: none;
+}
+
+.photo-marker-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #1f2937;
+  color: #1f2937;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+/* 記録開始・読み込みの選択モーダルの説明: 出力していない写真の注意を改行して添えるため */
+#trackExistingMessage {
+  white-space: pre-line;
+}
+
+/* 統計表の写真の枚数(経路の行の下に1行。列をまたいで中央に置く) */
+.track-stat-photos {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+/* 写真の表示モーダルの画像: 縦長の写真でも名前欄とボタンが画面に収まるよう高さを抑える */
+.photo-view-image {
+  display: block;
+  width: 100%;
+  max-height: 55vh;
+  object-fit: contain;
+  background: #111;
+}
+
+.photo-view-meta {
+  padding-top: 0.25rem;
+}
+
+#photoViewName {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.3rem 0.4rem;
+  font: inherit;
+  /* iOS の自動ズーム防止(16px 未満の入力欄にフォーカスすると画面が拡大される) */
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* ===== アプリ内カメラ(camera.js) ===== */
+/* 画面全体を黒で覆い、カメラの映像を出す。モーダル(1000)より前、トースト(1100)より後ろ */
+.camera-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  padding: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left);
+}
+
+.camera-overlay[hidden] {
+  display: none;
+}
+
+/* 撮れる範囲がそのまま見えるよう、映像は切り取らずに収める(contain) */
+.camera-video {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+  background: #000;
+}
+
+/* シャッターを押したときに一瞬白く光らせる */
+.camera-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.camera-flash.is-flashing {
+  animation: camera-flash 0.25s ease-out;
+}
+
+@keyframes camera-flash {
+  0% { opacity: 0.8; }
+  100% { opacity: 0; }
+}
+
+/* 位置の取得中・保存した などの状態(シャッターの上) */
+.camera-status {
+  min-height: 1.4em;
+  margin: 0;
+  padding: 0.4rem 1rem 0;
+  font-size: 0.9rem;
+  color: #fff;
+  text-align: center;
+}
+
+/* 下部の操作列: 左に閉じる、中央にシャッター、右に直前の写真 */
+.camera-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0.75rem 1.25rem 1rem;
+}
+
+.camera-close {
+  justify-self: start;
+  width: 48px;
+  height: 48px;
+  font-size: 2rem;
+  line-height: 1;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.camera-shutter {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #fff;
+  border: 5px solid rgba(255, 255, 255, 0.45);
+  background-clip: padding-box;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.camera-shutter:active {
+  transform: scale(0.94);
+}
+
+.camera-thumb {
+  justify-self: end;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #222;
+  cursor: pointer;
+}
+
+.camera-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* まだ撮っていないときは枠だけ出す(シャッターを中央に保つため場所は残す) */
+.camera-thumb.is-empty {
+  visibility: hidden;
+}
+
 /* ===== プレースホルダビュー ===== */
 .view-placeholder {
   background: #fafafa;

@@ -1,6 +1,7 @@
 // IndexedDB ラッパー
 // - tileCachePackages ストア: 地図データのダウンロード履歴
 // - tracks ストア: 移動経路(最新の1件のみ。id='latest' で上書き保存する)
+// - photos ストア: 移動経路の記録中に撮った写真(1枚1件。経路のクリアで全件消す)
 //
 // tracks を IndexedDB に置くのは、記録した移動経路が再読み込み・アプリ終了で
 // 失われないようにするため。localStorage ではなく IndexedDB なのは、
@@ -9,11 +10,13 @@
 
 const DB_NAME = 'minoh-hiking';
 // 2: tracks ストアを追加
-const DB_VERSION = 2;
+// 3: photos ストアを追加
+const DB_VERSION = 3;
 const STORE = 'tileCachePackages';
 const TRACK_STORE = 'tracks';
 // 移動経路は最新の1件だけを保持する(同じキーへ上書きしていく)
 const LATEST_TRACK_ID = 'latest';
+const PHOTO_STORE = 'photos';
 
 let dbPromise = null;
 
@@ -30,6 +33,9 @@ function openDB() {
       }
       if (!db.objectStoreNames.contains(TRACK_STORE)) {
         db.createObjectStore(TRACK_STORE, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(PHOTO_STORE)) {
+        db.createObjectStore(PHOTO_STORE, { keyPath: 'id' });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -95,4 +101,22 @@ export async function loadLatestTrack() {
 // 保存済みの移動経路を削除する(「移動経路をクリア」に合わせて呼ぶ)
 export function clearLatestTrack() {
   return withStore(TRACK_STORE, 'readwrite', (store) => store.delete(LATEST_TRACK_ID));
+}
+
+// ===== 写真(移動経路の記録中に撮ったもの) =====
+// 1枚1件で保存する(撮るたびに1件だけ書くため、枚数が増えても書き込みは軽い)。
+// レコードは { id, name, timeMs, lat, lng, trackPointTimeMs, blob }。
+
+export function savePhotoRecord(record) {
+  return withStore(PHOTO_STORE, 'readwrite', (store) => store.put(record));
+}
+
+// 保存済みの写真を全件返す(無ければ空配列)
+export async function listPhotoRecords() {
+  return (await withStore(PHOTO_STORE, 'readonly', (store) => store.getAll())) || [];
+}
+
+// 保存済みの写真を全件削除する(移動経路のクリアに合わせて呼ぶ)
+export function clearPhotoRecords() {
+  return withStore(PHOTO_STORE, 'readwrite', (store) => store.clear());
 }

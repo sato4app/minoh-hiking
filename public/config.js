@@ -110,6 +110,19 @@ export const TRACK_STOP_HOLD_MS = 1000;
 // 停止の確認は、操作が無ければこの秒数で閉じて記録を続ける(誤って開いた確認を残さない)。
 export const TRACK_STOP_CONFIRM_SEC = 10;
 
+// ===== 写真(移動経路の記録中の撮影。camera.js / photos.js) =====
+// 端末に保存できる写真の上限枚数。写真は端末の中(IndexedDB)だけに置くため、容量を圧迫しないよう抑える。
+export const PHOTO_MAX_COUNT = 200;
+// 保存する写真の長辺[px]と JPEG の品質。1枚あたりおよそ 300〜500KB に収まる。
+export const PHOTO_MAX_EDGE_PX = 1600;
+export const PHOTO_JPEG_QUALITY = 0.8;
+// 撮影時に位置を取り直すときの待ち時間の上限[ms]。取れなければ直近の位置(30秒以内)を使う。
+export const PHOTO_POSITION_TIMEOUT_MS = 10000;
+// カメラ画面は、この秒数操作が無ければ閉じる(ポケットの中で開いたままになり電池を使い続けないように)。
+export const CAMERA_IDLE_CLOSE_SEC = 60;
+// 出力(KMZ)していない写真があるか('1' / 無し)。クリアの確認で、写真が消えることを強めに知らせるのに使う。
+export const PHOTOS_UNEXPORTED_KEY = 'minoh-hiking.photos-unexported';
+
 // マーカー設定の対象種別と既定値。
 // 表示名は i18n.js の辞書で管理する(キーは markerType.<key> で導出)。
 // locked: 設定UIで変更不可とする属性(常に既定値を使用)。
