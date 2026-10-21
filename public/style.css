@@ -896,6 +896,43 @@ body.view-state-map .leaflet-control-container {
   justify-self: center;
 }
 
+/* 写真の表示: 画像の左右に前後の写真へ移る < > を重ねる */
+.photo-view-frame {
+  position: relative;
+}
+
+.photo-view-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 56px;
+  padding: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.photo-view-prev {
+  left: 0.4rem;
+}
+
+.photo-view-next {
+  right: 0.4rem;
+}
+
+/* 端の写真(前・次が無い)では薄くして押せなくする */
+.photo-view-nav:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
 /* 写真の表示モーダルの画像: 縦長の写真でも名前欄とボタンが画面に収まるよう高さを抑える */
 .photo-view-image {
   display: block;

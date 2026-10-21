@@ -269,16 +269,21 @@
   </div>
 
   <!-- 写真の表示(地図のカメラの印・カメラ画面のサムネイルから開く)。名前はここで変えられ、
-       閉じたとき・入力を確定したときに保存する(撮影地点の記録点の名前も合わせて変わる) -->
+       閉じたとき・入力を確定したとき・< > で移るときに保存する(撮影地点の記録点の名前も合わせて変わる)。
+       見出しは「写真 n / 全数」(app.js が設定)。< > で撮影・読み込みの順に前後の写真へ移る -->
   <div class="modal" id="photoViewModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoViewTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
       <header class="modal-header">
-        <h2 id="photoViewTitle" data-i18n="photo.viewTitle">写真</h2>
+        <h2 id="photoViewTitle">写真</h2>
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
       </header>
       <div class="modal-body">
-        <img class="photo-view-image" id="photoViewImage" alt="" />
+        <div class="photo-view-frame">
+          <img class="photo-view-image" id="photoViewImage" alt="" />
+          <button type="button" class="photo-view-nav photo-view-prev" id="btnPhotoViewPrev" aria-label="前の写真" title="前の写真" data-i18n-aria="photo.prev" data-i18n-title="photo.prev">&lt;</button>
+          <button type="button" class="photo-view-nav photo-view-next" id="btnPhotoViewNext" aria-label="次の写真" title="次の写真" data-i18n-aria="photo.next" data-i18n-title="photo.next">&gt;</button>
+        </div>
         <div class="track-export-row">
           <label class="track-export-label" for="photoViewName" data-i18n="photo.nameLabel">名前</label>
           <input type="text" id="photoViewName" autocomplete="off" maxlength="60" />

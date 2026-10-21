@@ -200,6 +200,10 @@ const DICT = {
   'photo.restored': { ja: '保存済みの写真を表示しました({n} 枚)', en: 'Showed the saved photos ({n})' },
   // 写真の表示(地図のカメラの印・カメラ画面のサムネイルから)
   'photo.viewTitle': { ja: '写真', en: 'Photo' },
+  // 写真の表示の見出し(何枚目/全何枚。撮影・読み込みの順)と、前後の写真へ移るボタン(< >)
+  'photo.viewTitleIndex': { ja: '写真 {n} / {total}', en: 'Photo {n} / {total}' },
+  'photo.prev': { ja: '前の写真', en: 'Previous Photo' },
+  'photo.next': { ja: '次の写真', en: 'Next Photo' },
   'photo.nameLabel': { ja: '名前', en: 'Name' },
   'photo.takenAt': { ja: '撮影日時: {time}', en: 'Taken: {time}' },
   'photo.takenAtUnknown': { ja: '撮影日時: 不明', en: 'Taken: unknown' },

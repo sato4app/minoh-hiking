@@ -7,7 +7,9 @@
 //
 // このモジュールは撮影だけを担い、撮った画像(JPEG)と撮影時刻を onShot に渡す。
 // 位置の取得・保存・地図への表示は app.js / photos.js が行う。
-import { PHOTO_MAX_EDGE_PX, PHOTO_JPEG_QUALITY, CAMERA_IDLE_CLOSE_SEC } from './config.js';
+import {
+  PHOTO_MAX_EDGE_PX, PHOTO_JPEG_QUALITY, CAMERA_IDLE_CLOSE_SEC, CAMERA_AFTER_SHOT_CLOSE_SEC
+} from './config.js';
 import { t } from './i18n.js';
 
 const el = {
@@ -23,6 +25,8 @@ const el = {
 
 let stream = null;
 let idleTimer = null;
+// 撮影後に自動で閉じるタイマー(撮影してサムネイルが出てから CAMERA_AFTER_SHOT_CLOSE_SEC 秒)
+let afterShotTimer = null;
 let thumbUrl = null;
 // openCamera で受け取る処理(撮影前の確認・撮影・サムネイル・エラー・自動で閉じたとき)
 let handlers = {};
@@ -39,13 +43,14 @@ export function isCameraOpen() {
 // カメラ画面を開く。
 // - canShoot(): シャッターを押したとき、撮ってよいか(上限枚数など。だめなら false を返し、理由は自分で知らせる)
 // - onShot({ blob, timeMs }): 撮った画像(JPEG)と撮影時刻
-// - onThumb(): 直前に撮った写真のサムネイルが押されたとき(カメラは閉じてから呼ぶ)
+// - onThumb(): サムネイルが押されたとき(カメラは閉じてから呼ぶ)
 // - onError(message): カメラを起動できなかったとき
 // - onIdleClose(): 操作が無く自動で閉じたとき
+// - lastPhoto: 既に撮ってある最後の写真(Blob)。あれば開いた時点でサムネイルに出す
 export async function openCamera(options = {}) {
   if (!isCameraSupported() || isCameraOpen()) return;
   handlers = options;
-  setThumb(null);
+  setThumb(options.lastPhoto || null);
   setCameraStatus(t('camera.starting'));
   el.overlay.hidden = false;
   resetIdleTimer();
@@ -76,6 +81,8 @@ export async function openCamera(options = {}) {
 export function closeCamera() {
   clearTimeout(idleTimer);
   idleTimer = null;
+  clearTimeout(afterShotTimer);
+  afterShotTimer = null;
   if (stream) {
     stream.getTracks().forEach((track) => track.stop());
     stream = null;
@@ -100,7 +107,16 @@ function resetIdleTimer() {
   }, CAMERA_IDLE_CLOSE_SEC * 1000);
 }
 
-// 直前に撮った写真のサムネイル(押すとカメラを閉じてその写真を開く)
+// 撮影後に自動で閉じる(× を押さなくても地図に戻る)。撮影のたび・画面に触れるたびに数え直す
+function startAfterShotTimer() {
+  clearTimeout(afterShotTimer);
+  afterShotTimer = setTimeout(() => {
+    afterShotTimer = null;
+    if (isCameraOpen()) closeCamera();
+  }, CAMERA_AFTER_SHOT_CLOSE_SEC * 1000);
+}
+
+// 最後に撮った写真のサムネイル(押すとカメラを閉じて写真の表示を開く)
 function setThumb(blob) {
   if (thumbUrl) URL.revokeObjectURL(thumbUrl);
   thumbUrl = blob ? URL.createObjectURL(blob) : null;
@@ -117,6 +133,9 @@ function takeShot() {
   const video = el.video;
   if (!stream || !video.videoWidth || !video.videoHeight) return;
   if (handlers.canShoot && !handlers.canShoot()) return;
+  // 撮り終えて(サムネイルが出て)から数え直す
+  clearTimeout(afterShotTimer);
+  afterShotTimer = null;
   const timeMs = Date.now();
   const scale = Math.min(1, PHOTO_MAX_EDGE_PX / Math.max(video.videoWidth, video.videoHeight));
   const canvas = document.createElement('canvas');
@@ -132,7 +151,10 @@ function takeShot() {
       handlers.onError?.(t('camera.failed', { message: 'toBlob' }));
       return;
     }
-    if (isCameraOpen()) setThumb(blob);
+    if (isCameraOpen()) {
+      setThumb(blob);
+      startAfterShotTimer();
+    }
     handlers.onShot?.({ blob, timeMs });
   }, 'image/jpeg', PHOTO_JPEG_QUALITY);
 }
@@ -146,7 +168,11 @@ if (el.overlay) {
     handlers.onThumb?.();
   });
   // 画面に触れていれば使っているとみなし、自動で閉じるまでの時間を延ばす
-  el.overlay.addEventListener('pointerdown', resetIdleTimer);
+  // (撮影後に閉じる5秒も、数えている途中なら数え直す)
+  el.overlay.addEventListener('pointerdown', () => {
+    resetIdleTimer();
+    if (afterShotTimer) startAfterShotTimer();
+  });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && isCameraOpen()) closeCamera();
   });

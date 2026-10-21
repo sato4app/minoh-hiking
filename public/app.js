@@ -35,7 +35,7 @@ import {
   setOnTrackPointAppended, setOnTrackNotice,
   capturePhotoPosition, addPhotoPointToTrack, renameTrackPoint, findTrackPointTime
 } from './geolocation.js';
-import { isCameraSupported, openCamera, closeCamera, setCameraStatus } from './camera.js';
+import { isCameraSupported, isCameraOpen, openCamera, closeCamera, setCameraStatus } from './camera.js';
 import {
   setPhotoHandlers, getPhotos, getPhotoCount, getPhoto, getPhotoLatLngs,
   addPhoto, renamePhoto, clearPhotos, restorePhotos, importPhotos,
@@ -171,6 +171,9 @@ const el = {
   photoViewModal: document.getElementById('photoViewModal'),
   photoViewImage: document.getElementById('photoViewImage'),
   photoViewName: document.getElementById('photoViewName'),
+  photoViewTitle: document.getElementById('photoViewTitle'),
+  btnPhotoViewPrev: document.getElementById('btnPhotoViewPrev'),
+  btnPhotoViewNext: document.getElementById('btnPhotoViewNext'),
   photoViewMeta: document.getElementById('photoViewMeta'),
 
   // マーカーの設定モーダル
@@ -508,6 +511,9 @@ function bindEvents() {
   setPhotoHandlers({ onClick: openPhotoView, onChanged: updateTrackStatsDisplay });
   // 名前の入力を確定したとき(Enter・欄の外へ)に保存する。閉じたときも保存する(closeModal)
   on(el.photoViewName, 'change', commitPhotoViewName);
+  // 写真の表示の < > : 前・次の写真へ(名前は移る前に保存する)
+  on(el.btnPhotoViewPrev, 'click', () => stepPhotoView(-1));
+  on(el.btnPhotoViewNext, 'click', () => stepPhotoView(1));
 
   // 読み込み: GPX ファイルを選び、記録済みの移動経路として地図に表示する。
   // 続けて写真(KMZ)も読み込むかを確認する。最初に KMZ を選んだときは写真だけを読み込む。
@@ -1551,16 +1557,20 @@ function openTrackCamera() {
     return;
   }
   el.mapLayerPanel.hidden = true;
+  const photos = getPhotos();
   openCamera({
+    // 既に撮った写真があれば、開いた時点で最後の1枚をサムネイルに出す
+    lastPhoto: photos.length > 0 ? photos[photos.length - 1].blob : null,
     canShoot: () => {
       if (getPhotoCount() + pendingShots < PHOTO_MAX_COUNT) return true;
       setCameraStatus(t('photo.limitReached', { max: PHOTO_MAX_COUNT }));
       return false;
     },
     onShot: handlePhotoShot,
+    // サムネイル: 最後の写真を開く(前後の写真へは写真の表示の < > で移る)
     onThumb: () => {
-      const photos = getPhotos();
-      if (photos.length > 0) openPhotoView(photos[photos.length - 1].id);
+      const list = getPhotos();
+      if (list.length > 0) openPhotoView(list[list.length - 1].id);
     },
     onError: (msg) => {
       logHistory(msg, 'error');
@@ -1590,6 +1600,8 @@ async function handlePhotoShot({ blob, timeMs }) {
     await addPhoto({ name, timeMs, lat: latlng[0], lng: latlng[1], trackPointTimeMs, blob });
     setCameraStatus(t('photo.saved', { name }));
     logHistory(t('photo.saved', { name }), 'success');
+    // 撮影後にカメラが自動で閉じた後で保存が終わったときは、地図の上で知らせる
+    if (!isCameraOpen()) showToast(t('photo.saved', { name }));
   } catch (err) {
     // 保存できなかった(容量不足など)。経路に付けた写真の名前は外す(点そのものは位置の記録として残す)
     if (trackPointTimeMs != null) renameTrackPoint(trackPointTimeMs, null);
@@ -1618,8 +1630,18 @@ function formatPhotoTime(ms) {
 
 // 写真の表示を開く(地図のカメラの印・カメラ画面のサムネイルから)
 function openPhotoView(id) {
-  const photo = getPhoto(id);
-  if (!photo) return;
+  if (!showPhotoInView(id)) return;
+  el.mapLayerPanel.hidden = true;
+  el.photoViewModal.hidden = false;
+}
+
+// 写真の表示に1枚を出す(開くとき・< > で前後へ移るとき)。
+// 見出しに「何枚目/全何枚」(撮影・読み込みの順)を出し、端の写真では < / > を押せなくする
+function showPhotoInView(id) {
+  const photos = getPhotos();
+  const index = photos.findIndex((p) => p.id === id);
+  if (index < 0) return false;
+  const photo = photos[index];
   releasePhotoView();
   viewingPhotoId = id;
   viewingPhotoUrl = URL.createObjectURL(photo.blob);
@@ -1627,8 +1649,20 @@ function openPhotoView(id) {
   el.photoViewImage.alt = photo.name;
   el.photoViewName.value = photo.name;
   el.photoViewMeta.textContent = formatPhotoTime(photo.timeMs);
-  el.mapLayerPanel.hidden = true;
-  el.photoViewModal.hidden = false;
+  el.photoViewTitle.textContent = t('photo.viewTitleIndex', { n: index + 1, total: photos.length });
+  el.btnPhotoViewPrev.disabled = index === 0;
+  el.btnPhotoViewNext.disabled = index === photos.length - 1;
+  return true;
+}
+
+// < / > : 入力中の名前を保存してから、前(step=-1)・次(step=1)の写真へ移る
+function stepPhotoView(step) {
+  const photos = getPhotos();
+  const index = photos.findIndex((p) => p.id === viewingPhotoId);
+  const target = photos[index + step];
+  if (index < 0 || !target) return;
+  commitPhotoViewName();
+  showPhotoInView(target.id);
 }
 
 // 入力中の名前を保存する。空にされたときは元の名前に戻す。
