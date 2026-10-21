@@ -269,8 +269,8 @@
   </div>
 
   <!-- 写真の表示(地図のカメラの印・カメラ画面のサムネイルから開く)。名前はここで変えられ、
-       閉じたとき・入力を確定したとき・< > で移るときに保存する(撮影地点の記録点の名前も合わせて変わる)。
-       見出しは「写真 n / 全数」(app.js が設定)。< > で撮影・読み込みの順に前後の写真へ移る -->
+       閉じたとき・入力を確定したとき・矢印ボタンで移るときに保存する(撮影地点の記録点の名前も合わせて変わる)。
+       見出しは「写真 n / 全数」(app.js が設定)。左右の矢印ボタンで撮影・読み込みの順に前後の写真へ移る -->
   <div class="modal" id="photoViewModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoViewTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
@@ -281,8 +281,12 @@
       <div class="modal-body">
         <div class="photo-view-frame">
           <img class="photo-view-image" id="photoViewImage" alt="" />
-          <button type="button" class="photo-view-nav photo-view-prev" id="btnPhotoViewPrev" aria-label="前の写真" title="前の写真" data-i18n-aria="photo.prev" data-i18n-title="photo.prev">&lt;</button>
-          <button type="button" class="photo-view-nav photo-view-next" id="btnPhotoViewNext" aria-label="次の写真" title="次の写真" data-i18n-aria="photo.next" data-i18n-title="photo.next">&gt;</button>
+          <button type="button" class="photo-view-nav photo-view-prev" id="btnPhotoViewPrev" aria-label="前の写真" title="前の写真" data-i18n-aria="photo.prev" data-i18n-title="photo.prev">
+            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="photo-view-nav photo-view-next" id="btnPhotoViewNext" aria-label="次の写真" title="次の写真" data-i18n-aria="photo.next" data-i18n-title="photo.next">
+            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
         <div class="track-export-row">
           <label class="track-export-label" for="photoViewName" data-i18n="photo.nameLabel">名前</label>

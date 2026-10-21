@@ -896,7 +896,7 @@ body.view-state-map .leaflet-control-container {
   justify-self: center;
 }
 
-/* 写真の表示: 画像の左右に前後の写真へ移る < > を重ねる */
+/* 写真の表示: 画像の左右に前後の写真へ移る矢印ボタン(左向き・右向きの山形)を重ねる */
 .photo-view-frame {
   position: relative;
 }
@@ -905,18 +905,22 @@ body.view-state-map .leaflet-control-container {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 40px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   padding: 0;
-  font-size: 1.6rem;
-  font-weight: 600;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #fff;
   background: rgba(0, 0, 0, 0.45);
   border: none;
-  border-radius: 8px;
+  border-radius: 50%;
   cursor: pointer;
   touch-action: manipulation;
+}
+
+.photo-view-nav svg {
+  display: block;
 }
 
 .photo-view-prev {

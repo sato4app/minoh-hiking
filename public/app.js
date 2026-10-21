@@ -511,7 +511,7 @@ function bindEvents() {
   setPhotoHandlers({ onClick: openPhotoView, onChanged: updateTrackStatsDisplay });
   // 名前の入力を確定したとき(Enter・欄の外へ)に保存する。閉じたときも保存する(closeModal)
   on(el.photoViewName, 'change', commitPhotoViewName);
-  // 写真の表示の < > : 前・次の写真へ(名前は移る前に保存する)
+  // 写真の表示の左右の矢印ボタン: 前・次の写真へ(名前は移る前に保存する)
   on(el.btnPhotoViewPrev, 'click', () => stepPhotoView(-1));
   on(el.btnPhotoViewNext, 'click', () => stepPhotoView(1));
 
@@ -1567,7 +1567,7 @@ function openTrackCamera() {
       return false;
     },
     onShot: handlePhotoShot,
-    // サムネイル: 最後の写真を開く(前後の写真へは写真の表示の < > で移る)
+    // サムネイル: 最後の写真を開く(前後の写真へは写真の表示の矢印ボタンで移る)
     onThumb: () => {
       const list = getPhotos();
       if (list.length > 0) openPhotoView(list[list.length - 1].id);
@@ -1635,7 +1635,7 @@ function openPhotoView(id) {
   el.photoViewModal.hidden = false;
 }
 
-// 写真の表示に1枚を出す(開くとき・< > で前後へ移るとき)。
+// 写真の表示に1枚を出す(開くとき・矢印ボタンで前後へ移るとき)。
 // 見出しに「何枚目/全何枚」(撮影・読み込みの順)を出し、端の写真では < / > を押せなくする
 function showPhotoInView(id) {
   const photos = getPhotos();
@@ -1655,7 +1655,7 @@ function showPhotoInView(id) {
   return true;
 }
 
-// < / > : 入力中の名前を保存してから、前(step=-1)・次(step=1)の写真へ移る
+// 左右の矢印ボタン: 入力中の名前を保存してから、前(step=-1)・次(step=1)の写真へ移る
 function stepPhotoView(step) {
   const photos = getPhotos();
   const index = photos.findIndex((p) => p.id === viewingPhotoId);
