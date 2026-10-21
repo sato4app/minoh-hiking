@@ -54,7 +54,7 @@ import {
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
 import {
-  checkAppShellUpdate, promptMapTileUpdate, getCachedAppShellVersion
+  checkAppShellUpdate, promptMapTileUpdate, getCachedAppShellVersion, watchAppShellReplacement
 } from './update.js';
 import {
   getManifestVersion, getSavedManifestVersion,
@@ -210,6 +210,9 @@ async function init() {
   // 各トグルの反映は以降の初期化・マップ画面への切替が checked を読んで行うため、最初に行う
   initStep('restoreMapToggles', restoreMapToggles);
 
+  // 開いている間にブラウザが新しい版へ入れ替えたら知らせる(登録より前に見張りを始める。
+  // 登録をきっかけにブラウザが更新を確かめ、すぐ入れ替わることがあるため)
+  initStep('watchAppShellReplacement', watchAppShellReplacement);
   // SW 登録
   if ('serviceWorker' in navigator) {
     try {

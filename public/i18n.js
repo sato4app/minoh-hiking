@@ -573,6 +573,19 @@ const DICT = {
         'The update includes revised hiking routes.\n' +
         'Downloaded map tiles will not be affected.'
   },
+  // 開いている間にブラウザが新しい版を受け取ったとき(画面は古いまま。再読み込みで切り替わる)
+  'update.appReplaced': {
+    ja: 'アプリの新しいバージョンを受け取りました。起動時画面のボタンをタップすると切り替えられます',
+    en: 'A new version of the app has been received. Tap a button on the start screen to switch to it'
+  },
+  'update.appReloadConfirm': {
+    ja: 'アプリの新しいバージョン({latest})を受け取りました。\n\n' +
+        '画面を再読み込みして、新しいバージョンに切り替えますか？\n' +
+        'ダウンロードした地図タイルは更新されません。',
+    en: 'A new version of the app ({latest}) has been received.\n\n' +
+        'Reload the screen to switch to the new version?\n' +
+        'Downloaded map tiles will not be affected.'
+  },
   // 更新版のダウンロード中に全画面オーバーレイへ表示する文言
   'update.downloading': {
     ja: 'アプリの更新版をダウンロードしています。完了までお待ちください。',

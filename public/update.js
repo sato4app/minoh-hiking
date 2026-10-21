@@ -8,6 +8,32 @@ import {
   APP_UPDATE_DOWNLOAD_TIMEOUT_MS, APP_UPDATE_WORKER_WAIT_MS
 } from './config.js';
 import { t } from './i18n.js';
+import { logHistory, showToast } from './messages.js';
+
+// ===== 開いている間に、ブラウザが新しい版へ入れ替えたときの検知 =====
+// ブラウザはアプリを開くたびに service-worker.js の更新を自分で確かめ、新しい版があれば
+// 裏で入れ替える(install で skipWaiting するため、確認なしにすぐ切り替わる)。このとき
+// 開いている画面は古い版のままだが、キャッシュの版名は新しくなるため、下の比較
+// (キャッシュ済み === 最新)では更新なしと判断され、再読み込みするまで古い画面が残っていた
+// (2026.83 で、カメラボタンが出なかった原因。言語の変更=再読み込みで直った)。
+// 既に Service Worker に制御されていた画面で制御が切り替わったら(controllerchange)、
+// 画面が古いとみなし、次の更新確認で再読み込みを促す。
+let pageOutdated = false;
+// updateAppToLatest() による切替(すぐ再読み込みする)では知らせない
+let updatingNow = false;
+
+// 起動時に1回呼ぶ(Service Worker の登録より前)
+export function watchAppShellReplacement() {
+  if (!('serviceWorker' in navigator)) return;
+  // 初めて開いたとき(まだ制御されていない)の切替は、画面が古いわけではないので対象外
+  if (!navigator.serviceWorker.controller) return;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (updatingNow || pageOutdated) return;
+    pageOutdated = true;
+    logHistory(t('update.appReplaced'), '');
+    showToast(t('update.appReplaced'));
+  });
+}
 
 // キャッシュ済みアプリシェルのバージョン(app-shell-<ver> の <ver>)
 export async function getCachedAppShellVersion() {
@@ -67,6 +93,15 @@ export async function checkAppShellUpdate() {
 // アプリ更新の confirm を表示し、OK なら最新へ更新(再読み込み)する。
 // confirm を表示したら true、対象なし(初回/取得失敗/最新)なら false を返す。
 async function promptAppShellUpdate() {
+  // 新しい版は端末に入っており、画面だけが古いとき: 再読み込みだけで切り替わる(通信不要)
+  if (pageOutdated) {
+    const version = await getCachedAppShellVersion();
+    if (confirm(t('update.appReloadConfirm', { latest: version || '-' }))) {
+      try { sessionStorage.setItem(APP_UPDATED_FLAG_KEY, '1'); } catch { /* noop */ }
+      location.reload();
+    }
+    return true;
+  }
   const [cached, latest] = await Promise.all([
     getCachedAppShellVersion(),
     fetchServiceWorkerShellVersion()
@@ -155,6 +190,7 @@ async function deleteAppShellCaches() {
 // 旧シェルキャッシュはダウンロード中も残しておき(新 SW は別名のキャッシュを使う)、
 // 新 SW の activate に削除させる。通信が途切れても手元のアプリが壊れないようにするため。
 async function updateAppToLatest() {
+  updatingNow = true;
   showUpdateOverlay();
   try {
     const reg = ('serviceWorker' in navigator)

@@ -4,7 +4,7 @@
 // - app-shell-{日付}.{連番}: アプリシェル(HTML/CSS/JS、CDN、アイコン)。取得戦略は handleShellRequest。
 // 公開API(/api/*)は横取りしない。取得とキャッシュはアプリ側(published-data.js)が version を見て行う。
 
-const SHELL_CACHE = 'app-shell-2026-10-21.1';
+const SHELL_CACHE = 'app-shell-2026-10-21.2';
 const TILE_CACHE_PREFIX = 'gsi-';
 const SHELL_CACHE_PREFIX = 'app-shell-';
 
@@ -88,18 +88,23 @@ self.addEventListener('install', (event) => {
       const previous = await openPreviousShellCache();
       const previousRevisions = previous ? await readStoredRevisions(previous) : null;
 
-      // 個別に処理して失敗を許容(CDNの一部が落ちていても継続)
-      await Promise.all(
+      // 個別に処理して失敗を許容(CDNの一部が落ちていても継続)。
+      // 内容が一覧のハッシュと一致しなかったファイルがあれば false が返る
+      const results = await Promise.all(
         SHELL_ASSETS.map((url) =>
           installAsset(cache, url, { previous, revisions, previousRevisions }).catch((err) => {
             console.warn('[SW] shell add failed:', url, err);
+            return true;
           })
         )
       );
+      const allVerified = results.every(Boolean);
 
       // 一覧を控えておく。次回の install がこれと突き合わせて複製の可否を決める。
       // 同時に「デプロイ時の内容と一致することを確認済み」の目印にもなる(裏取得の省略判定)。
-      if (revisions) {
+      // 一致しないファイルがあったときは控えない。目印が無ければ表示のたびに裏で取り直すため、
+      // 古い内容が入ったままになるのを防げる(次の版上げでは全件を取り直す)。
+      if (revisions && allVerified) {
         await cache.put(REVISIONS_KEY, new Response(JSON.stringify(revisions), {
           headers: { 'Content-Type': 'application/json' }
         }));
@@ -110,15 +115,45 @@ self.addEventListener('install', (event) => {
 });
 
 // 1ファイル分のインストール。複製できるものは複製し、それ以外だけ取得する。
+// 内容が一覧のハッシュと一致した(または照合しようがない)なら true を返す。
 async function installAsset(cache, url, { previous, revisions, previousRevisions }) {
   if (previous && canReuse(url, revisions, previousRevisions)) {
     const hit = await previous.match(url, { ignoreSearch: true });
     if (hit) {
       await cache.put(url, hit);
-      return;
+      return true;
     }
   }
-  await cache.add(url);
+  const { response, verified } = await fetchShellAsset(url, revisions);
+  await cache.put(url, response);
+  return verified;
+}
+
+// シェルのファイルを取得する。
+// ブラウザの HTTP キャッシュは通さない(cache: 'reload')。GitHub Pages は全ファイルを
+// max-age=600 で返すため、通すと10分以内に読んだ旧版の index.html などが新しい版の
+// キャッシュに入り、「版は新しいのに画面は古い」状態のまま次の版上げまで直らなかった。
+// 同一オリジンのファイルは取得した内容を一覧のハッシュと照合し、合わなければ
+// (配信元の CDN が旧版を返した等)クエリを付けて取り直す。それでも合わなければ
+// 取れた内容のまま入れて verified=false を返す(install が確認済みの目印を付けない)。
+async function fetchShellAsset(url, revisions) {
+  const response = await fetch(url, { cache: 'reload' });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const expected = !SHELL_CDN_URLS.includes(url) && revisions ? revisions[url] : null;
+  if (!expected || await revisionOf(response.clone()) === expected) return { response, verified: true };
+  try {
+    const sep = url.includes('?') ? '&' : '?';
+    const retry = await fetch(`${url}${sep}rev=${expected}`, { cache: 'reload' });
+    if (retry.ok && await revisionOf(retry.clone()) === expected) return { response: retry, verified: true };
+  } catch { /* 取り直せなければ最初の内容を使う */ }
+  console.warn('[SW] shell content does not match revisions:', url);
+  return { response, verified: false };
+}
+
+// 内容ハッシュ(scripts/gen-shell-revisions.mjs と同じ SHA-1 の先頭12桁)
+async function revisionOf(response) {
+  const digest = await crypto.subtle.digest('SHA-1', await response.arrayBuffer());
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 12);
 }
 
 // 旧キャッシュの内容をそのまま使えるか。
