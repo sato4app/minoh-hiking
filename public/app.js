@@ -49,7 +49,8 @@ import {
 import {
   TRACK_EXPORT_SEQ_KEY, PHOTO_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC,
   TRACK_RECORDING_FLAG_KEY, TRACK_UNEXPORTED_KEY, PHOTO_SHOOT_CONFIRMED_KEY, MAP_TOGGLES_KEY,
-  TRACK_STOP_HOLD_MS, TRACK_STOP_CONFIRM_SEC, PHOTO_MAX_COUNT
+  TRACK_STOP_HOLD_MS, TRACK_STOP_CONFIRM_SEC, PHOTO_MAX_COUNT, PHOTO_WARN_RATIO,
+  TRACK_BATTERY_NOTICE_SEC
 } from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
@@ -65,7 +66,7 @@ import {
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
 import { renderQrSvg } from './qrcode.js';
 import { initGuide, openGuide, maybeAutoOpenGuide } from './guide.js';
-import { showNotices, showQuestions } from './faq.js';
+import { showNotices, showQuestions, getNoticeText } from './faq.js';
 
 // ===== 状態 =====
 let currentView = 'home';
@@ -496,6 +497,9 @@ function bindEvents() {
       }
       finishTrackRecording('track.stopByToggle');
     }
+    // ON にしたときは、ご利用の注意と同じ電池の注意を、読み切れるよう長めに出す
+    // (起動時にトグルの状態を戻すときは change が来ないので出ない)
+    if (on) showToast(getNoticeText('trackBattery'), { durationSec: TRACK_BATTERY_NOTICE_SEC });
     // 記録開始・停止ボタンの表示を切替。
     // 現在地の監視は「現在地点をマーカー表示」等のトグルが管理するため、ここでは触らない。
     updateTrackButtonState(on);
@@ -1083,6 +1087,8 @@ function updateTrackPanel() {
 
 // 写真: トグルの右の出力済みかどうかと、トグル ON のときだけ出す統計(枚数)・ボタン行
 function updatePhotoPanel() {
+  // 写真が減って警告の枚数を下回ったら、次に達したときにまた警告する
+  if (getPhotoCount() < photoWarnCount()) photosNearLimitWarned = false;
   const on = !!el.togglePhotoCapture?.checked;
   if (el.photoStats) el.photoStats.hidden = !on;
   if (el.photoActions) el.photoActions.hidden = !on;
@@ -1694,6 +1700,31 @@ async function importPhotoKmz(file, { append }) {
     : t('photo.imported', { name: file.name, n: result.added });
   logHistory(msg, 'success');
   showToast(msg);
+  // 読み込み結果のトーストが読めるよう、警告のトーストはその後に出す
+  warnIfPhotosNearLimit({ delayToast: true });
+}
+
+// ===== 写真の枚数が上限に近づいたときの警告 =====
+// 上限(PHOTO_MAX_COUNT)の PHOTO_WARN_RATIO に達したら、保存(撮影・読み込み)の後に
+// メッセージ履歴とトーストで知らせる。何度も出さないよう、達したときに1回だけ出し、
+// 写真が減って下回ったら(削除・クリア → updatePhotoPanel)また出せるようにする。
+// アプリを開き直したときは、達したままでも次の保存で1回出す(覚えるのはこの起動の間だけ)。
+let photosNearLimitWarned = false;
+
+function photoWarnCount() {
+  return Math.ceil(PHOTO_MAX_COUNT * PHOTO_WARN_RATIO);
+}
+
+// 警告を出したら true を返す。delayToast は、直前のトーストを読める間をおいてから出すとき
+function warnIfPhotosNearLimit({ delayToast = false } = {}) {
+  const n = getPhotoCount();
+  if (photosNearLimitWarned || n < photoWarnCount()) return false;
+  photosNearLimitWarned = true;
+  const msg = t('photo.nearLimit', { n, max: PHOTO_MAX_COUNT, percent: Math.round(PHOTO_WARN_RATIO * 100) });
+  logHistory(msg, 'error');
+  if (delayToast) setTimeout(() => showToast(msg), (TOAST_DURATION_SEC + 0.5) * 1000);
+  else showToast(msg);
+  return true;
 }
 
 // ===== 写真の撮影(アプリ内カメラ) =====
@@ -1782,8 +1813,10 @@ async function handlePhotoShot({ blob, timeMs }) {
     await addPhoto({ name, timeMs, lat: latlng[0], lng: latlng[1], blob });
     setCameraStatus(t('photo.saved', { name }));
     logHistory(t('photo.saved', { name }), 'success');
+    // 上限に近づいたら警告する(カメラの上にもトーストで出す)。警告を出したときは保存のトーストは省く
+    const warned = warnIfPhotosNearLimit();
     // 撮影後にカメラが自動で閉じた後で保存が終わったときは、地図の上で知らせる
-    if (!isCameraOpen()) showToast(t('photo.saved', { name }));
+    if (!warned && !isCameraOpen()) showToast(t('photo.saved', { name }));
   } catch (err) {
     // 保存できなかった(容量不足など)
     const msg = t('photo.saveFailed', { message: err?.message || err?.name || '' });

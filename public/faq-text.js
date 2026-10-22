@@ -4,7 +4,7 @@
 //
 // 構成:
 //   FAQ_NOTICES  … ご利用の注意(9項目)。1行の要約と、詳しい説明のある質問への参照
-//   FAQ_SECTIONS … よくある質問(7分類・28問)。説明の本体はこちらにだけ置く
+//   FAQ_SECTIONS … よくある質問(7分類・29問)。説明の本体はこちらにだけ置く
 //
 // ご利用の注意を増やすときは、対応する質問を FAQ_SECTIONS に用意し、ref で指すこと
 // (注意側に本文を書くと、また二重管理になる)。
@@ -15,7 +15,8 @@
 // 該当する項目を見つけられなくなる。
 
 // ご利用の注意(9項目)。refs は詳しい説明のある質問の番号(複数可)。
-// 区切り記号は言語で変わるため、faq.js 側でつなぐ
+// 区切り記号は言語で変わるため、faq.js 側でつなぐ。
+// id はアプリの他の画面からも同じ文言を出す項目にだけ付ける(faq.js の getNoticeText で取り出す)
 export const FAQ_NOTICES = [
   {
     text: {
@@ -74,9 +75,11 @@ export const FAQ_NOTICES = [
     refs: ['Q17']
   },
   {
+    // 「移動経路を記録」をオンにしたときにもトーストで出す(app.js)
+    id: 'trackBattery',
     text: {
-      ja: '移動経路の記録中はスリープしないため、電池の消耗が早くなります。予備の電源をご用意ください。',
-      en: 'While recording a track the device is kept from sleeping, so the battery drains faster. Bring a power bank.'
+      ja: '移動経路の記録中はスリープしないため、電池の消耗が早くなります。十分なバッテリ残量を確保してください。',
+      en: 'While recording a track the device is kept from sleeping, so the battery drains faster. Make sure your battery has enough charge.'
     },
     refs: ['Q20']
   }
@@ -456,8 +459,8 @@ export const FAQ_SECTIONS = [
             en: 'While a track is being recorded the device is kept from sleeping, so that position updates do not stop. That is what makes the battery drain faster.'
           },
           {
-            ja: '記録が終わったら停止してください。山中での電池切れは、地図も現在地も使えなくなることを意味します。予備の電源の携行をおすすめします。',
-            en: 'Please stop recording when you are done. A flat battery in the mountains means losing both the map and your location, so carrying a power bank is recommended.'
+            ja: '記録が終わったら停止してください。山中での電池切れは、地図も現在地も使えなくなることを意味します。十分なバッテリ残量を確保してください。',
+            en: 'Please stop recording when you are done. A flat battery in the mountains means losing both the map and your location, so make sure your battery has enough charge.'
           }
         ]
       },
@@ -485,6 +488,31 @@ export const FAQ_SECTIONS = [
       {
         id: 'Q22',
         q: {
+          ja: '撮った写真が、スマホの写真アプリ(ギャラリー)に見当たりません。',
+          en: 'I cannot find the photos I took in my phone\'s photo app (gallery).'
+        },
+        a: [
+          {
+            ja: '「写真を撮影」のカメラで撮った写真は、このアプリの中にだけ保存されます。スマホの写真アプリ(iPhone の「写真」、Android の「ギャラリー」や「Google フォト」など)には保存されません。',
+            en: 'Photos taken with the "Take Photos" camera are kept only inside this app. They are not saved to your phone\'s photo app (Photos on iPhone, or Gallery or Google Photos on Android).'
+          },
+          {
+            ja: 'これは、撮影中も現在地の取得と移動経路の記録を止めないよう、スマホのカメラアプリに切り替えず、アプリの画面の中で撮影しているためです。カメラアプリに切り替えると記録が止まり、メモリの少ない端末ではアプリが終了して、記録や写真が失われることがあります。',
+            en: 'This is because the app takes photos within its own screen instead of switching to your phone\'s camera app, so that your location and track keep being recorded while you shoot. Switching to the camera app stops the recording, and on devices with little memory the app can be closed, losing the track and photos.'
+          },
+          {
+            ja: '撮った写真は、地図の写真撮影地点の印を押すと見られます。写真の表示の「一覧」で、全部の写真を並べて見ることもできます。',
+            en: 'To see your photos, tap a photo point on the map. "List" in the photo view shows all your photos side by side.'
+          },
+          {
+            ja: 'アプリの外で使いたいときは、「写真を撮影」の「出力」で KMZ ファイルに出力してください。KMZ ファイルは Google Earth などで開けます。また KMZ ファイルは ZIP 形式なので、パソコンで拡張子を「.zip」に変えて展開すると、files フォルダに写真(JPEG)が入っています。',
+            en: 'To use them outside the app, export them as a KMZ file with "Export" under "Take Photos". A KMZ file can be opened in Google Earth and similar apps. A KMZ file is also a ZIP file: on a computer, change its extension to ".zip" and extract it, and you will find the photos (JPEG) in the "files" folder.'
+          }
+        ]
+      },
+      {
+        id: 'Q23',
+        q: {
           ja: '記録中に画面が消えて、経路が飛んでしまいました。',
           en: 'The screen went off while recording and the track has a gap.'
         },
@@ -496,7 +524,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q23',
+        id: 'Q24',
         q: {
           ja: '前に記録した経路と、今日歩いた経路を並べて見たいです。',
           en: 'I want to see a previously recorded track alongside the one from today.'
@@ -518,7 +546,7 @@ export const FAQ_SECTIONS = [
     title: { ja: 'その他', en: 'Other' },
     items: [
       {
-        id: 'Q24',
+        id: 'Q25',
         q: {
           ja: '地図やルートは、誰が作っているのですか。',
           en: 'Who makes the map and the routes?'
@@ -535,7 +563,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q25',
+        id: 'Q26',
         q: {
           ja: '国土地理院の地図を使うことについて、国土地理院の許可は得ていますか。',
           en: 'Does this app have permission from GSI to use its map?'
@@ -556,7 +584,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q26',
+        id: 'Q27',
         q: {
           ja: '地図やアプリのバージョンを確認したいです。',
           en: 'I want to check the map and app versions.'
@@ -569,7 +597,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q27',
+        id: 'Q28',
         q: {
           ja: '端末の空き容量を増やしたいです。',
           en: 'I want to free up space on my device.'
@@ -582,7 +610,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q28',
+        id: 'Q29',
         q: {
           ja: '英語表示にしたら、戻し方が分からなくなりました。',
           en: 'I switched to English and cannot find my way back.'

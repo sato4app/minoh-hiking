@@ -110,6 +110,9 @@ export const MESSAGE_LOG_MAX = 100;
 
 // トースト(一時メッセージ)の表示秒数
 export const TOAST_DURATION_SEC = 3;
+// 「移動経路を記録」をオンにしたときに出す、電池の注意(ご利用の注意と同じ文言)の表示秒数。
+// 通常のトーストより長い文なので、読み切れるよう長めに出す
+export const TRACK_BATTERY_NOTICE_SEC = 5;
 
 // ===== 移動記録の停止(app.js) =====
 // 記録停止ボタン(■)は、この時間(ミリ秒)押し続けたときだけ停止の確認を出す。
@@ -121,6 +124,8 @@ export const TRACK_STOP_CONFIRM_SEC = 10;
 // ===== 写真(「写真を撮影」。移動経路とは別の機能。camera.js / photos.js) =====
 // 端末に保存できる写真の上限枚数。写真は端末の中(IndexedDB)だけに置くため、容量を圧迫しないよう抑える。
 export const PHOTO_MAX_COUNT = 200;
+// 写真がこの割合(上限枚数に対して)に達したら、保存の後にメッセージで警告する(上限 200 枚なら 160 枚)。
+export const PHOTO_WARN_RATIO = 0.8;
 // 保存する写真の長辺[px]と JPEG の品質。1枚あたりおよそ 300〜500KB に収まる。
 export const PHOTO_MAX_EDGE_PX = 1600;
 export const PHOTO_JPEG_QUALITY = 0.8;

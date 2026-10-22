@@ -11,6 +11,13 @@ function pick(entry) {
   return entry[lang] ?? entry.ja;
 }
 
+// ご利用の注意のうち id を付けた項目の文言を、表示言語で返す(無ければ空文字)。
+// 同じ注意を他の画面(トーストなど)でも出すときに使い、文言を二重に持たないようにする
+export function getNoticeText(id) {
+  const notice = FAQ_NOTICES.find((n) => n.id === id);
+  return notice ? pick(notice.text) : '';
+}
+
 let noticesBuilt = false;
 let questionsBuilt = false;
 // 「よくある質問」を開く処理(app.js から受け取る。参照リンクで移る前に、閉じていれば開くため)

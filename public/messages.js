@@ -78,8 +78,9 @@ function formatLogTime(ts) {
 // ===== 一時メッセージ(トースト) =====
 let toastTimerId = null;
 
-// 画面中央下に一時メッセージを表示し、config.js の秒数で自動的に閉じる
-export function showToast(text) {
+// 画面中央下に一時メッセージを表示し、config.js の秒数で自動的に閉じる。
+// 長い文言で読む時間が要るときは durationSec で表示秒数を指定する
+export function showToast(text, { durationSec = TOAST_DURATION_SEC } = {}) {
   if (!el.toast || !text) return;
   el.toast.textContent = text;
   el.toast.hidden = false;
@@ -87,7 +88,7 @@ export function showToast(text) {
   requestAnimationFrame(() => el.toast.classList.add('toast-show'));
 
   if (toastTimerId !== null) clearTimeout(toastTimerId);
-  const ms = Math.max(0, (Number(TOAST_DURATION_SEC) || 0) * 1000);
+  const ms = Math.max(0, (Number(durationSec) || 0) * 1000);
   toastTimerId = setTimeout(() => {
     el.toast.classList.remove('toast-show');
     // フェードアウト(0.25s)後に hidden へ

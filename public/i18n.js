@@ -201,6 +201,11 @@ const DICT = {
     en: 'The photo was not saved because your location could not be found'
   },
   'photo.saveFailed': { ja: '写真を保存できませんでした: {message}', en: 'Could not save the photo: {message}' },
+  // 写真が上限枚数の80%(PHOTO_WARN_RATIO)に達したときの警告(保存の後に、メッセージ履歴とトーストで)
+  'photo.nearLimit': {
+    ja: '写真が {n} 枚になりました(上限 {max} 枚の {percent}%)。上限に達すると撮影できません。「出力」してから不要な写真を削除するか「クリア」してください',
+    en: 'You now have {n} photos ({percent}% of the {max} limit). No more photos can be taken at the limit. "Export" them, then delete unneeded photos or "Clear"'
+  },
   'photo.limitReached': {
     ja: '写真は {max} 枚までです。これ以上は撮影できません',
     en: 'Up to {max} photos can be kept. No more photos can be taken'
