@@ -474,15 +474,9 @@ function bindEvents() {
   // 現在地点表示ボタンはメニューのトグルとは独立(押すたびに円を3秒だけ表示する)
   setCurrentMarkerButtonHandler(handleCurrentSpotButton);
   // 現在地点は中央に表示: 地図を現在地へ追従させるか切替。
-  // ON にすると現在地は画面中央へ来るが、その中央はこのメニュー(表示設定パネル)の
-  // 真下に隠れる位置にある。切り替えた結果が見えるよう、ON にしたらメニューを閉じる
-  // (閉じないと、パネルの外に見えている範囲=現在地から離れた場所だけが見え、
-  //  地図が見当違いの場所へ動いたように見えてしまう)。
-  on(el.toggleCenterCurrent, 'change', (e) => {
-    const on = e.target.checked;
-    if (on) el.mapLayerPanel.hidden = true;
-    setFollowCurrentLocation(on);
-  });
+  // 他のトグルと同じく、切り替えてもメニュー(表示設定パネル)は開いたままにする
+  // (ON にした直後の現在地は画面中央=パネルの真下に来るため、結果はパネルを閉じると見える)。
+  on(el.toggleCenterCurrent, 'change', (e) => setFollowCurrentLocation(e.target.checked));
   on(el.toggleTrackRecording, 'change', (e) => {
     const on = e.target.checked;
     if (!on) {
