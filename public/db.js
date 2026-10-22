@@ -116,6 +116,11 @@ export async function listPhotoRecords() {
   return (await withStore(PHOTO_STORE, 'readonly', (store) => store.getAll())) || [];
 }
 
+// 保存済みの写真を1枚削除する(写真の表示のごみ箱から)
+export function deletePhotoRecord(id) {
+  return withStore(PHOTO_STORE, 'readwrite', (store) => store.delete(id));
+}
+
 // 保存済みの写真を全件削除する(写真のクリアに合わせて呼ぶ)
 export function clearPhotoRecords() {
   return withStore(PHOTO_STORE, 'readwrite', (store) => store.clear());

@@ -297,7 +297,8 @@
 
   <!-- 写真の表示(地図のカメラの印・カメラ画面のサムネイルから開く)。名前はここで変えられ、
        閉じたとき・入力を確定したとき・矢印ボタンで移るときに保存する(名前を変えた写真は未出力に戻る)。
-       見出しは「写真 n / 全数」(app.js が設定)。左右の矢印ボタンで撮影・読み込みの順に前後の写真へ移る -->
+       見出しは「写真 n / 全数」(app.js が設定)。左右の矢印ボタンで撮影・読み込みの順に前後の写真へ移る。
+       名前の欄の右のごみ箱で表示中の写真を削除し、「一覧」で写真の一覧(タイル)へ切り替える -->
   <div class="modal" id="photoViewModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoViewTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
@@ -315,11 +316,35 @@
             <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
+        <!-- 名前の欄の右に、表示中の写真を削除するボタン(ごみ箱) -->
         <div class="track-export-row">
           <label class="track-export-label" for="photoViewName" data-i18n="photo.nameLabel">名前</label>
           <input type="text" id="photoViewName" autocomplete="off" maxlength="60" />
+          <button type="button" class="photo-delete-btn" id="btnPhotoDelete" aria-label="写真を削除" title="写真を削除" data-i18n-aria="photo.delete" data-i18n-title="photo.delete">
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
         <p class="modal-note photo-view-meta" id="photoViewMeta"></p>
+        <div class="button-group button-group-row">
+          <button type="button" class="btn btn-primary" id="btnPhotoViewList" data-i18n="photo.list">一覧</button>
+          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.close">閉じる</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 写真の一覧(写真の表示の「一覧」から開く)。全部の写真を撮影・読み込みの順にタイル状に並べ、
+       押すとその写真の表示を開く。タイルの画像は小さく縮めたもの(photos.js の getPhotoThumbUrl)を、
+       見える位置に来たものから順に作って入れる。見出しは「写真の一覧(n 枚)」(app.js が設定) -->
+  <div class="modal" id="photoListModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoListTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="photoListTitle">写真の一覧</h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      </header>
+      <div class="modal-body" id="photoListBody">
+        <div class="photo-list-grid" id="photoListGrid"></div>
         <div class="button-group">
           <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.close">閉じる</button>
         </div>

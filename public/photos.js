@@ -5,7 +5,7 @@
 // 撮影は camera.js、KMZ の出力・読み込みは kmz.js が担う。
 import * as L from 'leaflet';
 import { getMap, fitMapToLatLngs, buildMarkerIcon } from './map.js';
-import { savePhotoRecord, listPhotoRecords, clearPhotoRecords } from './db.js';
+import { savePhotoRecord, listPhotoRecords, clearPhotoRecords, deletePhotoRecord } from './db.js';
 import { PHOTO_MAX_COUNT, PHOTO_MAX_EDGE_PX, PHOTO_JPEG_QUALITY, PHOTOS_UNEXPORTED_KEY } from './config.js';
 import { requestPersistentStorage } from './tiles.js';
 
@@ -151,9 +151,26 @@ export async function renamePhoto(id, name) {
   await savePhotoRecord(toRecord(photo));
 }
 
+// 1枚を消す(写真の表示のごみ箱から)。一覧と地図からはすぐ消し、端末の保存はその後で消す
+// (消せなかったときは例外を投げる。呼び出し側で知らせる)。
+// 残りの写真の出力済みかどうかは変えない(残った写真は消す前と同じ状態のため)
+export async function deletePhoto(id) {
+  const index = photos.findIndex((p) => p.id === id);
+  if (index < 0) return;
+  const [photo] = photos.splice(index, 1);
+  removeMarker(photo);
+  releaseThumb(id);
+  if (photos.length === 0) setUnexported(false);
+  onPhotosChanged?.();
+  await deletePhotoRecord(id);
+}
+
 // 全写真を消す(写真の「クリア」と、クリアを選んだ撮影・読み込みから app.js が呼ぶ)
 export async function clearPhotos() {
-  for (const photo of photos) removeMarker(photo);
+  for (const photo of photos) {
+    removeMarker(photo);
+    releaseThumb(photo.id);
+  }
   photos = [];
   setUnexported(false);
   onPhotosChanged?.();
@@ -177,6 +194,46 @@ export async function restorePhotos() {
   }
   onPhotosChanged?.();
   return photos.length;
+}
+
+// ===== 一覧のタイル用の縮小画像 =====
+// 写真の一覧は最大 PHOTO_MAX_COUNT 枚を並べるため、元の画像(長辺 1600px)のまま並べると
+// 画像の展開にメモリを使いすぎる。タイル用に短辺 THUMB_EDGE_PX へ縮めた JPEG を作り、
+// 写真ごとに覚えておく(写真を消したら手放す)。作るのは一覧で見える位置に来たときで、
+// 一度に何枚も展開しないよう1枚ずつ順に作る。
+const THUMB_EDGE_PX = 240;
+const thumbUrls = new Map();   // id → Promise<string|null>(縮小画像の URL)
+let thumbQueue = Promise.resolve();
+
+async function makeThumb(blob) {
+  if (typeof createImageBitmap !== 'function') return blob;
+  const bitmap = await createImageBitmap(blob);
+  const scale = Math.min(1, THUMB_EDGE_PX / Math.min(bitmap.width, bitmap.height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close?.();
+  return new Promise((resolve) => canvas.toBlob((b) => resolve(b || blob), 'image/jpeg', 0.7));
+}
+
+// 写真の縮小画像の URL を返す(作れなければ元の画像の URL。写真が無ければ null)
+export function getPhotoThumbUrl(id) {
+  if (thumbUrls.has(id)) return thumbUrls.get(id);
+  const photo = getPhoto(id);
+  if (!photo) return Promise.resolve(null);
+  const job = thumbQueue.then(() => makeThumb(photo.blob)).catch(() => photo.blob);
+  thumbQueue = job;
+  const url = job.then((blob) => (blob ? URL.createObjectURL(blob) : null));
+  thumbUrls.set(id, url);
+  return url;
+}
+
+function releaseThumb(id) {
+  const url = thumbUrls.get(id);
+  if (!url) return;
+  thumbUrls.delete(id);
+  url.then((u) => { if (u) URL.revokeObjectURL(u); });
 }
 
 // 読み込んだ画像が大きすぎるときは、撮影した写真と同じ大きさ(長辺 PHOTO_MAX_EDGE_PX)に縮める。

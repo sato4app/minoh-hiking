@@ -162,8 +162,7 @@ export const MARKER_TYPES = [
     locked: ['shape'], note: 2 },
   // 写真撮影地点(「写真を撮影」で撮った写真の位置。押すと写真の表示を開く)。
   // 色の丸に白の縁と白抜きのカメラ(形状は変更不可)。大きさは通行止め・通行困難地点と同程度。
-  // 色は他の目印と見分けやすい橙
-  { key: 'photo', color: '#F97316', shape: 'camera', size: 20,
+  { key: 'photo', color: '#000080', shape: 'camera', size: 20,
     locked: ['shape'], note: 2 }
 ];
 

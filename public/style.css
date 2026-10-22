@@ -968,6 +968,84 @@ body.view-state-map .leaflet-control-container {
   border-radius: 6px;
 }
 
+/* 名前の欄の右のごみ箱(表示中の写真を削除)。押し間違えないよう欄から少し離し、赤で示す */
+.photo-delete-btn {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin-left: 0.2rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #b91c1c;
+  background: #fff;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.photo-delete-btn:hover {
+  background: #fef2f2;
+}
+
+/* 写真の一覧: 3列のタイル。画像は正方形に切り抜いて並べ、下に名前を重ねる */
+.photo-list-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 0.5rem 1rem 0;
+}
+
+.photo-list-tile {
+  position: relative;
+  aspect-ratio: 1;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #e5e7eb;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.photo-list-tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 縮小画像を作る前(src なし)は、壊れた画像の印を出さない */
+.photo-list-tile img:not([src]) {
+  visibility: hidden;
+}
+
+.photo-list-name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0.6rem 0.3rem 0.15rem;
+  font-size: 0.7rem;
+  color: #fff;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+}
+
+/* 一覧を開く前に表示していた写真は枠で囲む(画像の上に重ねて描く) */
+.photo-list-tile.is-current::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 3px solid #2c7a3d;
+  border-radius: 4px;
+}
+
 /* ===== アプリ内カメラ(camera.js) ===== */
 /* 画面全体を黒で覆い、カメラの映像を出す。モーダル(1000)より前、トースト(1100)より後ろ */
 .camera-overlay {

@@ -38,7 +38,7 @@ import {
 import { isCameraSupported, isCameraOpen, openCamera, closeCamera, setCameraStatus } from './camera.js';
 import {
   setPhotoHandlers, setPhotoStyle, getPhotos, getPhotoCount, getPhoto, fitMapToPhotos,
-  addPhoto, renamePhoto, clearPhotos, restorePhotos, importPhotos,
+  addPhoto, renamePhoto, deletePhoto, clearPhotos, restorePhotos, importPhotos, getPhotoThumbUrl,
   hasUnexportedPhotos, markPhotosExported
 } from './photos.js';
 import { isZipFile, loadPhotoBytes, buildPhotosKmz, parsePhotosKmz } from './kmz.js';
@@ -188,6 +188,13 @@ const el = {
   btnPhotoViewPrev: document.getElementById('btnPhotoViewPrev'),
   btnPhotoViewNext: document.getElementById('btnPhotoViewNext'),
   photoViewMeta: document.getElementById('photoViewMeta'),
+  btnPhotoDelete: document.getElementById('btnPhotoDelete'),
+  btnPhotoViewList: document.getElementById('btnPhotoViewList'),
+  // 写真の一覧(タイル)
+  photoListModal: document.getElementById('photoListModal'),
+  photoListTitle: document.getElementById('photoListTitle'),
+  photoListBody: document.getElementById('photoListBody'),
+  photoListGrid: document.getElementById('photoListGrid'),
 
   // マーカーの設定モーダル
   settingsModal: document.getElementById('settingsModal'),
@@ -539,6 +546,10 @@ function bindEvents() {
   // 写真の表示の左右の矢印ボタン: 前・次の写真へ(名前は移る前に保存する)
   on(el.btnPhotoViewPrev, 'click', () => stepPhotoView(-1));
   on(el.btnPhotoViewNext, 'click', () => stepPhotoView(1));
+  // 名前の欄の右のごみ箱: 表示中の写真を削除する
+  on(el.btnPhotoDelete, 'click', deleteViewingPhoto);
+  // 「一覧」: 写真の一覧(タイル)へ切り替える。押した写真の表示に戻る
+  on(el.btnPhotoViewList, 'click', () => openPhotoList(viewingPhotoId));
 
   // 読み込み: GPX ファイルを選び、記録済みの移動経路として地図に表示する(写真は扱わない)。
   // 記録中は経路が入れ替わると記録が壊れるため受け付けない。
@@ -736,6 +747,8 @@ function closeModal(modal) {
   modal.hidden = true;
   // 写真の表示を閉じたら、表示していた画像の URL を手放す
   if (modal.id === 'photoViewModal') releasePhotoView();
+  // 写真の一覧を閉じたら、タイルの見張りを止める(縮小画像は photos.js が写真ごとに覚えている)
+  if (modal.id === 'photoListModal') releasePhotoList();
   // 写真の出力(KMZ)モーダルを閉じたら、読み出した画像を捨てる(大きいため持ち続けない)
   if (modal.id === 'photoExportModal') releasePhotoBytes();
   // 「クリア/追加/中止」モーダルを閉じたのは操作の中止。保持した用途を捨てる
@@ -1850,6 +1863,103 @@ function commitPhotoViewName() {
     showToast(msg);
   });
   el.photoViewImage.alt = name;
+}
+
+// ごみ箱: 表示中の写真を確認のうえ削除し、次の写真(最後の写真なら前の写真)を表示する。
+// 写真が無くなったら写真の表示を閉じる。入力中の名前は、消す写真のものなので保存しない
+function deleteViewingPhoto() {
+  const photo = viewingPhotoId ? getPhoto(viewingPhotoId) : null;
+  if (!photo) return;
+  if (!confirm(t('photo.deleteConfirm', { name: photo.name }))) return;
+  const photos = getPhotos();
+  const index = photos.findIndex((p) => p.id === photo.id);
+  const next = photos[index + 1] || photos[index - 1] || null;
+  deletePhoto(photo.id).catch((err) => {
+    const msg = t('photo.deleteFailed', { message: err?.message || err?.name || '' });
+    logHistory(msg, 'error');
+    showToast(msg);
+  });
+  logHistory(t('photo.deleted', { name: photo.name }), '');
+  showToast(t('photo.deleted', { name: photo.name }));
+  if (next) showPhotoInView(next.id);
+  else closeModal(el.photoViewModal);
+}
+
+// ===== 写真の一覧(タイル) =====
+// 全部の写真を撮影・読み込みの順にタイル状に並べる。押した写真の表示を開く。
+// タイルの画像は、一覧の中で見える位置に近づいたものから縮小画像を作って入れる
+// (200枚を一度に展開しないため。縮小画像は photos.js の getPhotoThumbUrl)。
+let photoListObserver = null;
+
+function openPhotoList(currentId) {
+  const photos = getPhotos();
+  if (photos.length === 0) return;
+  // 写真の表示から来たときは、入力中の名前を保存して閉じる(closeModal)
+  if (!el.photoViewModal.hidden) closeModal(el.photoViewModal);
+  releasePhotoList();
+  el.photoListTitle.textContent = t('photo.listTitle', { n: photos.length });
+  if ('IntersectionObserver' in window) {
+    photoListObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        photoListObserver?.unobserve(entry.target);
+        loadPhotoTile(entry.target);
+      }
+    }, { root: el.photoListBody, rootMargin: '200px 0px' });
+  }
+  let currentTile = null;
+  const tiles = photos.map((photo) => {
+    const tile = document.createElement('button');
+    tile.type = 'button';
+    tile.className = 'photo-list-tile';
+    tile.dataset.photoId = photo.id;
+    tile.setAttribute('aria-label', photo.name);
+    tile.title = photo.name;
+    const img = document.createElement('img');
+    img.alt = '';
+    const name = document.createElement('span');
+    name.className = 'photo-list-name';
+    name.setAttribute('aria-hidden', 'true');
+    name.textContent = photo.name;
+    tile.append(img, name);
+    tile.addEventListener('click', () => {
+      closeModal(el.photoListModal);
+      openPhotoView(photo.id);
+    });
+    if (photo.id === currentId) {
+      tile.classList.add('is-current');
+      currentTile = tile;
+    }
+    return tile;
+  });
+  el.photoListGrid.replaceChildren(...tiles);
+  el.mapLayerPanel.hidden = true;
+  el.photoListModal.hidden = false;
+  // 表示していた写真のタイルが見えるよう、一覧の中だけをスクロールする
+  // (scrollIntoView は画面ごと動かすことがあるため使わない)
+  el.photoListBody.scrollTop = 0;
+  if (currentTile) {
+    const offset = currentTile.getBoundingClientRect().top - el.photoListBody.getBoundingClientRect().top;
+    el.photoListBody.scrollTop = Math.max(0, offset - el.photoListBody.clientHeight / 2 + currentTile.offsetHeight / 2);
+  }
+  for (const tile of tiles) {
+    if (photoListObserver) photoListObserver.observe(tile);
+    else loadPhotoTile(tile);
+  }
+}
+
+// タイルに縮小画像を入れる(作り終えたときに一覧が閉じられていても害はない)
+function loadPhotoTile(tile) {
+  getPhotoThumbUrl(tile.dataset.photoId).then((url) => {
+    if (url) tile.querySelector('img').src = url;
+  });
+}
+
+// 一覧を閉じたとき: タイルの見張りを止め、タイルを取り除く
+function releasePhotoList() {
+  photoListObserver?.disconnect();
+  photoListObserver = null;
+  el.photoListGrid?.replaceChildren();
 }
 
 // 写真の表示を閉じたとき: 表示していた画像の URL を手放す

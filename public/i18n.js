@@ -236,6 +236,17 @@ const DICT = {
   'photo.prev': { ja: '前の写真', en: 'Previous Photo' },
   'photo.next': { ja: '次の写真', en: 'Next Photo' },
   'photo.nameLabel': { ja: '名前', en: 'Name' },
+  // 写真の表示の、名前の欄の右のごみ箱(表示中の写真を削除する)
+  'photo.delete': { ja: '写真を削除', en: 'Delete Photo' },
+  'photo.deleteConfirm': {
+    ja: '「{name}」を削除します。削除した写真は元に戻せません。よろしいですか?',
+    en: 'Delete "{name}"? A deleted photo cannot be restored.'
+  },
+  'photo.deleted': { ja: '{name} を削除しました', en: 'Deleted {name}' },
+  'photo.deleteFailed': { ja: '写真を削除できませんでした: {message}', en: 'Could not delete the photo: {message}' },
+  // 写真の表示の「一覧」と、写真の一覧(タイル状に並べ、押すとその写真を表示する)
+  'photo.list': { ja: '一覧', en: 'List' },
+  'photo.listTitle': { ja: '写真の一覧({n} 枚)', en: 'Photos ({n})' },
   'photo.takenAt': { ja: '撮影日時: {time}', en: 'Taken: {time}' },
   'photo.takenAtUnknown': { ja: '撮影日時: 不明', en: 'Taken: unknown' },
   // 出力(写真の「出力」から。KMZ だけを出力する)
