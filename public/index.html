@@ -134,10 +134,10 @@
         <span class="toggle-slider" aria-hidden="true"></span>
         <span class="toggle-text" data-i18n="map.toggleCenterCurrent">現在地点は中央に表示</span>
       </label>
-      <!-- 移動経路と写真は別々の機能。どちらも、トグル ON のときだけ件数・統計と
+      <!-- 移動経路と写真は別々の機能。どちらも、トグル ON のときだけ統計と
            読み込み・出力・クリアを出す(OFF のときはトグルの1行だけにして縦の領域を節約する)。
-           データがあるときは、トグルの右に「未出力 n本」「出力済み n本」を添える(app.js が設定)。
-           出力済みかどうかは経路・写真それぞれ全体で1つ(1本・1枚でも未出力があれば全部を未出力と数える) -->
+           データがあるときは、トグルの右に「未出力あり」「出力済み」を添える(app.js が設定)。
+           出力済みかどうかは経路・写真それぞれ全体で1つ(1本・1枚でも未出力があれば「未出力あり」) -->
       <label class="toggle toggle-switch" data-guide="panelTrackRecording">
         <input type="checkbox" id="toggleTrackRecording" />
         <span class="toggle-slider" aria-hidden="true"></span>
@@ -157,13 +157,15 @@
            accept は付けない: スマホの OS は .gpx の種類(MIME/UTI)を知らないため、
            絞り込むと GPX ファイルがグレイアウトして選べなくなる。内容は読み込み時に解析して判定する -->
       <input type="file" id="trackImportInput" hidden />
-      <!-- 写真を撮影: ON でカメラボタンを出し、読み込み・出力・クリア(KMZ だけを扱う)を出す -->
+      <!-- 写真を撮影: ON でカメラボタンを出し、統計(枚数)と読み込み・出力・クリア(KMZ だけを扱う)を出す -->
       <label class="toggle toggle-switch" data-guide="panelPhotoCapture">
         <input type="checkbox" id="togglePhotoCapture" />
         <span class="toggle-slider" aria-hidden="true"></span>
         <span class="toggle-text" data-i18n="map.togglePhotoCapture">写真を撮影</span>
         <span class="toggle-status" id="photoStatus" hidden></span>
       </label>
+      <!-- 写真の統計: 枚数を経路の統計と同じ形で1行出す(写真が無いときは 0) -->
+      <div class="track-stats" id="photoStats" role="group" aria-label="写真の統計" data-i18n-aria="photo.ariaStats" hidden></div>
       <div class="track-inline-actions" id="photoActions" data-guide="panelPhotoActions" hidden>
         <button type="button" class="btn-track-mini" id="btnPhotoImport" data-i18n="track.import">読み込み</button>
         <button type="button" class="btn-track-mini" id="btnPhotoExport" data-i18n="track.export">出力</button>

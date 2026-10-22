@@ -164,6 +164,7 @@ const el = {
   togglePhotoCapture: document.getElementById('togglePhotoCapture'),
   btnPhotoCamera: document.getElementById('btnPhotoCamera'),
   photoStatus: document.getElementById('photoStatus'),
+  photoStats: document.getElementById('photoStats'),
   photoActions: document.getElementById('photoActions'),
   btnPhotoImport: document.getElementById('btnPhotoImport'),
   btnPhotoExport: document.getElementById('btnPhotoExport'),
@@ -1047,31 +1048,35 @@ function updateDataPanels() {
   updatePhotoPanel();
 }
 
-// トグルの右に添える件数と出力済みかどうか(例: 「未出力 2本」「出力済み 12枚」)。
-// データが無ければ出さない。prefix は文言キーの頭('track' / 'photo')
-function setToggleStatus(elem, n, unexported, prefix) {
+// トグルの右に添える出力済みかどうか(「未出力あり」「出力済み」)。データが無ければ出さない
+function setToggleStatus(elem, hasData, unexported) {
   if (!elem) return;
-  elem.hidden = n === 0;
-  elem.classList.toggle('is-unexported', n > 0 && unexported);
-  elem.textContent = n === 0 ? '' : t(`${prefix}.${unexported ? 'statusUnexported' : 'statusExported'}`, { n });
+  elem.hidden = !hasData;
+  elem.classList.toggle('is-unexported', hasData && unexported);
+  elem.textContent = hasData ? t(unexported ? 'common.unexported' : 'common.exported') : '';
 }
 
-// 移動経路: トグルの右の件数と、トグル ON のときだけ出す統計表・ボタン行
+// 移動経路: トグルの右の出力済みかどうかと、トグル ON のときだけ出す統計表・ボタン行
 function updateTrackPanel() {
   const on = !!el.toggleTrackRecording?.checked;
   if (el.trackStats) el.trackStats.hidden = !on;
   if (el.trackActions) el.trackActions.hidden = !on;
-  // 記録開始直後の地点数0の経路は数えない(まだ何も無いため)
-  const routes = getTrackStatsList().filter((stats) => stats.pointCount > 0).length;
-  setToggleStatus(el.trackStatus, routes, hasUnexportedTrack(), 'track');
+  // 記録開始直後の地点数0の経路だけのときは出さない(まだ何も無いため)
+  setToggleStatus(el.trackStatus, hasTrack(), hasUnexportedTrack());
   if (on) renderTrackStats();
 }
 
-// 写真: トグルの右の件数と、トグル ON のときだけ出すボタン行
+// 写真: トグルの右の出力済みかどうかと、トグル ON のときだけ出す統計(枚数)・ボタン行
 function updatePhotoPanel() {
   const on = !!el.togglePhotoCapture?.checked;
+  if (el.photoStats) el.photoStats.hidden = !on;
   if (el.photoActions) el.photoActions.hidden = !on;
-  setToggleStatus(el.photoStatus, getPhotoCount(), hasUnexportedPhotos(), 'photo');
+  const count = getPhotoCount();
+  setToggleStatus(el.photoStatus, count > 0, hasUnexportedPhotos());
+  // 経路の統計と同じ形(ラベル+値の1組)で枚数を出す。写真が無いときも 0 を出す
+  if (on && el.photoStats) {
+    el.photoStats.replaceChildren(buildTrackStatPair(t('photo.statCount'), String(count)));
+  }
 }
 
 // レイヤーパネル内の統計表を描く。経路1本につき1行で、経路が複数あるときだけ

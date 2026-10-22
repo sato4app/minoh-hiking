@@ -693,18 +693,13 @@ body.view-state-map .leaflet-control-container {
   margin: 0.6rem 0 0.1rem;
 }
 
-/* 写真のボタン行はトグルの直後に来るため、上の余白を詰める */
-#photoActions {
-  margin-top: 0;
-}
-
 /* 統計・ボタン行はトグル OFF のとき隠す(display 指定が hidden 属性より強いため明示する) */
 .track-inline-actions[hidden],
 .track-stats[hidden] {
   display: none;
 }
 
-/* トグルの右に添える件数と出力済みかどうか(例: 「未出力 2本」「出力済み 12枚」)。
+/* トグルの右に添える出力済みかどうか(「未出力あり」「出力済み」。データが無いときは出さない)。
    右端に寄せ、未出力のときは目立つ色にする(出力し忘れたまま消すのを防ぐため) */
 .toggle-status {
   margin-left: auto;

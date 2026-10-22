@@ -101,6 +101,7 @@ const GUIDE_STEPS = [
       '#trackStats',
       '[data-guide="panelTrackActions"]',
       '[data-guide="panelPhotoCapture"]',
+      '#photoStats',
       '[data-guide="panelPhotoActions"]'
     ]
   },

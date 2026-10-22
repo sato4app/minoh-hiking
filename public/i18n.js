@@ -43,6 +43,10 @@ const DICT = {
   'common.close': { ja: '閉じる', en: 'Close' },
   'common.cancel': { ja: 'キャンセル', en: 'Cancel' },
   'common.clear': { ja: 'クリア', en: 'Clear' },
+  // 表示設定パネルの「移動経路を記録」「写真を撮影」の右に添える、出力済みかどうか。
+  // 経路・写真それぞれ全体で1つ(1本・1枚でも未出力があれば「未出力あり」)
+  'common.unexported': { ja: '未出力あり', en: 'Not exported' },
+  'common.exported': { ja: '出力済み', en: 'Exported' },
   'common.unknown': { ja: '不明', en: 'Unknown' },
 
   // ----- ホーム画面 -----
@@ -175,10 +179,6 @@ const DICT = {
     ja: 'この端末では記録中の画面消灯を止められません。画面が消えると記録が途切れることがあります',
     en: 'This device cannot keep the screen on while recording. Recording may pause when the screen turns off'
   },
-  // 表示設定パネルのトグルの右に添える、経路の本数と出力済みかどうか。
-  // 1本でも未出力の経路があれば、全部を未出力として数える
-  'track.statusUnexported': { ja: '未出力 {n}本', en: '{n} not exported' },
-  'track.statusExported': { ja: '出力済み {n}本', en: '{n} exported' },
   // 未出力の経路があるときの、記録開始・読み込みの選択モーダルとクリアの確認に添える注意
   'track.unexportedWarning': {
     ja: '出力していない移動経路があります。残したい場合は、先に「出力」で GPX ファイルに出力してください。',
@@ -206,10 +206,9 @@ const DICT = {
     en: 'Up to {max} photos can be kept. No more photos can be taken'
   },
   'photo.restored': { ja: '保存済みの写真を表示しました({n} 枚)', en: 'Showed the saved photos ({n})' },
-  // 表示設定パネルのトグルの右に添える、写真の枚数と出力済みかどうか。
-  // 1枚でも未出力の写真があれば、全部を未出力として数える
-  'photo.statusUnexported': { ja: '未出力 {n}枚', en: '{n} not exported' },
-  'photo.statusExported': { ja: '出力済み {n}枚', en: '{n} exported' },
+  // 「写真を撮影」ON のときの統計(枚数)。経路の統計と同じ形で1行出す
+  'photo.ariaStats': { ja: '写真の統計', en: 'Photo statistics' },
+  'photo.statCount': { ja: '枚数', en: 'Photos' },
   // 表示中の写真があるときに、その日の最初の撮影・読み込みの前に出す選択モーダル
   // (クリア / 追加 / 中止 の3択。見出しとボタン文言は用途で切り替える)
   'photo.existingTitleShoot': { ja: '写真の撮影', en: 'Take Photos' },
