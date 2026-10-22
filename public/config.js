@@ -159,7 +159,10 @@ export const MARKER_TYPES = [
   { key: 'trackStart', color: '#000080', shape: 'square', size: 16 },     // 移動記録開始点
   { key: 'trackCurrent', color: '#000080', shape: 'triangle', size: 20 }, // 移動記録現在地点
   { key: 'track', color: '#000080', shape: 'line', size: 5,               // 移動記録経路
-    locked: ['shape'], note: 2 }
+    locked: ['shape'], note: 2 },
+  // 写真撮影地点(「写真を撮影」で撮った写真の位置。押すと写真の表示を開く)。
+  // 大きさは通行止め・通行困難地点と同程度。色は他の目印と見分けやすい橙
+  { key: 'photo', color: '#F97316', shape: 'circle', size: 20 }
 ];
 
 // マーカー形状の選択肢(設定UIのドロップダウン)。

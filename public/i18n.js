@@ -208,7 +208,9 @@ const DICT = {
   'photo.restored': { ja: '保存済みの写真を表示しました({n} 枚)', en: 'Showed the saved photos ({n})' },
   // 「写真を撮影」ON のときの統計(枚数)。経路の統計と同じ形で1行出す
   'photo.ariaStats': { ja: '写真の統計', en: 'Photo statistics' },
-  'photo.statCount': { ja: '枚数', en: 'Photos' },
+  'photo.statCount': { ja: '写真枚数', en: 'Photos' },
+  // 枚数の値(経路の移動距離の「0.0 (km)」と同じく単位を括弧で添える。英語は単位なし)
+  'photo.statCountValue': { ja: '{n} (枚)', en: '{n}' },
   // 表示中の写真があるときに、その日の最初の撮影・読み込みの前に出す選択モーダル
   // (クリア / 追加 / 中止 の3択。見出しとボタン文言は用途で切り替える)
   'photo.existingTitleShoot': { ja: '写真の撮影', en: 'Take Photos' },
@@ -645,6 +647,7 @@ const DICT = {
   'markerType.trackStart': { ja: '移動記録開始点', en: 'Track Start Point' },
   'markerType.trackCurrent': { ja: '移動記録現在地点', en: 'Track Current Point' },
   'markerType.track': { ja: '移動記録経路', en: 'Track Route' },
+  'markerType.photo': { ja: '写真撮影地点', en: 'Photo Point' },
 
   // マーカー形状(config.js の MARKER_SHAPES の value と一致)。
   // line / noThoroughfare / warning は形状を変更できない種別の読み上げ用

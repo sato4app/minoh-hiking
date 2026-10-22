@@ -37,7 +37,7 @@ import {
 } from './geolocation.js';
 import { isCameraSupported, isCameraOpen, openCamera, closeCamera, setCameraStatus } from './camera.js';
 import {
-  setPhotoHandlers, getPhotos, getPhotoCount, getPhoto, fitMapToPhotos,
+  setPhotoHandlers, setPhotoStyle, getPhotos, getPhotoCount, getPhoto, fitMapToPhotos,
   addPhoto, renamePhoto, clearPhotos, restorePhotos, importPhotos,
   hasUnexportedPhotos, markPhotosExported
 } from './photos.js';
@@ -283,6 +283,8 @@ async function init() {
   setTrackStyle(markerSettings.track);
   setTrackStartStyle(markerSettings.trackStart);
   setTrackCurrentStyle(markerSettings.trackCurrent);
+  // 写真撮影地点の印も、写真の復元(印を作る)より前に設定しておく
+  setPhotoStyle(markerSettings.photo);
   // 前回の記録が停止操作を経ずに終わっていたら履歴に残す(起動ごとに1回)。
   // 経路の復元より先に出して、履歴が起きた順(中断 → 復元)に並ぶようにする
   logInterruptedTrackRecording();
@@ -1075,7 +1077,7 @@ function updatePhotoPanel() {
   setToggleStatus(el.photoStatus, count > 0, hasUnexportedPhotos());
   // 経路の統計と同じ形(ラベル+値の1組)で枚数を出す。写真が無いときも 0 を出す
   if (on && el.photoStats) {
-    el.photoStats.replaceChildren(buildTrackStatPair(t('photo.statCount'), String(count)));
+    el.photoStats.replaceChildren(buildTrackStatPair(t('photo.statCount'), t('photo.statCountValue', { n: count })));
   }
 }
 

@@ -4,7 +4,7 @@
 // - 地図には撮影地点にカメラの印を出し、押すと app.js の写真の表示(名前の変更)を開く。
 // 撮影は camera.js、KMZ の出力・読み込みは kmz.js が担う。
 import * as L from 'leaflet';
-import { getMap, fitMapToLatLngs } from './map.js';
+import { getMap, fitMapToLatLngs, buildMarkerIcon } from './map.js';
 import { savePhotoRecord, listPhotoRecords, clearPhotoRecords } from './db.js';
 import { PHOTO_MAX_COUNT, PHOTO_MAX_EDGE_PX, PHOTO_JPEG_QUALITY, PHOTOS_UNEXPORTED_KEY } from './config.js';
 import { requestPersistentStorage } from './tiles.js';
@@ -69,18 +69,22 @@ export function markPhotosExported() {
 }
 
 // ===== 地図上の印 =====
-// カメラの絵の白丸(マーカーの設定の対象外。見た目は固定)
-const PHOTO_MARKER_HTML = `<span class="photo-marker-body"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
-  <path fill="currentColor" d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9zm3 5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/>
-</svg></span>`;
+// 撮影地点の印。色・形・大きさは「マーカーの設定」の「写真撮影地点」に従う
+// (既定値は config.js の MARKER_TYPES。起動時と設定の変更時に setPhotoStyle で受け取る)
+let photoStyle = null;
 
 function buildPhotoIcon() {
-  return L.divIcon({
-    className: 'photo-marker',
-    html: PHOTO_MARKER_HTML,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14]
+  return buildMarkerIcon(photoStyle, {
+    fallbackColor: '#F97316',
+    fallbackSize: 20,
+    className: 'custom-marker photo-marker'
   });
+}
+
+// 撮影地点の印の見た目を変え、表示中の印にも反映する
+export function setPhotoStyle(style) {
+  photoStyle = style;
+  for (const photo of photos) photo.marker?.setIcon(buildPhotoIcon());
 }
 
 function addMarker(photo) {

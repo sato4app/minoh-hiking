@@ -891,24 +891,10 @@ body.view-state-map .leaflet-control-container {
 }
 
 /* ===== 写真 ===== */
-/* 地図上の撮影地点の印(カメラの絵の白丸。マーカーの設定の対象外で見た目は固定) */
-.photo-marker {
-  background: none;
-  border: none;
-}
-
-.photo-marker-body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  box-sizing: border-box;
-  border-radius: 50%;
-  background: #fff;
-  border: 2px solid #1f2937;
-  color: #1f2937;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+/* 地図上の撮影地点の印(色・形・大きさはマーカーの設定に従う)。
+   通行止めと同じく影を付けて地図から浮かせる(押して写真を開く印のため、見つけやすく) */
+.photo-marker svg {
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.55));
 }
 
 /* 記録開始・撮影・読み込みの選択モーダルの説明: 出力していないことの注意を改行して添えるため */
