@@ -4,10 +4,9 @@
 // - 現在地点表示ボタンの単発表示(showCurrentLocationSpot)。
 // - 移動経路の記録。経路は複数持てる(1回の記録、または読み込んだGPXの1セグメントが1本)。
 //   記録中は画面スリープを防ぎ、起動時画面へ移っても記録を続ける。表示中の経路は端末に保存する。
-// - 写真の撮影地点(撮影時の位置の取り直しと、記録中の撮影地点を名前付きの記録点として入れる)。
-//   写真そのものは photos.js が持つ。
+// - 写真の撮影地点(撮影時の位置の取り直し)。写真そのものは photos.js が持ち、経路とは結び付けない。
 import * as L from 'leaflet';
-import { getMap, buildMarkerIcon, ensureMapSize } from './map.js';
+import { getMap, buildMarkerIcon, ensureMapSize, fitMapToLatLngs } from './map.js';
 import { saveLatestTrack, loadLatestTrack, clearLatestTrack } from './db.js';
 import { PHOTO_POSITION_TIMEOUT_MS } from './config.js';
 import { t } from './i18n.js';
@@ -300,7 +299,8 @@ export function getTrackStats() {
 }
 
 // 記録済みの移動経路を、経路ごとの点列({lat, lng, timeMs, name})の配列で返す(GPX出力に使用)。
-// name は撮影地点として入れた点だけに付く(他は null)。
+// name は読み込んだ GPX の記録点に名前が付いていたときだけ入る(他は null。以前の版は撮影地点の
+// 記録点に写真の名前を付けていたため、そうした GPX を読み込み直しても名前を失わないよう保持する)。
 // 軌跡が消去(clearTrack)される前に呼ぶこと。
 export function getTrackSegments() {
   return tracks.map((track) => track.polyline.getLatLngs().map((ll, i) => ({
@@ -313,7 +313,7 @@ export function getTrackSegments() {
 
 // 外部から読み込んだ移動経路を、記録済みの経路として描画する。
 // segments は経路ごとの点列({lat, lng, timeMs, name})の配列で、1セグメントが1本の経路になる
-// (name は任意。撮影地点の名前として保持し、再出力で <name> に戻す)。
+// (name は任意。記録点の名前として保持し、再出力で <name> に戻す)。
 // append=false: 表示中の経路をすべてクリアして置き換える
 // append=true : 表示中の経路を残し、続きの経路として追加する
 // (いずれも記録中は呼ばない。呼び出し側で抑止すること)
@@ -342,22 +342,16 @@ export function loadTrackSegments(segments, { append = false } = {}) {
     updateTrackEndMarker(track);
     loaded += seg.length;
   }
-  onTrackPointAppended?.();
+  // 読み込み(記録ではない)ことを伝える。app.js は記録で増えたときだけ未出力にする
+  onTrackPointAppended?.({ recorded: false });
   saveTrackToStorage();
   return loaded;
 }
 
-// 表示中の移動経路(全経路)の全体が収まるよう地図を合わせる(読み込み直後に使う)。
-// extraLatLngs は一緒に収めたい地点(写真の撮影地点など)
-export function fitMapToTrack(extraLatLngs = []) {
-  const map = getMap();
-  if (!map) return;
+// 表示中の移動経路(全経路)の全体が収まるよう地図を合わせる(読み込み直後に使う)
+export function fitMapToTrack() {
   const bounds = tracks.reduce((acc, track) => acc.extend(track.polyline.getBounds()), L.latLngBounds([]));
-  for (const ll of extraLatLngs) bounds.extend(ll);
-  if (!bounds.isValid()) return;
-  // 1地点だけ(写真1枚だけを読み込んだ等)のときは、寄りすぎないよう今の縮尺で中央に置く
-  if (bounds.getNorthEast().equals(bounds.getSouthWest())) map.setView(bounds.getCenter(), map.getZoom());
-  else map.fitBounds(bounds, { padding: [30, 30] });
+  fitMapToLatLngs([], bounds);
 }
 
 // 移動記録の表示(全経路の線・開始点・終了点)を全削除する。
@@ -385,7 +379,6 @@ export function clearTrack() {
 // (プライベートウィンドウ等、IndexedDB を使えない環境でも動かすため)。
 //
 // 保存を呼ぶのは経路が変わる4か所: 記録点の追加・記録の停止・GPXの読み込み・クリア。
-// ほかに、撮影地点の記録点に写真の名前を付けた・変えたときにも保存する(写真の撮影・名前の変更のたび)。
 // 記録点は「20m 以上移動」または「60秒以上経過」でしか増えないため、
 // 書き込みの頻度は数分に1回程度で、まとめ書き(デバウンス)は要らない。
 
@@ -421,13 +414,14 @@ export async function restoreSavedTrack() {
   }
 }
 
-// 記録点追加時の通知先(app.js がパネル内の統計表の更新に使用)
+// 記録点追加時の通知先(app.js がパネル内の統計表の更新と、未出力の印に使用)。
+// 引数の recorded は、記録で増えた(true)か、読み込みで描いた(false)か
 let onTrackPointAppended = null;
 export function setOnTrackPointAppended(fn) { onTrackPointAppended = fn; }
 
-// 記録点を追加: 経路の線に頂点を足し、最初の点なら開始点マーカーを置く。
-// timeMs は記録時刻(省略時は今)、name は撮影地点として入れるときの写真の名前。
-function appendTrackPoint(track, latlng, { timeMs = Date.now(), name = null } = {}) {
+// 記録点を追加: 経路の線に頂点を足し、最初の点なら開始点マーカーを置く(記録時刻は今)。
+function appendTrackPoint(track, latlng) {
+  const timeMs = Date.now();
   if (!track) return;
   const wasEmpty = track.polyline.getLatLngs().length === 0;
   track.polyline.addLatLng(latlng);
@@ -445,18 +439,12 @@ function appendTrackPoint(track, latlng, { timeMs = Date.now(), name = null } = 
   lastTrackLatLng = [lat, lng];
   lastTrackTimeMs = timeMs;
   track.times.push(timeMs);
-  track.names.push(name);
-  onTrackPointAppended?.();
+  track.names.push(null);
+  onTrackPointAppended?.({ recorded: true });
   saveTrackToStorage();
 }
 
 // ===== 写真の撮影地点 =====
-// 撮影地点を記録点として経路に入れるときの「直前の記録点と同じ場所」の判定。
-// 直前の記録点からこの距離・時間以内なら新しい点は足さず、直前の点に写真の名前を付ける
-// (同じ場所の点が重なり、GPS のぶれで移動距離が増えるのを避ける)。
-const PHOTO_POINT_SAME_SPOT_M = 5;
-const PHOTO_POINT_SAME_SPOT_MS = 10 * 1000;
-
 // 撮影時に位置を取り直す。取れたら通常の位置更新と同じく反映(現在地・記録)したうえで
 // [lat, lng] を返す。取れなければ直近の位置が新しい(LAST_FIX_MAX_AGE_MS 以内)ときだけそれを返し、
 // それも無ければ null を返す(位置の分からない写真は保存しない)。
@@ -473,59 +461,6 @@ export function capturePhotoPosition() {
       { enableHighAccuracy: true, maximumAge: 0, timeout: PHOTO_POSITION_TIMEOUT_MS }
     );
   });
-}
-
-// 記録中の撮影のとき、撮影地点を記録中の経路に記録点として入れ、写真の名前を付ける。
-// 入れた(または名前を付けた)記録点の記録時刻を返す。記録中でなければ何もせず null を返す。
-// 記録時刻は撮影時刻とするが、位置を取り直す間に後の時刻の点が記録されていることがあるため、
-// 時刻の順が崩れないよう直前の記録点より前にはしない。
-// 入れた点は通常の記録点と同じに扱い、20m/60秒 の判定はこの点から数え直す。
-export function addPhotoPointToTrack(latlng, name, timeMs) {
-  if (!isRecordingTrack || !recordingTrack) return null;
-  const track = recordingTrack;
-  const latlngs = track.polyline.getLatLngs();
-  const last = latlngs.length - 1;
-  if (last >= 0 && !track.names[last]
-      && latlngs[last].distanceTo(latlng) < PHOTO_POINT_SAME_SPOT_M
-      && Math.abs(timeMs - (track.times[last] ?? 0)) <= PHOTO_POINT_SAME_SPOT_MS) {
-    track.names[last] = name;
-    saveTrackToStorage();
-    return track.times[last];
-  }
-  const pointTimeMs = Math.max(timeMs, track.times[last] ?? 0);
-  appendTrackPoint(track, latlng, { timeMs: pointTimeMs, name });
-  updateRecordingLive(L.latLng(latlng));
-  return pointTimeMs;
-}
-
-// 撮影地点の記録点(記録時刻で探す)の名前を変える。写真の名前の変更に合わせて呼ぶ。
-// name が null なら名前を外す(写真を保存できなかったとき)。
-export function renameTrackPoint(timeMs, name) {
-  if (!Number.isFinite(timeMs)) return;
-  for (const track of tracks) {
-    const i = track.times.lastIndexOf(timeMs);
-    if (i < 0) continue;
-    track.names[i] = name || null;
-    saveTrackToStorage();
-    return;
-  }
-}
-
-// 写真の撮影地点と同じ位置の記録点を探し、その記録時刻を返す(無ければ null)。
-// KMZ から写真を読み込んだとき、GPX で読み込んだ経路上の撮影地点と結び付けるのに使う
-// (GPX と KMZ はどちらも緯度経度を小数点以下6桁で書くため、その桁でそろえて比べる)。
-// 同じ位置の点が複数あるときは、名前が一致する点を優先する。
-export function findTrackPointTime(lat, lng, name) {
-  const key = (a, b) => `${a.toFixed(6)},${b.toFixed(6)}`;
-  const target = key(lat, lng);
-  let found = null;
-  for (const track of tracks) {
-    track.polyline.getLatLngs().forEach((ll, i) => {
-      if (key(ll.lat, ll.lng) !== target || !Number.isFinite(track.times[i])) return;
-      if (found === null || track.names[i] === name) found = track.times[i];
-    });
-  }
-  return found;
 }
 
 // ===== 画面スリープの防止(Screen Wake Lock API) =====

@@ -96,9 +96,12 @@ const GUIDE_STEPS = [
     view: 'map',
     panel: true,
     targets: [
+      // 統計・ボタン行はトグル OFF のとき隠れているが、見えないものは枠の計算から外れる
       '[data-guide="panelTrackRecording"]',
       '#trackStats',
-      '[data-guide="panelTrackActions"]'
+      '[data-guide="panelTrackActions"]',
+      '[data-guide="panelPhotoCapture"]',
+      '[data-guide="panelPhotoActions"]'
     ]
   },
   {

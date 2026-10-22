@@ -477,8 +477,8 @@ export const FAQ_SECTIONS = [
             en: 'To keep it, save it as a GPX file with "Export". A saved file can be put back on the map with "Import".'
           },
           {
-            ja: 'カメラで撮った写真も、アプリ内にだけ保存されます(端末の写真には残りません)。経路をクリアすると写真も消えます。残したいときは「出力」のあとに写真も KMZ ファイルで出力してください。',
-            en: 'Photos taken with the camera are also kept only inside the app (they are not saved to your device\'s photos). Clearing the track deletes them too. To keep them, also export the photos as a KMZ file after "Export".'
+            ja: '「写真を撮影」のカメラで撮った写真も、アプリ内にだけ保存されます(端末の写真には残りません)。写真は経路とは別に扱い、「写真を撮影」の「クリア」で消えます。残したいときは、「写真を撮影」の「出力」で KMZ ファイルに出力してください。',
+            en: 'Photos taken with the "Take Photos" camera are also kept only inside the app (they are not saved to your device\'s photos). Photos are handled separately from the track and are deleted with "Clear" under "Take Photos". To keep them, export them as a KMZ file with "Export" under "Take Photos".'
           }
         ]
       },

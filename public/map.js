@@ -78,6 +78,18 @@ export function getMap() {
   return mapInstance;
 }
 
+// 指定した地点([lat, lng] または LatLng)と範囲(LatLngBounds)の全体が収まるよう地図を合わせる
+// (移動経路・写真の読み込み直後に使う)。地点も範囲も無ければ何もしない。
+// 1地点だけ(写真1枚だけを読み込んだ等)のときは、寄りすぎないよう今の縮尺で中央に置く
+export function fitMapToLatLngs(latlngs = [], bounds = L.latLngBounds([])) {
+  if (!mapInstance) return;
+  const all = L.latLngBounds([]).extend(bounds);
+  for (const ll of latlngs) all.extend(ll);
+  if (!all.isValid()) return;
+  if (all.getNorthEast().equals(all.getSouthWest())) mapInstance.setView(all.getCenter(), mapInstance.getZoom());
+  else mapInstance.fitBounds(all, { padding: [30, 30] });
+}
+
 // ===== 現在のズームレベル表示(ズームボタンの下) =====
 let zoomDisplayEl = null;
 

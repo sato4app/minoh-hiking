@@ -683,14 +683,45 @@ body.view-state-map .leaflet-control-container {
   font-variant-numeric: tabular-nums;
 }
 
-/* 移動経路の「読み込み」「出力」「クリア」ボタン: 統計の次の行に右寄せで横並び。
-   上マージンで統計との間に余白を空ける */
+/* 移動経路・写真の「読み込み」「出力」「クリア」ボタン: 経路は統計の次の行、写真はトグルの
+   次の行に右寄せで横並び。上マージンで統計との間に余白を空ける */
 .track-inline-actions {
   display: flex;
   gap: 0.4rem;
   align-items: center;
   justify-content: flex-end;
   margin: 0.6rem 0 0.1rem;
+}
+
+/* 写真のボタン行はトグルの直後に来るため、上の余白を詰める */
+#photoActions {
+  margin-top: 0;
+}
+
+/* 統計・ボタン行はトグル OFF のとき隠す(display 指定が hidden 属性より強いため明示する) */
+.track-inline-actions[hidden],
+.track-stats[hidden] {
+  display: none;
+}
+
+/* トグルの右に添える件数と出力済みかどうか(例: 「未出力 2本」「出力済み 12枚」)。
+   右端に寄せ、未出力のときは目立つ色にする(出力し忘れたまま消すのを防ぐため) */
+.toggle-status {
+  margin-left: auto;
+  padding-left: 0.6rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.toggle-status.is-unexported {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.toggle-status[hidden] {
+  display: none;
 }
 
 /* 移動経路の統計(地点数・移動距離): ボタン行の上に中央寄せで配置する。
@@ -856,7 +887,7 @@ body.view-state-map .leaflet-control-container {
 
 /* カメラボタン(写真を撮る): 記録開始/停止ボタンの左。btn-float の display 指定が
    hidden 属性より強いため、明示的に非表示にする */
-#btnTrackCamera[hidden] {
+#btnPhotoCamera[hidden] {
   display: none;
 }
 
@@ -885,15 +916,10 @@ body.view-state-map .leaflet-control-container {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
-/* 記録開始・読み込みの選択モーダルの説明: 出力していない写真の注意を改行して添えるため */
-#trackExistingMessage {
+/* 記録開始・撮影・読み込みの選択モーダルの説明: 出力していないことの注意を改行して添えるため */
+#trackExistingMessage,
+#photoExistingMessage {
   white-space: pre-line;
-}
-
-/* 統計表の写真の枚数(経路の行の下に1行。列をまたいで中央に置く) */
-.track-stat-photos {
-  grid-column: 1 / -1;
-  justify-self: center;
 }
 
 /* 写真の表示: 画像の左右に前後の写真へ移る矢印ボタン(左向き・右向きの山形)を重ねる */

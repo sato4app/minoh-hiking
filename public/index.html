@@ -89,9 +89,9 @@
     <div class="map-top-actions" id="mapTopActions">
       <!-- 時刻表示: 「時刻を表示」トグル ON のときのみ表示 -->
       <div class="map-clock" id="mapClock" hidden role="status" aria-live="off"></div>
-      <!-- カメラボタン(写真を撮る)。「移動経路を記録」ON のとき、記録中かどうかにかかわらず表示する。
+      <!-- カメラボタン(写真を撮る)。「写真を撮影」ON のとき表示する(移動経路の記録とは無関係)。
            アプリ内カメラ(getUserMedia)が使えない端末では出さない -->
-      <button type="button" class="btn-float btn-track-action btn-track-camera" id="btnTrackCamera" aria-label="写真を撮る" title="写真を撮る" data-i18n-aria="photo.take" data-i18n-title="photo.take" hidden>
+      <button type="button" class="btn-float btn-track-action btn-track-camera" id="btnPhotoCamera" aria-label="写真を撮る" title="写真を撮る" data-i18n-aria="photo.take" data-i18n-title="photo.take" hidden>
         <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false">
           <path fill="currentColor" d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9zm3 5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/>
         </svg>
@@ -134,16 +134,21 @@
         <span class="toggle-slider" aria-hidden="true"></span>
         <span class="toggle-text" data-i18n="map.toggleCenterCurrent">現在地点は中央に表示</span>
       </label>
+      <!-- 移動経路と写真は別々の機能。どちらも、トグル ON のときだけ件数・統計と
+           読み込み・出力・クリアを出す(OFF のときはトグルの1行だけにして縦の領域を節約する)。
+           データがあるときは、トグルの右に「未出力 n本」「出力済み n本」を添える(app.js が設定)。
+           出力済みかどうかは経路・写真それぞれ全体で1つ(1本・1枚でも未出力があれば全部を未出力と数える) -->
       <label class="toggle toggle-switch" data-guide="panelTrackRecording">
         <input type="checkbox" id="toggleTrackRecording" />
         <span class="toggle-slider" aria-hidden="true"></span>
         <span class="toggle-text" data-i18n="map.toggleTrackRecording">移動経路を記録</span>
+        <span class="toggle-status" id="trackStatus" hidden></span>
       </label>
-      <!-- 移動経路: 統計(地点数・移動距離)と、その次の行に読み込み・出力・クリア -->
+      <!-- 移動経路: 統計(地点数・移動距離)と、その次の行に読み込み・出力・クリア(GPX だけを扱う) -->
       <!-- 統計: 経路1本につき1行。ラベルと値を横に並べて表示し、経路が複数あるときは
            行の左に「経路 n」を添える。中身は app.js が経路の本数に応じて組み立てる -->
-      <div class="track-stats" id="trackStats" role="group" aria-label="移動経路の統計" data-i18n-aria="track.ariaStats"></div>
-      <div class="track-inline-actions" data-guide="panelTrackActions">
+      <div class="track-stats" id="trackStats" role="group" aria-label="移動経路の統計" data-i18n-aria="track.ariaStats" hidden></div>
+      <div class="track-inline-actions" id="trackActions" data-guide="panelTrackActions" hidden>
         <button type="button" class="btn-track-mini" id="btnTrackImport" data-i18n="track.import">読み込み</button>
         <button type="button" class="btn-track-mini" id="btnTrackExport" data-i18n="track.export">出力</button>
         <button type="button" class="btn-track-mini" id="btnTrackClear" data-i18n="common.clear">クリア</button>
@@ -152,7 +157,19 @@
            accept は付けない: スマホの OS は .gpx の種類(MIME/UTI)を知らないため、
            絞り込むと GPX ファイルがグレイアウトして選べなくなる。内容は読み込み時に解析して判定する -->
       <input type="file" id="trackImportInput" hidden />
-      <!-- GPX の読み込みに続けて写真(KMZ)を読み込むときのファイル選択。accept を付けない理由は上と同じ -->
+      <!-- 写真を撮影: ON でカメラボタンを出し、読み込み・出力・クリア(KMZ だけを扱う)を出す -->
+      <label class="toggle toggle-switch" data-guide="panelPhotoCapture">
+        <input type="checkbox" id="togglePhotoCapture" />
+        <span class="toggle-slider" aria-hidden="true"></span>
+        <span class="toggle-text" data-i18n="map.togglePhotoCapture">写真を撮影</span>
+        <span class="toggle-status" id="photoStatus" hidden></span>
+      </label>
+      <div class="track-inline-actions" id="photoActions" data-guide="panelPhotoActions" hidden>
+        <button type="button" class="btn-track-mini" id="btnPhotoImport" data-i18n="track.import">読み込み</button>
+        <button type="button" class="btn-track-mini" id="btnPhotoExport" data-i18n="track.export">出力</button>
+        <button type="button" class="btn-track-mini" id="btnPhotoClear" data-i18n="common.clear">クリア</button>
+      </div>
+      <!-- 写真の「読み込み」で開くファイル選択(KMZ)。accept を付けない理由は GPX と同じ -->
       <input type="file" id="photoImportInput" hidden />
       <hr class="panel-divider" />
       <!-- マーカーの設定(マーカーの設定モーダルを開く)。マーカーはマップ画面でしか見えないため、
@@ -220,6 +237,8 @@
           <label class="track-export-label" for="trackExportName" data-i18n="track.exportFilename">ファイル名</label>
           <input type="text" id="trackExportName" autocomplete="off" />
         </div>
+        <!-- 出力していない写真があるときだけ出す、写真の出し忘れの案内(文言は app.js が枚数を入れて設定) -->
+        <p class="modal-note" id="trackExportPhotoNote" hidden></p>
         <div class="button-group button-group-row">
           <button type="button" id="btnTrackExportSave" class="btn btn-primary" data-i18n="track.export">出力</button>
           <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.cancel">キャンセル</button>
@@ -228,9 +247,31 @@
     </div>
   </div>
 
-  <!-- 写真(KMZ)も出力するかの確認。GPX を出力した後、写真があるときだけ開く。
-       2つ目のファイルのダウンロードを「出力する」のタップで始めるため(1回のタップで2つ続けて
-       ダウンロードすると、端末によっては2つ目が止められる)。写真の読み出しが済むまで「出力する」は押せない -->
+  <!-- 表示中の写真があるときに「クリア/追加/中止」を選ぶモーダル。
+       その日の最初の撮影(カメラボタン)と、写真の読み込みで共用し、見出し・説明・ボタン文言は
+       app.js が用途に応じて設定する。閉じる(×・背景・キャンセル)は操作の中止で、写真には手を付けない -->
+  <div class="modal" id="photoExistingModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoExistingTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-panel" role="document">
+      <header class="modal-header">
+        <h2 id="photoExistingTitle"></h2>
+        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
+      </header>
+      <div class="modal-body">
+        <p class="modal-subtitle" id="photoExistingMessage"></p>
+        <div class="button-group">
+          <button type="button" id="btnPhotoExistingClear" class="btn btn-primary"></button>
+          <button type="button" id="btnPhotoExistingAppend" class="btn btn-primary"></button>
+          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.cancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 写真の出力(KMZ)モーダル: ファイル名は yyyymmdd-nn を既定とし(連番は GPX とは別に数える)、
+       全体を編集できる。拡張子(.kmz)は出力時に付ける。
+       KMZ を組み立てるには写真の画像の読み出し(非同期)が要るため、開いた時点で読み出しを始め、
+       済むまで「出力」は押せない(待ってからダウンロードすると、端末によっては止められるため) -->
   <div class="modal" id="photoExportModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoExportTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
@@ -239,37 +280,21 @@
         <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
       </header>
       <div class="modal-body">
-        <p class="modal-subtitle" id="photoExportMessage"></p>
-        <p class="modal-note" data-i18n="photo.exportNote">写真はこのアプリの中にだけ保存されています。移動経路をクリアすると写真も消えます。</p>
-        <div class="button-group button-group-row">
-          <button type="button" id="btnPhotoExportOk" class="btn btn-primary" data-i18n="photo.exportOk">出力する</button>
-          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="photo.exportSkip">出力しない</button>
+        <div class="track-export-row">
+          <label class="track-export-label" for="photoExportName" data-i18n="track.exportFilename">ファイル名</label>
+          <input type="text" id="photoExportName" autocomplete="off" />
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 写真(KMZ)も読み込むかの確認。GPX を読み込んだ後に開く。「読み込む」のタップで
-       2つ目のファイル選択を開く(ファイル選択はタップの延長でしか開けないため) -->
-  <div class="modal" id="photoImportModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoImportTitle">
-    <div class="modal-backdrop" data-close-modal></div>
-    <div class="modal-panel" role="document">
-      <header class="modal-header">
-        <h2 id="photoImportTitle" data-i18n="photo.importTitle">写真の読み込み(KMZ)</h2>
-        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
-      </header>
-      <div class="modal-body">
-        <p class="modal-subtitle" id="photoImportMessage"></p>
+        <p class="modal-note" data-i18n="photo.exportNote">写真はこのアプリの中にだけ保存されています。「写真を撮影」の「クリア」で消えます。</p>
         <div class="button-group button-group-row">
-          <button type="button" id="btnPhotoImportOk" class="btn btn-primary" data-i18n="photo.importOk">読み込む</button>
-          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="photo.importSkip">読み込まない</button>
+          <button type="button" id="btnPhotoExportSave" class="btn btn-primary" data-i18n="track.export">出力</button>
+          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.cancel">キャンセル</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- 写真の表示(地図のカメラの印・カメラ画面のサムネイルから開く)。名前はここで変えられ、
-       閉じたとき・入力を確定したとき・矢印ボタンで移るときに保存する(撮影地点の記録点の名前も合わせて変わる)。
+       閉じたとき・入力を確定したとき・矢印ボタンで移るときに保存する(名前を変えた写真は未出力に戻る)。
        見出しは「写真 n / 全数」(app.js が設定)。左右の矢印ボタンで撮影・読み込みの順に前後の写真へ移る -->
   <div class="modal" id="photoViewModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoViewTitle">
     <div class="modal-backdrop" data-close-modal></div>

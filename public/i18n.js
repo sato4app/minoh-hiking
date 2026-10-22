@@ -57,7 +57,7 @@ const DICT = {
   // ----- マップ画面 -----
   'map.ariaMap': { ja: '箕面エリア地理院地図', en: 'GSI map of the Minoh area' },
   'map.ariaLayers': { ja: '表示設定', en: 'Display settings' },
-  // 表示設定パネル(≡)のトグル。上から、画面に重ねる表示2つ・現在地2つ・移動経路1つの順
+  // 表示設定パネル(≡)のトグル。上から、画面に重ねる表示2つ・現在地2つ・移動経路・写真の順
   'map.toggleClock': { ja: '時刻を表示', en: 'Show Clock' },
   'map.toggleZoomLevel': { ja: 'ズームレベルを表示', en: 'Show Zoom Level' },
   'map.toggleCurrentMarker': { ja: '現在地点をマーカー表示', en: 'Show Current Location Marker' },
@@ -65,6 +65,7 @@ const DICT = {
   'map.showCurrentSpot': { ja: '現在地点表示', en: 'Show Current Location' },
   'map.toggleCenterCurrent': { ja: '現在地点は中央に表示', en: 'Keep Current Location Centered' },
   'map.toggleTrackRecording': { ja: '移動経路を記録', en: 'Record Track' },
+  'map.togglePhotoCapture': { ja: '写真を撮影', en: 'Take Photos' },
   'map.backToHome': { ja: '起動時の画面に戻る', en: 'Back to Start Screen' },
 
   // ----- 移動記録 -----
@@ -103,6 +104,11 @@ const DICT = {
   'track.importedMulti': {
     ja: '{name} を読み込みました({routes}経路 / {count}地点)',
     en: 'Imported {name} ({routes} routes / {count} points)'
+  },
+  // 経路の「読み込み」で KMZ を選んだとき(写真は写真の「読み込み」から)
+  'track.importIsKmz': {
+    ja: '写真(KMZ)は「写真を撮影」の「読み込み」から読み込んでください',
+    en: 'Import photos (KMZ) with "Import" under "Take Photos"'
   },
   'track.importFailed': {
     ja: '読み込みに失敗しました: {message}',
@@ -169,20 +175,22 @@ const DICT = {
     ja: 'この端末では記録中の画面消灯を止められません。画面が消えると記録が途切れることがあります',
     en: 'This device cannot keep the screen on while recording. Recording may pause when the screen turns off'
   },
-  // 写真があるときの、記録開始・読み込みの選択モーダルの説明とクリアの確認(写真も一緒に消えるため)
-  'track.existingMessagePhotos': {
-    ja: '表示中の移動経路が {routes} 本、写真が {photos} 枚あります。表示中の経路と写真をクリアするか、残したまま新しい経路として追加するかを選んでください。',
-    en: 'Routes on the map: {routes}. Photos: {photos}. Choose whether to clear the routes and photos, or keep them and add a new route.'
+  // 表示設定パネルのトグルの右に添える、経路の本数と出力済みかどうか。
+  // 1本でも未出力の経路があれば、全部を未出力として数える
+  'track.statusUnexported': { ja: '未出力 {n}本', en: '{n} not exported' },
+  'track.statusExported': { ja: '出力済み {n}本', en: '{n} exported' },
+  // 未出力の経路があるときの、記録開始・読み込みの選択モーダルとクリアの確認に添える注意
+  'track.unexportedWarning': {
+    ja: '出力していない移動経路があります。残したい場合は、先に「出力」で GPX ファイルに出力してください。',
+    en: 'Some tracks have not been exported. To keep them, first export them as a GPX file with "Export".'
   },
-  'track.clearConfirmPhotos': {
-    ja: '表示中の移動経路と写真({photos} 枚)をすべてクリアします。よろしいですか?',
-    en: 'Clear all tracks and photos ({photos}) currently shown on the map?'
+  // GPX の出力モーダルに出す、写真の出し忘れの案内(未出力の写真があるときだけ)
+  'track.exportPhotoNote': {
+    ja: '出力していない写真が {n} 枚あります。写真は「写真を撮影」の「出力」で KMZ ファイルに出力してください。',
+    en: '{n} photos have not been exported. Export them as a KMZ file with "Export" under "Take Photos".'
   },
-  // 統計表の写真の枚数(経路の行の下に1行)
-  'track.statPhotos': { ja: '写真', en: 'Photos' },
-  'track.statPhotoCount': { ja: '{n} 枚', en: '{n}' },
 
-  // ----- 写真(移動経路の記録中の撮影。camera.js / photos.js / kmz.js) -----
+  // ----- 写真(「写真を撮影」。移動経路とは別の機能。camera.js / photos.js / kmz.js) -----
   'photo.take': { ja: '写真を撮る', en: 'Take a Photo' },
   // 写真の名前の既定値(撮影・読み込みの順の通し番号)
   'photo.defaultName': { ja: '写真{n}', en: 'Photo {n}' },
@@ -198,6 +206,28 @@ const DICT = {
     en: 'Up to {max} photos can be kept. No more photos can be taken'
   },
   'photo.restored': { ja: '保存済みの写真を表示しました({n} 枚)', en: 'Showed the saved photos ({n})' },
+  // 表示設定パネルのトグルの右に添える、写真の枚数と出力済みかどうか。
+  // 1枚でも未出力の写真があれば、全部を未出力として数える
+  'photo.statusUnexported': { ja: '未出力 {n}枚', en: '{n} not exported' },
+  'photo.statusExported': { ja: '出力済み {n}枚', en: '{n} exported' },
+  // 表示中の写真があるときに、その日の最初の撮影・読み込みの前に出す選択モーダル
+  // (クリア / 追加 / 中止 の3択。見出しとボタン文言は用途で切り替える)
+  'photo.existingTitleShoot': { ja: '写真の撮影', en: 'Take Photos' },
+  'photo.existingTitleImport': { ja: '写真の読み込み(KMZ)', en: 'Import Photos (KMZ)' },
+  'photo.existingMessage': {
+    ja: '表示中の写真が {n} 枚あります。表示中の写真をクリアするか、残したまま追加するかを選んでください。',
+    en: 'Photos currently on the map: {n}. Choose whether to clear them, or keep them and add more.'
+  },
+  'photo.existingClearShoot': { ja: 'クリアして撮影', en: 'Clear and Take Photos' },
+  'photo.existingAppendShoot': { ja: '追加して撮影', en: 'Keep and Take Photos' },
+  'photo.existingClearImport': { ja: 'クリアして読み込み', en: 'Clear and Import' },
+  'photo.existingAppendImport': { ja: '追加して読み込み', en: 'Add and Import' },
+  'photo.nothingToClear': { ja: 'クリアする写真がありません', en: 'No photos to clear' },
+  'photo.clearConfirm': {
+    ja: '表示中の写真({n} 枚)をすべてクリアします。よろしいですか?',
+    en: 'Clear all photos ({n}) currently shown on the map?'
+  },
+  'photo.cleared': { ja: '写真をクリアしました', en: 'Photos cleared' },
   // 写真の表示(地図のカメラの印・カメラ画面のサムネイルから)
   'photo.viewTitle': { ja: '写真', en: 'Photo' },
   // 写真の表示の見出し(何枚目/全何枚。撮影・読み込みの順)と、前後の写真へ移るボタン(< >)
@@ -207,18 +237,13 @@ const DICT = {
   'photo.nameLabel': { ja: '名前', en: 'Name' },
   'photo.takenAt': { ja: '撮影日時: {time}', en: 'Taken: {time}' },
   'photo.takenAtUnknown': { ja: '撮影日時: 不明', en: 'Taken: unknown' },
-  // 出力(GPX の後に確認。経路が無く写真だけのときは KMZ だけを出力する)
+  // 出力(写真の「出力」から。KMZ だけを出力する)
   'photo.exportTitle': { ja: '写真の出力(KMZ)', en: 'Export Photos (KMZ)' },
-  'photo.exportConfirm': {
-    ja: '写真({n} 枚)も KMZ ファイル({name})で出力しますか?',
-    en: 'Also export the photos ({n}) as a KMZ file ({name})?'
-  },
+  'photo.nothingToExport': { ja: '出力する写真がありません', en: 'No photos to export' },
   'photo.exportNote': {
-    ja: '写真はこのアプリの中にだけ保存されています。移動経路をクリアすると写真も消えます。',
-    en: 'Photos are kept only inside this app. Clearing the track deletes them too.'
+    ja: '写真はこのアプリの中にだけ保存されています。「写真を撮影」の「クリア」で消えます。',
+    en: 'Photos are kept only inside this app. "Clear" under "Take Photos" deletes them.'
   },
-  'photo.exportOk': { ja: '出力する', en: 'Export' },
-  'photo.exportSkip': { ja: '出力しない', en: 'Skip' },
   'photo.exportPreparing': {
     ja: '写真を準備しています。少し待ってから、もう一度押してください',
     en: 'Preparing the photos. Wait a moment and press again'
@@ -226,22 +251,16 @@ const DICT = {
   'photo.exported': { ja: '写真を {name} に出力しました', en: 'Photos exported to {name}' },
   'photo.exportFailed': { ja: '写真の出力に失敗しました: {message}', en: 'Photo export failed: {message}' },
   'photo.unexportedWarning': {
-    ja: '出力していない写真があります。残したい場合は、先に「出力」で写真(KMZ)も出力してください。',
-    en: 'Some photos have not been exported. To keep them, first export the photos (KMZ) with "Export".'
+    ja: '出力していない写真があります。残したい場合は、先に「出力」で KMZ ファイルに出力してください。',
+    en: 'Some photos have not been exported. To keep them, first export them as a KMZ file with "Export".'
   },
-  // 読み込み(GPX の後に確認。最初に KMZ を選んだときは写真だけを読み込む)
-  'photo.importTitle': { ja: '写真の読み込み(KMZ)', en: 'Import Photos (KMZ)' },
-  'photo.importConfirm': {
-    ja: '写真(KMZ)も読み込みますか? {name} と同じ名前の KMZ ファイルを選んでください。',
-    en: 'Also import photos (KMZ)? Choose the KMZ file with the same name as {name}.'
-  },
-  'photo.importOk': { ja: '読み込む', en: 'Import' },
-  'photo.importSkip': { ja: '読み込まない', en: 'Skip' },
-  'photo.importNameMismatch': {
-    ja: '選んだファイル({kmz})の名前が GPX({gpx})と異なります。読み込みますか?',
-    en: 'The file you chose ({kmz}) has a different name from the GPX file ({gpx}). Import it anyway?'
-  },
+  // 読み込み(写真の「読み込み」から。KMZ だけを読み込む)
   'photo.importNotKmz': { ja: 'KMZファイルではありません', en: 'The file is not a KMZ file' },
+  // 写真の「読み込み」で KMZ 以外(GPX など)を選んだとき(経路は経路の「読み込み」から)
+  'photo.importIsNotKmz': {
+    ja: 'KMZファイルではありません。移動経路(GPX)は「移動経路を記録」の「読み込み」から読み込んでください',
+    en: 'This is not a KMZ file. Import tracks (GPX) with "Import" under "Record Track"'
+  },
   'photo.importNoKml': { ja: 'KMZファイルの中に KML がありません', en: 'No KML found in the KMZ file' },
   'photo.importInvalidKml': {
     ja: 'KMZファイルの KML を解析できません',
@@ -533,12 +552,12 @@ const DICT = {
         'Turn off "Keep Current Location Centered" to pan around freely.'
   },
 
-  'guide.mapTrackTitle': { ja: '移動経路の記録', en: 'Recording Your Track' },
+  'guide.mapTrackTitle': { ja: '移動経路の記録と写真', en: 'Recording Your Track and Photos' },
   'guide.mapTrackBody': {
-    ja: '「移動経路を記録」をオンにすると≡の左に▶とカメラが出ます。▶で記録を始め、■の長押しで止めます。起動時画面でも続きます。\n' +
-        '「読み込み」「出力」は経路(GPX)・写真(KMZ)用、「クリア」は両方を消します。',
-    en: 'Turn on "Record Track" and ▶ and a camera appear left of ≡. Press ▶ to record; press and hold ■ to stop. Recording continues on the start screen.\n' +
-        '"Import" and "Export" handle tracks (GPX) and photos (KMZ); "Clear" removes both.'
+    ja: '「移動経路を記録」をオンにすると≡の左に▶が出ます。▶で記録を始め、■の長押しで止めます。起動時画面でも続きます。\n' +
+        '「写真を撮影」をオンにするとカメラが出ます。読み込み・出力・クリアは経路(GPX)と写真(KMZ)で別々です。',
+    en: 'Turn on "Record Track" and ▶ appears left of ≡. Press ▶ to record; press and hold ■ to stop. Recording continues on the start screen.\n' +
+        'Turn on "Take Photos" for the camera. Tracks (GPX) and photos (KMZ) each have their own Import, Export and Clear.'
   },
 
   'guide.mapFinishTitle': { ja: 'マーカーの設定と、画面の戻り方', en: 'Marker Settings and Going Back' },

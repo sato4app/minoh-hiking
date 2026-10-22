@@ -1,10 +1,10 @@
-// 写真モジュール(移動経路の記録中に撮った写真の保持・地図への表示・端末への保存)
+// 写真モジュール(「写真を撮影」で撮った写真の保持・地図への表示・端末への保存)
 // - 写真はアプリの中(IndexedDB の photos ストア)にだけ保存する。端末の写真アプリには残らない。
-// - 写真は移動経路に付くものとして扱い、経路のクリアで一緒に消す(app.js がクリアのたびに呼ぶ)。
+// - 写真は移動経路とは別に扱う。経路の記録・読み込み・クリアでは触らず、写真の「クリア」でだけ消す。
 // - 地図には撮影地点にカメラの印を出し、押すと app.js の写真の表示(名前の変更)を開く。
 // 撮影は camera.js、KMZ の出力・読み込みは kmz.js が担う。
 import * as L from 'leaflet';
-import { getMap } from './map.js';
+import { getMap, fitMapToLatLngs } from './map.js';
 import { savePhotoRecord, listPhotoRecords, clearPhotoRecords } from './db.js';
 import { PHOTO_MAX_COUNT, PHOTO_MAX_EDGE_PX, PHOTO_JPEG_QUALITY, PHOTOS_UNEXPORTED_KEY } from './config.js';
 import { requestPersistentStorage } from './tiles.js';
@@ -14,14 +14,14 @@ import { requestPersistentStorage } from './tiles.js';
 //   name:             名前(既定は「写真n」。写真の表示で変更できる)
 //   timeMs:           撮影日時(ms。他のアプリの KMZ から読んだもので不明なら null)
 //   lat, lng:         撮影位置
-//   trackPointTimeMs: 撮影地点として経路に入れた記録点の記録時刻(経路に入れていなければ null)。
-//                     名前を変えたとき、その記録点の名前(GPX の <name>)も合わせて変えるのに使う
 //   blob:             画像(JPEG)
 //   marker:           地図上のカメラの印(保存はしない)
 // }
+// 以前の版で保存した写真には、撮影地点として経路に入れた記録点の時刻(trackPointTimeMs)が
+// 付いていることがあるが、今は使わない(経路と写真は結び付けない)。
 let photos = [];
 let onPhotoClick = null;    // 印が押されたとき(app.js が写真の表示を開く)
-let onPhotosChanged = null; // 枚数が変わったとき(app.js が統計表を更新する)
+let onPhotosChanged = null; // 枚数・出力済みかどうかが変わったとき(app.js がパネルの表示を更新する)
 
 export function setPhotoHandlers({ onClick, onChanged } = {}) {
   onPhotoClick = onClick || null;
@@ -40,14 +40,17 @@ export function getPhoto(id) {
   return photos.find((p) => p.id === id) || null;
 }
 
-// 地図に収める範囲の計算用(読み込み直後に経路と一緒に全体を表示する)
-export function getPhotoLatLngs() {
-  return photos.map((p) => [p.lat, p.lng]);
+// 写真の全体が収まるよう地図を合わせる(読み込み直後に使う)
+export function fitMapToPhotos() {
+  fitMapToLatLngs(photos.map((p) => [p.lat, p.lng]));
 }
 
 // ===== 出力していない写真の有無 =====
-// 撮影したら立て、KMZ を出力したら降ろす。読み込んだ写真はファイルが手元にあるため立てない。
-// クリアの確認で「出力していない写真が消える」ことを強めに知らせるのに使う。
+// 写真ごとには持たず、1つの印で全体を表す(1枚でも未出力があれば全部を未出力として扱う。
+// 出力は常に全部の写真をまとめて書き出すため、それで足りる)。
+// 撮影・名前の変更で立て、KMZ を出力したら降ろす。読み込んだ写真はファイルが手元にあるため立てない
+// (未出力の写真に追加で読み込んだときは立ったまま)。
+// パネルの「未出力/出力済み」の表示と、クリアの確認で写真が消えることを強めに知らせるのに使う。
 export function hasUnexportedPhotos() {
   if (photos.length === 0) return false;
   try { return localStorage.getItem(PHOTOS_UNEXPORTED_KEY) === '1'; } catch { return false; }
@@ -62,6 +65,7 @@ function setUnexported(on) {
 
 export function markPhotosExported() {
   setUnexported(false);
+  onPhotosChanged?.();
 }
 
 // ===== 地図上の印 =====
@@ -98,20 +102,19 @@ function newPhotoId(timeMs) {
 }
 
 function toRecord(photo) {
-  const { id, name, timeMs, lat, lng, trackPointTimeMs, blob } = photo;
-  return { id, name, timeMs, lat, lng, trackPointTimeMs, blob };
+  const { id, name, timeMs, lat, lng, blob } = photo;
+  return { id, name, timeMs, lat, lng, blob };
 }
 
 // 写真を1枚加える。先に端末へ保存し、保存できたときだけ一覧と地図に加える
 // (容量不足などで保存できないときは例外を投げる。呼び出し側で知らせる)。
-async function addPhotoInternal({ name, timeMs, lat, lng, trackPointTimeMs = null, blob }) {
+async function addPhotoInternal({ name, timeMs, lat, lng, blob }) {
   const photo = {
     id: newPhotoId(timeMs),
     name,
     timeMs: Number.isFinite(timeMs) ? timeMs : null,
     lat,
     lng,
-    trackPointTimeMs: Number.isFinite(trackPointTimeMs) ? trackPointTimeMs : null,
     blob,
     marker: null
   };
@@ -131,16 +134,19 @@ export async function addPhoto(fields) {
   return photo;
 }
 
-// 名前を変える(写真の表示から)。端末の保存も書き換える
+// 名前を変える(写真の表示から)。端末の保存も書き換える。
+// 出力済みの KMZ とは名前が違ってしまうため、未出力に戻す
 export async function renamePhoto(id, name) {
   const photo = getPhoto(id);
   if (!photo) return;
   photo.name = name;
   photo.marker?.getElement()?.setAttribute('title', name);
+  setUnexported(true);
+  onPhotosChanged?.();
   await savePhotoRecord(toRecord(photo));
 }
 
-// 全写真を消す(移動経路のクリアに合わせて app.js が呼ぶ)
+// 全写真を消す(写真の「クリア」と、クリアを選んだ撮影・読み込みから app.js が呼ぶ)
 export async function clearPhotos() {
   for (const photo of photos) removeMarker(photo);
   photos = [];
@@ -189,7 +195,7 @@ async function shrinkImage(blob) {
 }
 
 // KMZ から読んだ写真を加える(app.js の読み込みから)。上限(PHOTO_MAX_COUNT)を超える分は加えない。
-// items: [{ name, timeMs, lat, lng, blob, trackPointTimeMs }]。名前が無いものは defaultName(n) で付ける。
+// items: [{ name, timeMs, lat, lng, blob }]。名前が無いものは defaultName(n) で付ける。
 // 加えた枚数と、上限で加えなかった枚数を返す。途中で保存に失敗したらそこで止めて例外を投げる。
 export async function importPhotos(items, defaultName) {
   const room = Math.max(0, PHOTO_MAX_COUNT - photos.length);

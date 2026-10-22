@@ -1,7 +1,7 @@
 // IndexedDB ラッパー
 // - tileCachePackages ストア: 地図データのダウンロード履歴
 // - tracks ストア: 移動経路(最新の1件のみ。id='latest' で上書き保存する)
-// - photos ストア: 移動経路の記録中に撮った写真(1枚1件。経路のクリアで全件消す)
+// - photos ストア: 「写真を撮影」で撮った写真(1枚1件。写真のクリアで全件消す。経路とは別に扱う)
 //
 // tracks を IndexedDB に置くのは、記録した移動経路が再読み込み・アプリ終了で
 // 失われないようにするため。localStorage ではなく IndexedDB なのは、
@@ -103,9 +103,9 @@ export function clearLatestTrack() {
   return withStore(TRACK_STORE, 'readwrite', (store) => store.delete(LATEST_TRACK_ID));
 }
 
-// ===== 写真(移動経路の記録中に撮ったもの) =====
+// ===== 写真(「写真を撮影」で撮ったもの) =====
 // 1枚1件で保存する(撮るたびに1件だけ書くため、枚数が増えても書き込みは軽い)。
-// レコードは { id, name, timeMs, lat, lng, trackPointTimeMs, blob }。
+// レコードは { id, name, timeMs, lat, lng, blob }(以前の版の写真には、今は使わない trackPointTimeMs が残っていることがある)。
 
 export function savePhotoRecord(record) {
   return withStore(PHOTO_STORE, 'readwrite', (store) => store.put(record));
@@ -116,7 +116,7 @@ export async function listPhotoRecords() {
   return (await withStore(PHOTO_STORE, 'readonly', (store) => store.getAll())) || [];
 }
 
-// 保存済みの写真を全件削除する(移動経路のクリアに合わせて呼ぶ)
+// 保存済みの写真を全件削除する(写真のクリアに合わせて呼ぶ)
 export function clearPhotoRecords() {
   return withStore(PHOTO_STORE, 'readwrite', (store) => store.clear());
 }

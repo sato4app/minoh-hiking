@@ -14,6 +14,14 @@ export const TRACK_RECORDING_FLAG_KEY = 'minoh-hiking.track-recording';
 export const LANGUAGE_KEY = 'minoh-hiking.language';
 // 移動経路のGPX出力で使った連番。{ date: 'yyyymmdd', seq: n } の JSON(同日の次回は +1 を提示)。
 export const TRACK_EXPORT_SEQ_KEY = 'minoh-hiking.track-export-seq';
+// 写真のKMZ出力で使った連番(形式は TRACK_EXPORT_SEQ_KEY と同じ)。経路とは別に数えるため、
+// 同じ日に GPX と KMZ を1回ずつ出力すると、既定の名前が yyyymmdd-01.gpx / yyyymmdd-01.kmz にそろう。
+export const PHOTO_EXPORT_SEQ_KEY = 'minoh-hiking.photo-export-seq';
+// 表示中の移動経路を出力(GPX)したか。'0' = 出力済み、'1' または無し = 未出力。
+// 記録点が増えたら '1'、出力・クリア・置き換えの読み込みで '0' にする。経路ごとには持たず、
+// 1本でも未出力があれば全部を未出力として扱う。キーが無いとき未出力とみなすのは、
+// この印を入れる前から端末に残っている経路を、念のため未出力として扱うため。
+export const TRACK_UNEXPORTED_KEY = 'minoh-hiking.track-unexported';
 // 「使い方」ガイドを一度でも開いたかどうか(初回起動時だけ自動表示するために使う)。
 // ガイドの内容を変えても、キー名は変えないこと(変えると、アプリを更新した全端末で
 // 再び自動表示される。自動表示は初回の1度だけで、更新では出さない決まり)。
@@ -110,7 +118,7 @@ export const TRACK_STOP_HOLD_MS = 1000;
 // 停止の確認は、操作が無ければこの秒数で閉じて記録を続ける(誤って開いた確認を残さない)。
 export const TRACK_STOP_CONFIRM_SEC = 10;
 
-// ===== 写真(移動経路の記録中の撮影。camera.js / photos.js) =====
+// ===== 写真(「写真を撮影」。移動経路とは別の機能。camera.js / photos.js) =====
 // 端末に保存できる写真の上限枚数。写真は端末の中(IndexedDB)だけに置くため、容量を圧迫しないよう抑える。
 export const PHOTO_MAX_COUNT = 200;
 // 保存する写真の長辺[px]と JPEG の品質。1枚あたりおよそ 300〜500KB に収まる。
@@ -123,8 +131,13 @@ export const CAMERA_IDLE_CLOSE_SEC = 60;
 // 撮影してサムネイルが出たら、この秒数で自動的にカメラを閉じて地図に戻る(× を押さなくてよい)。
 // その間にシャッターを押す・画面に触れると数え直す(続けて撮れる)。
 export const CAMERA_AFTER_SHOT_CLOSE_SEC = 5;
-// 出力(KMZ)していない写真があるか('1' / 無し)。クリアの確認で、写真が消えることを強めに知らせるのに使う。
+// 出力(KMZ)していない写真があるか('1' / 無し)。写真ごとには持たず、1枚でも未出力があれば
+// 全部を未出力として扱う。撮影・名前の変更で立て、出力・クリアで降ろす。
 export const PHOTOS_UNEXPORTED_KEY = 'minoh-hiking.photos-unexported';
+// 表示中の写真について「クリア/追加」を確認した日(yyyymmdd)。写真が残っているとき、その日の
+// 最初の撮影(カメラボタン)で確認を出し、同じ日の2回目以降は聞かない(山行の途中でアプリが
+// 再起動しても聞き直さないため)。「写真を撮影」を OFF から ON にしたら消し、次の撮影で聞き直す。
+export const PHOTO_SHOOT_CONFIRMED_KEY = 'minoh-hiking.photo-shoot-confirmed';
 
 // マーカー設定の対象種別と既定値。
 // 表示名は i18n.js の辞書で管理する(キーは markerType.<key> で導出)。
