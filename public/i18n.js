@@ -659,6 +659,7 @@ const DICT = {
   'markerShape.line': { ja: '線', en: 'Line' },
   'markerShape.noThoroughfare': { ja: '通行止め', en: 'No Thoroughfare' },
   'markerShape.warning': { ja: '警戒', en: 'Warning' },
+  'markerShape.camera': { ja: 'カメラ', en: 'Camera' },
 
   // ----- 通行止め・通行困難地点(closures) -----
   // 本アプリは表示専用のため、マップのポップアップで使う文言

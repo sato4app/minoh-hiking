@@ -169,7 +169,7 @@ function renderMarkerSettings() {
 }
 
 // 形状の見本(一覧の形状欄に出す図形)の一辺(px)と、色を固定しない種別の塗り色。
-// 色が固定の種別(通行止め・警戒)は中の人・「!」が読めるよう少し大きくする
+// 色が固定の種別(通行止め・警戒)と、中に絵のある形状(カメラ)は、中の絵が読めるよう少し大きくする
 const SHAPE_PREVIEW_SIZE = 16;
 const SHAPE_PREVIEW_SIZE_SIGN = 20;
 const SHAPE_PREVIEW_COLOR = '#222';
@@ -179,6 +179,7 @@ const SHAPE_PREVIEW_COLOR = '#222';
 // 色が固定の種別(通行止め・警戒)はその色で、それ以外は文字色で描く
 function shapePreviewSVG(m, shape) {
   if (isLocked(m, 'color')) return shapeToSVG(shape, m.color, SHAPE_PREVIEW_SIZE_SIGN);
+  if (shape === 'camera') return shapeToSVG(shape, SHAPE_PREVIEW_COLOR, SHAPE_PREVIEW_SIZE_SIGN);
   return shapeToSVG(shape, SHAPE_PREVIEW_COLOR, SHAPE_PREVIEW_SIZE);
 }
 

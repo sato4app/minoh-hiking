@@ -252,6 +252,19 @@ export function shapeToSVG(shape, color, size) {
         `<rect x="${(c - w / 2 + pad).toFixed(1)}" y="${(s * 0.27 + pad).toFixed(1)}" width="${w.toFixed(1)}" height="${(s * 0.3).toFixed(1)}" rx="${(w / 2).toFixed(1)}" fill="${glyph}"/>` +
         `<circle cx="${c + pad}" cy="${(s * 0.7 + pad).toFixed(1)}" r="${(w * 0.55).toFixed(1)}" fill="${glyph}"/></svg>`;
     }
+    case 'camera': {
+      // 写真撮影地点。色の丸に白の縁、中に白抜きのカメラ(レンズは丸の色が透けて見える)。
+      // カメラの形は 24 四方で設計し、丸の内側に収まるよう縮めて中央に置く
+      // (小さいサイズでは細部が読めなくてもよい)
+      const sw = Math.max(1.5, s * 0.08);        // 白の縁の太さ
+      const g = s * 0.6;                          // カメラの一辺
+      const k = g / 24;
+      const o = c - g / 2;
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}">` +
+        `<circle cx="${c}" cy="${c}" r="${(s / 2 - sw / 2).toFixed(2)}" fill="${color}" stroke="${stroke}" stroke-width="${sw.toFixed(2)}"/>` +
+        `<path transform="translate(${o.toFixed(2)} ${o.toFixed(2)}) scale(${k.toFixed(4)})" fill="${stroke}" fill-rule="evenodd" ` +
+        `d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9zm3 5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 2a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>`;
+    }
     default:
       return shapeToSVG('circle', color, size);
   }

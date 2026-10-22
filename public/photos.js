@@ -69,12 +69,13 @@ export function markPhotosExported() {
 }
 
 // ===== 地図上の印 =====
-// 撮影地点の印。色・形・大きさは「マーカーの設定」の「写真撮影地点」に従う
+// 撮影地点の印(色の丸に白の縁と白抜きのカメラ)。色・大きさは「マーカーの設定」の「写真撮影地点」に従う(形は固定)
 // (既定値は config.js の MARKER_TYPES。起動時と設定の変更時に setPhotoStyle で受け取る)
 let photoStyle = null;
 
 function buildPhotoIcon() {
   return buildMarkerIcon(photoStyle, {
+    fallbackShape: 'camera',
     fallbackColor: '#F97316',
     fallbackSize: 20,
     className: 'custom-marker photo-marker'
