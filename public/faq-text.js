@@ -4,7 +4,7 @@
 //
 // 構成:
 //   FAQ_NOTICES  … ご利用の注意(9項目)。1行の要約と、詳しい説明のある質問への参照
-//   FAQ_SECTIONS … よくある質問(7分類・29問)。説明の本体はこちらにだけ置く
+//   FAQ_SECTIONS … よくある質問(7分類・30問)。説明の本体はこちらにだけ置く
 //
 // ご利用の注意を増やすときは、対応する質問を FAQ_SECTIONS に用意し、ref で指すこと
 // (注意側に本文を書くと、また二重管理になる)。
@@ -513,6 +513,27 @@ export const FAQ_SECTIONS = [
       {
         id: 'Q23',
         q: {
+          ja: '撮った写真の画質が、スマホのカメラアプリより粗いです。',
+          en: 'Photos taken in the app look rougher than those from my phone\'s camera app.'
+        },
+        a: [
+          {
+            ja: 'このアプリの写真は、撮影中も移動経路の記録を止めないよう、アプリの画面の中でカメラの映像を1コマ取り込んで作っています。スマホのカメラアプリのような高画素での撮影や、カメラアプリが行う画像の補正(HDR など)は使えないため、画質は劣ります。',
+            en: 'To keep your track recording while you shoot, the app makes each photo by capturing one frame of the camera\'s video within its own screen. It cannot use the high-resolution capture or the image processing (such as HDR) that a camera app does, so the quality is lower.'
+          },
+          {
+            ja: 'また、端末の容量を圧迫しないよう、写真は長辺 1600 ピクセルほどに縮めて保存しています(1枚 300〜500KB 程度)。',
+            en: 'Photos are also reduced to about 1600 pixels on the long side to save space on your device (about 300-500 KB each).'
+          },
+          {
+            ja: '撮った場所の記録や、山行の記録として見返す用途を想定しています。きれいに残したい景色などは、スマホのカメラアプリで撮影してください。',
+            en: 'They are meant for recording where you were and looking back on your hike. For scenery you want to keep in good quality, please use your phone\'s camera app.'
+          }
+        ]
+      },
+      {
+        id: 'Q24',
+        q: {
           ja: '記録中に画面が消えて、経路が飛んでしまいました。',
           en: 'The screen went off while recording and the track has a gap.'
         },
@@ -524,7 +545,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q24',
+        id: 'Q25',
         q: {
           ja: '前に記録した経路と、今日歩いた経路を並べて見たいです。',
           en: 'I want to see a previously recorded track alongside the one from today.'
@@ -546,7 +567,7 @@ export const FAQ_SECTIONS = [
     title: { ja: 'その他', en: 'Other' },
     items: [
       {
-        id: 'Q25',
+        id: 'Q26',
         q: {
           ja: '地図やルートは、誰が作っているのですか。',
           en: 'Who makes the map and the routes?'
@@ -563,7 +584,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q26',
+        id: 'Q27',
         q: {
           ja: '国土地理院の地図を使うことについて、国土地理院の許可は得ていますか。',
           en: 'Does this app have permission from GSI to use its map?'
@@ -584,7 +605,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q27',
+        id: 'Q28',
         q: {
           ja: '地図やアプリのバージョンを確認したいです。',
           en: 'I want to check the map and app versions.'
@@ -597,7 +618,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q28',
+        id: 'Q29',
         q: {
           ja: '端末の空き容量を増やしたいです。',
           en: 'I want to free up space on my device.'
@@ -610,7 +631,7 @@ export const FAQ_SECTIONS = [
         ]
       },
       {
-        id: 'Q29',
+        id: 'Q30',
         q: {
           ja: '英語表示にしたら、戻し方が分からなくなりました。',
           en: 'I switched to English and cannot find my way back.'
