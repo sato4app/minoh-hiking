@@ -50,7 +50,7 @@ import {
   TRACK_EXPORT_SEQ_KEY, PHOTO_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC,
   TRACK_RECORDING_FLAG_KEY, TRACK_UNEXPORTED_KEY, PHOTO_SHOOT_CONFIRMED_KEY, MAP_TOGGLES_KEY,
   TRACK_STOP_HOLD_MS, TRACK_STOP_CONFIRM_SEC, PHOTO_MAX_COUNT, PHOTO_WARN_RATIO,
-  TRACK_BATTERY_NOTICE_SEC
+  TRACK_BATTERY_NOTICE_SEC, TRACK_STOP_TAP_INTERVAL_MS
 } from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
@@ -151,7 +151,7 @@ const el = {
   trackExistingMessage: document.getElementById('trackExistingMessage'),
   btnTrackExistingClear: document.getElementById('btnTrackExistingClear'),
   btnTrackExistingAppend: document.getElementById('btnTrackExistingAppend'),
-  // 移動経路の記録の停止を確認するモーダル(■の長押し・トグルのオフで共用)
+  // 移動経路の記録の停止を確認するモーダル(■の長押し・続けてのタップ・トグルのオフで共用)
   trackStopModal: document.getElementById('trackStopModal'),
   trackStopAutoClose: document.getElementById('trackStopAutoClose'),
   btnTrackStopOk: document.getElementById('btnTrackStopOk'),
@@ -528,9 +528,8 @@ function bindEvents() {
       openTrackStopModal('track.stopByButton');
       return;
     }
-    // 記録中の停止は長押し(→ bindTrackStopHold)。
-    // 短いタップは停止の確認を出さず、長押しで止めることだけ伝える
-    showToast(t('track.stopHoldHint'));
+    // 記録中の停止は長押し(→ bindTrackStopHold)か、続けてのタップ(→ handleTrackStopTap)
+    handleTrackStopTap();
   });
   bindTrackStopHold();
   on(el.btnTrackStopOk, 'click', confirmTrackStop);
@@ -1187,10 +1186,11 @@ function startTrackRecordingNow(append) {
   showToast(t('track.started'));
 }
 
-// ===== 移動記録の停止(長押し → 確認) =====
+// ===== 移動記録の停止(長押し・続けてのタップ → 確認) =====
 // 記録中は画面が消えないため、ポケットの中で布越しに触れて記録停止ボタン(■)が押され、
-// 停止の確認が出たままになることがあった。そこで停止は■の長押し(TRACK_STOP_HOLD_MS)に限り、
-// 確認は操作が無ければ TRACK_STOP_CONFIRM_SEC 秒で閉じて記録を続ける。
+// 停止の確認が出たままになることがあった。そこで停止は■の長押し(TRACK_STOP_HOLD_MS)か、
+// 続けての複数回のタップに限り、確認は操作が無ければ TRACK_STOP_CONFIRM_SEC 秒で
+// 閉じて記録を続ける。
 // 確認を標準の confirm にしないのは、表示中はページの処理が止まり位置が記録されないため。
 // このボタンはメニューボタン(≡)のすぐ左(間隔 8px)にあり、≡ を狙った指が触れることもある。
 // 停止すると記録中の経路がその場で確定し、押す前の状態には戻せない
@@ -1199,6 +1199,25 @@ let trackStopHoldTimer = null;       // 長押しの判定タイマー
 let trackStopHoldFired = false;      // 長押しで確認を出した(指を離したときの click を無視する)
 let trackStopBy = null;              // 停止の確認を開いた操作(履歴用の文言キー)
 let trackStopAutoCloseTimer = null;  // 停止の確認を自動で閉じるタイマー
+let trackStopLastTapAt = 0;          // 前回のタップの時刻(ms)
+let trackStopTapGuardUntil = 0;      // タップで確認を出した直後、この時刻(ms)までの click を捨てる
+
+// 記録中の■の短いタップ。前のタップから TRACK_STOP_TAP_INTERVAL_MS 以内なら(続けて複数回の
+// タップ)停止の確認を出し、そうでなければ止め方だけを伝える
+function handleTrackStopTap() {
+  const now = Date.now();
+  const isRepeated = now - trackStopLastTapAt <= TRACK_STOP_TAP_INTERVAL_MS;
+  trackStopLastTapAt = now;
+  if (!isRepeated) {
+    showToast(t('track.stopHoldHint'));
+    return;
+  }
+  trackStopLastTapAt = 0;
+  // 続けてのタップは確認が出た後も勢いで続き、指の下に現れた確認の背景や「停止する」に
+  // 当たるため、少しの間は確認への click を捨てる(→ bindTrackStopHold の click の捕捉)
+  trackStopTapGuardUntil = now + TRACK_STOP_TAP_INTERVAL_MS;
+  openTrackStopModal('track.stopByTaps');
+}
 
 function bindTrackStopHold() {
   const btn = el.btnTrackToggle;
@@ -1231,6 +1250,12 @@ function bindTrackStopHold() {
   // click が来ないまま次の操作に移ったときは、その pointerdown で印を降ろす
   document.addEventListener('pointerdown', () => { trackStopHoldFired = false; }, true);
   document.addEventListener('click', (e) => {
+    // 続けてのタップで確認を出した直後の、余分なタップによる click を捨てる
+    if (Date.now() < trackStopTapGuardUntil && e.detail !== 0 && el.trackStopModal.contains(e.target)) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
     if (!trackStopHoldFired || e.detail === 0) return;
     trackStopHoldFired = false;
     e.preventDefault();
@@ -1265,7 +1290,8 @@ function confirmTrackStop() {
 // 移動記録を終了(記録停止ボタン/トグルOFF)。記録中だったときのみ、いま記録していた経路の
 // 地点数・移動距離を履歴とトーストに出す(記録中の経路は常に最後の経路)。
 // 軌跡が消去される前に統計を取得する必要がある点に注意。
-// stopBy には停止のきっかけとなった操作の文言キー('track.stopByButton' / 'track.stopByToggle')を
+// stopBy には停止のきっかけとなった操作の文言キー('track.stopByButton' / 'track.stopByTaps' /
+// 'track.stopByToggle')を
 // 渡し、履歴にだけ添える(「操作していないのに止まっていた」ときの切り分け用。
 // トーストは操作直後に本人が見るものなので付けない)。
 function finishTrackRecording(stopBy) {

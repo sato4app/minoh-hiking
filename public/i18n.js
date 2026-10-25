@@ -143,6 +143,7 @@ const DICT = {
     en: 'Track recording finished [{by}] ({summary})'
   },
   'track.stopByButton': { ja: '記録停止ボタン(■)を長押し', en: 'Stop button (■) held' },
+  'track.stopByTaps': { ja: '記録停止ボタン(■)を続けてタップ', en: 'Stop button (■) tapped repeatedly' },
   'track.stopByToggle': { ja: '「移動経路を記録」をオフ', en: '"Record Track" switched off' },
   'track.interrupted': {
     ja: '前回の移動記録は停止操作なしで中断されました(アプリの再読み込み・終了など)',
@@ -164,10 +165,10 @@ const DICT = {
     en: 'If you do nothing, this closes in {sec} seconds and recording continues.'
   },
   'track.stopOk': { ja: '停止する', en: 'Stop' },
-  // 記録停止ボタン(■)を短くタップしたとき(停止は長押しのみ)
+  // 記録停止ボタン(■)を短くタップしたとき(停止は長押しか、続けて複数回のタップ)
   'track.stopHoldHint': {
-    ja: '記録を停止するには、■を長押ししてください',
-    en: 'To stop recording, press and hold ■'
+    ja: '記録を停止するには、■を長押しするか、続けて複数回タップしてください',
+    en: 'To stop recording, press and hold ■, or tap it several times in a row'
   },
   'track.cleared': { ja: '移動経路をクリアしました', en: 'Track cleared' },
   // 起動時に、端末に保存してある前回の移動経路を読み出して表示したときの履歴
@@ -571,9 +572,9 @@ const DICT = {
 
   'guide.mapTrackTitle': { ja: '移動経路の記録と写真', en: 'Recording Your Track and Photos' },
   'guide.mapTrackBody': {
-    ja: '「移動経路を記録」をオンにすると≡の左に▶が出ます。▶で記録を始め、■の長押しで止めます。起動時画面でも続きます。\n' +
+    ja: '「移動経路を記録」をオンにすると≡の左に▶が出ます。▶で記録を始め、■の長押しか、続けて複数回のタップで止めます。起動時画面でも続きます。\n' +
         '「写真を撮影」をオンにするとカメラが出ます。読み込み・出力・クリアは経路(GPX)と写真(KMZ)で別々です。',
-    en: 'Turn on "Record Track" and ▶ appears left of ≡. Press ▶ to record; press and hold ■ to stop. Recording continues on the start screen.\n' +
+    en: 'Turn on "Record Track" and ▶ appears left of ≡. Press ▶ to record; press and hold ■, or tap it several times in a row, to stop. Recording continues on the start screen.\n' +
         'Turn on "Take Photos" for the camera. Tracks (GPX) and photos (KMZ) each have their own Import, Export and Clear.'
   },
 
