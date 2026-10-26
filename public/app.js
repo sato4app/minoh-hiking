@@ -50,7 +50,7 @@ import {
   TRACK_EXPORT_SEQ_KEY, PHOTO_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC,
   TRACK_RECORDING_FLAG_KEY, TRACK_UNEXPORTED_KEY, PHOTO_SHOOT_CONFIRMED_KEY, MAP_TOGGLES_KEY,
   TRACK_STOP_HOLD_MS, TRACK_STOP_CONFIRM_SEC, PHOTO_MAX_COUNT, PHOTO_WARN_RATIO,
-  TRACK_BATTERY_NOTICE_SEC, TRACK_STOP_TAP_INTERVAL_MS
+  TRACK_BATTERY_NOTICE_SEC, TRACK_STOP_TAP_INTERVAL_MS, TRACK_STOP_TAP_GUARD_MS
 } from './config.js';
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
@@ -1215,7 +1215,7 @@ function handleTrackStopTap() {
   trackStopLastTapAt = 0;
   // 続けてのタップは確認が出た後も勢いで続き、指の下に現れた確認の背景や「停止する」に
   // 当たるため、少しの間は確認への click を捨てる(→ bindTrackStopHold の click の捕捉)
-  trackStopTapGuardUntil = now + TRACK_STOP_TAP_INTERVAL_MS;
+  trackStopTapGuardUntil = now + TRACK_STOP_TAP_GUARD_MS;
   openTrackStopModal('track.stopByTaps');
 }
 

@@ -121,7 +121,10 @@ export const TRACK_BATTERY_NOTICE_SEC = 5;
 export const TRACK_STOP_HOLD_MS = 1000;
 // 前のタップからこの時間(ミリ秒)以内にもう一度タップしたら、続けてのタップとみなして
 // 停止の確認を出す(停止の前に確認があるため、回数は問わない)
-export const TRACK_STOP_TAP_INTERVAL_MS = 700;
+export const TRACK_STOP_TAP_INTERVAL_MS = 2000;
+// 続けてのタップで停止の確認を出した直後、この時間(ミリ秒)は確認への click を捨てる
+// (勢いで続いた余分なタップで確認が閉じないように)。この間は確認のボタンも効かない
+export const TRACK_STOP_TAP_GUARD_MS = 700;
 // 停止の確認は、操作が無ければこの秒数で閉じて記録を続ける(誤って開いた確認を残さない)。
 export const TRACK_STOP_CONFIRM_SEC = 10;
 
