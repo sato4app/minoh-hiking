@@ -540,6 +540,8 @@ function bindEvents() {
   setPhotoHandlers({ onClick: openPhotoView, onChanged: updatePhotoPanel });
   // 名前の入力を確定したとき(Enter・欄の外へ)に保存する。閉じたときも保存する(closeModal)
   on(el.photoViewName, 'change', commitPhotoViewName);
+  // 名前の欄を押したとき、既定の名前(写真xx)のままなら全体を選択して打ち替えやすくする
+  on(el.photoViewName, 'focus', selectDefaultPhotoName);
   // 写真の表示の左右の矢印ボタン: 前・次の写真へ(名前は移る前に保存する)
   on(el.btnPhotoViewPrev, 'click', () => stepPhotoView(-1));
   on(el.btnPhotoViewNext, 'click', () => stepPhotoView(1));
@@ -1916,6 +1918,19 @@ function commitPhotoViewName() {
     showToast(msg);
   });
   el.photoViewImage.alt = name;
+}
+
+// 既定の名前(i18n の photo.defaultName: 写真{n} / Photo {n})。撮影時の言語で付くため両方を対象にする
+const DEFAULT_PHOTO_NAME_RE = /^(写真\d+|Photo \d+)$/;
+
+// 名前の欄にフォーカスが来たとき、既定の名前のままなら全体を選択する(自分で付けた名前は選択しない)。
+// タップでのフォーカスはその後のキャレット配置で選択が外れるため、一呼吸おいてから選択する
+function selectDefaultPhotoName() {
+  const input = el.photoViewName;
+  if (!DEFAULT_PHOTO_NAME_RE.test(input.value.trim())) return;
+  setTimeout(() => {
+    if (document.activeElement === input) input.setSelectionRange(0, input.value.length);
+  }, 0);
 }
 
 // ごみ箱: 表示中の写真を確認のうえ削除し、次の写真(最後の写真なら前の写真)を表示する。
