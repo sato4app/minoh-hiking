@@ -49,6 +49,9 @@ export function initMap(containerId) {
     maxZoom: MAX_ZOOM,
     zoomControl: false,
     attributionControl: false,
+    // ダブルタップでの拡大は使わない。記録中は画面が消えないため、ポケットの中で布越しに触れて
+    // 拡大してしまう(縮小の操作は無いので z=18 まで上がる一方)。iPhone ではもともと動かない
+    doubleClickZoom: false,
     // 線をタップしやすくするため、ベクタ図形は Canvas で描く(→ TAP_TOLERANCE)。
     // マーカー(divIcon)はこの指定の対象外で、markerPane の DOM 要素のまま
     renderer: L.canvas({ tolerance: TAP_TOLERANCE })
@@ -128,7 +131,7 @@ const CurrentMarkerControl = L.Control.extend({
     link.href = '#';
     link.setAttribute('role', 'button');
     link.innerHTML = CURRENT_MARKER_ICON;
-    // 地図のドラッグ・ダブルクリックズームに拾われないようにする
+    // 地図のドラッグ・クリックに拾われないようにする
     L.DomEvent.disableClickPropagation(div);
     L.DomEvent.on(link, 'click', (ev) => {
       L.DomEvent.stop(ev);
