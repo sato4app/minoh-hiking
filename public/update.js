@@ -16,8 +16,8 @@ import { logHistory, showToast } from './messages.js';
 // 開いている画面は古い版のままだが、キャッシュの版名は新しくなるため、下の比較
 // (キャッシュ済み === 最新)では更新なしと判断され、再読み込みするまで古い画面が残っていた
 // (2026.83 で、カメラボタンが出なかった原因。言語の変更=再読み込みで直った)。
-// 既に Service Worker に制御されていた画面で制御が切り替わったら(controllerchange)、
-// 画面が古いとみなし、次の更新確認で再読み込みを促す。
+// 開いている間に制御が切り替わったら(controllerchange)、画面が古いとみなし、
+// 次の更新確認で再読み込みを促す。
 let pageOutdated = false;
 // updateAppToLatest() による切替(すぐ再読み込みする)では知らせない
 let updatingNow = false;
@@ -25,9 +25,13 @@ let updatingNow = false;
 // 起動時に1回呼ぶ(Service Worker の登録より前)
 export function watchAppShellReplacement() {
   if (!('serviceWorker' in navigator)) return;
-  // 初めて開いたとき(まだ制御されていない)の切替は、画面が古いわけではないので対象外
-  if (!navigator.serviceWorker.controller) return;
+  // 初めて開いたとき(まだ制御されていない)の最初の切替は、画面が古いわけではないので対象外
+  let awaitingFirstControl = !navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (awaitingFirstControl) {
+      awaitingFirstControl = false;
+      return;
+    }
     if (updatingNow || pageOutdated) return;
     pageOutdated = true;
     logHistory(t('update.appReplaced'), '');
@@ -60,58 +64,59 @@ async function fetchServiceWorkerShellVersion() {
   }
 }
 
-// 起動時画面のボタンをタップしたときのアプリ更新確認。
+// 起動時画面のボタンをタップしたときのアプリ更新確認。タップのたびに最新の版を確認する
+// (電波の届く場所へ戻った後や、開いたままの間に公開された更新にも気づけるようにする)。
 // キャッシュ済みと最新が異なれば confirm を出して更新する。
-// - confirm を出すのは1セッションにつき1回まで(「キャンセル」を選んだ後に、
-//   ボタンを押すたびに同じ確認が出ないようにする)。
-// - 最新だった・取得できなかった(オフライン等)ときは、次にボタンを押したときに確認し直す
-//   (電波の届く場所へ戻った後や、開いたままの間に公開された更新にも気づけるようにする)。
+// - 「キャンセル」を選んだ版は、開いている間は尋ね直さない(ボタンを押すたびに同じ確認が
+//   出ないようにする)。より新しい版が公開されたら、改めて尋ねる。
 // - 確認中(service-worker.js の取得待ち)に続けて押されても、確認は1本しか走らせない
 //   (confirm が二重に出ないようにする)。
-let appShellUpdatePromptShown = false;
+let declinedVersion = null;
 let appShellUpdateChecking = false;
 export async function checkAppShellUpdate() {
-  if (appShellUpdatePromptShown || appShellUpdateChecking) return;
-  // アプリ更新による再読み込みの直後は確認しない。updateAppToLatest() は SW の切替完了を
-  // 待たずに再読み込みするため、切替が間に合わないと版が不一致に見え、confirm が二重に出る。
-  try {
-    if (sessionStorage.getItem(APP_UPDATED_FLAG_KEY) === '1') {
-      sessionStorage.removeItem(APP_UPDATED_FLAG_KEY);
-      appShellUpdatePromptShown = true;
-      return;
-    }
-  } catch { /* noop */ }
+  if (appShellUpdateChecking) return;
   appShellUpdateChecking = true;
   try {
-    const shown = await promptAppShellUpdate();
-    if (shown) appShellUpdatePromptShown = true;
+    await promptAppShellUpdate();
   } finally {
     appShellUpdateChecking = false;
   }
 }
 
+// updateAppToLatest() が再読み込みの前に記録した更新先の版を取り出す(1回限り)
+function takeUpdatedVersion() {
+  try {
+    const version = sessionStorage.getItem(APP_UPDATED_FLAG_KEY);
+    sessionStorage.removeItem(APP_UPDATED_FLAG_KEY);
+    return version;
+  } catch {
+    return null;
+  }
+}
+
 // アプリ更新の confirm を表示し、OK なら最新へ更新(再読み込み)する。
-// confirm を表示したら true、対象なし(初回/取得失敗/最新)なら false を返す。
 async function promptAppShellUpdate() {
   // 新しい版は端末に入っており、画面だけが古いとき: 再読み込みだけで切り替わる(通信不要)
   if (pageOutdated) {
     const version = await getCachedAppShellVersion();
-    if (confirm(t('update.appReloadConfirm', { latest: version || '-' }))) {
-      try { sessionStorage.setItem(APP_UPDATED_FLAG_KEY, '1'); } catch { /* noop */ }
-      location.reload();
+    if (version !== declinedVersion) {
+      if (confirm(t('update.appReloadConfirm', { latest: version || '-' }))) location.reload();
+      else declinedVersion = version;
+      return;
     }
-    return true;
   }
   const [cached, latest] = await Promise.all([
     getCachedAppShellVersion(),
     fetchServiceWorkerShellVersion()
   ]);
   // 初回(キャッシュ無し)や取得失敗時は何もしない
-  if (!cached || !latest) return false;
-  if (cached === latest) return false;
-  const ok = confirm(t('update.appConfirm', { cached, latest }));
-  if (ok) await updateAppToLatest();
-  return true;
+  if (!cached || !latest) return;
+  // アプリ更新による再読み込みの直後は、更新した版を尋ね直さない。updateAppToLatest() は
+  // SW の切替完了を待たずに再読み込みするため、切替が間に合わないと版が不一致に見える。
+  const updatedTo = takeUpdatedVersion();
+  if (cached === latest || latest === declinedVersion || latest === updatedTo) return;
+  if (confirm(t('update.appConfirm', { cached, latest }))) await updateAppToLatest(latest);
+  else declinedVersion = latest;
 }
 
 // 地図タイル更新の案内ダイアログ。地図タイルは自動更新しないため、
@@ -189,7 +194,7 @@ async function deleteAppShellCaches() {
 // ダウンロード中はオーバーレイで操作を受け付けず、完了してから再読み込みする。
 // 旧シェルキャッシュはダウンロード中も残しておき(新 SW は別名のキャッシュを使う)、
 // 新 SW の activate に削除させる。通信が途切れても手元のアプリが壊れないようにするため。
-async function updateAppToLatest() {
+async function updateAppToLatest(latest) {
   updatingNow = true;
   showUpdateOverlay();
   try {
@@ -213,7 +218,7 @@ async function updateAppToLatest() {
   } catch (err) {
     console.warn('アプリ更新失敗:', err);
   }
-  // 再読み込み後の最初の更新確認で、同じ更新確認を再表示しないよう印を付ける。
-  try { sessionStorage.setItem(APP_UPDATED_FLAG_KEY, '1'); } catch { /* noop */ }
+  // 再読み込み後の最初の更新確認で、同じ版の確認を再表示しないよう更新先の版を控える。
+  try { sessionStorage.setItem(APP_UPDATED_FLAG_KEY, latest); } catch { /* noop */ }
   location.reload();
 }

@@ -31,8 +31,8 @@ export const GUIDE_SEEN_KEY = 'minoh-hiking.guide-seen';
 export const MAP_TOGGLES_KEY = 'minoh-hiking.map-toggles';
 
 // ===== sessionStorage キー =====
-// アプリ更新による再読み込み直後であることを示すフラグ。SW の切替が未完了で版が不一致に
-// 見えても、再読み込み後の最初の更新確認で同じ confirm を二重に出さないために使う。
+// アプリ更新による再読み込みの前に控える更新先の版。SW の切替が未完了で版が不一致に
+// 見えても、再読み込み後の最初の更新確認で同じ版の confirm を二重に出さないために使う。
 export const APP_UPDATED_FLAG_KEY = 'minoh-hiking.app-updated';
 
 // 言語の変更による再読み込み直後であることを示すフラグ。そのままでは起動画面に戻って
