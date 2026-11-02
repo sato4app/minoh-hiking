@@ -17,6 +17,12 @@ const INITIAL_ZOOM = 15;
 const MIN_ZOOM = 10;
 const MAX_ZOOM = 18;
 
+// GPX / KMZ の読み込み直後に地図を合わせるときのズームレベルの範囲と、周囲に残す余白[px]。
+// 範囲の外へは行かないため、z=14 に収まらない広いデータは中心付近だけが表示される
+const FIT_MIN_ZOOM = 14;
+const FIT_MAX_ZOOM = 17;
+const FIT_PADDING = 30;
+
 // 線(ハイキングルート等)をタップしたと判定する余裕[px]。
 // SVG で描くとブラウザが「線の太さちょうど」で当たり判定するため、既定の太さ3px では
 // 中心から±1.5px に当てないと反応せず、指(直径およそ34px)ではまず当たらない。
@@ -83,14 +89,20 @@ export function getMap() {
 
 // 指定した地点([lat, lng] または LatLng)と範囲(LatLngBounds)の全体が収まるよう地図を合わせる
 // (移動経路・写真の読み込み直後に使う)。地点も範囲も無ければ何もしない。
-// 1地点だけ(写真1枚だけを読み込んだ等)のときは、寄りすぎないよう今の縮尺で中央に置く
+// 1地点だけ(写真1枚だけを読み込んだ等)のときは、寄りすぎないよう今の縮尺で中央に置く。
+// どちらの場合もズームレベルは FIT_MIN_ZOOM〜FIT_MAX_ZOOM に収める
+// (fitBounds には下限の指定が無いため、ズームレベルを求めて setView で合わせる)
 export function fitMapToLatLngs(latlngs = [], bounds = L.latLngBounds([])) {
   if (!mapInstance) return;
   const all = L.latLngBounds([]).extend(bounds);
   for (const ll of latlngs) all.extend(ll);
   if (!all.isValid()) return;
-  if (all.getNorthEast().equals(all.getSouthWest())) mapInstance.setView(all.getCenter(), mapInstance.getZoom());
-  else mapInstance.fitBounds(all, { padding: [30, 30] });
+  const isSinglePoint = all.getNorthEast().equals(all.getSouthWest());
+  // getBoundsZoom の padding は左右・上下の合計を渡す
+  const zoom = isSinglePoint
+    ? mapInstance.getZoom()
+    : mapInstance.getBoundsZoom(all, false, [FIT_PADDING * 2, FIT_PADDING * 2]);
+  mapInstance.setView(all.getCenter(), Math.min(Math.max(zoom, FIT_MIN_ZOOM), FIT_MAX_ZOOM));
 }
 
 // ===== 現在のズームレベル表示(ズームボタンの下) =====
