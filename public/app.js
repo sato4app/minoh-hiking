@@ -13,6 +13,7 @@
 //   camera.js         … アプリ内カメラ(「写真を撮影」の撮影。移動経路の記録とは別の機能)
 //   photos.js         … 撮った写真の保持・地図への表示・端末への保存
 //   kmz.js            … 写真の出力・読み込み(KMZ)
+//   areas.js          … 領域の表示(GeoJSON。?p=geojson を付けて開いたときだけ使える暫定機能)
 //   published-data.js … 公開API から配信データ(地図データ・通行止め)を取得
 //   qrcode.js         … QRコードの生成(外部ライブラリ非依存)
 //   guide.js          … 使い方ガイド(画面を順に案内するオーバーレイ)
@@ -42,6 +43,10 @@ import {
   hasUnexportedPhotos, markPhotosExported
 } from './photos.js';
 import { isZipFile, loadPhotoBytes, buildPhotosKmz, parsePhotosKmz } from './kmz.js';
+import {
+  isAreaFeatureEnabled, withoutAreaProfile, parseAreaGeoJSON,
+  setAreasVisible, getAreaCount, fitMapToAreas, loadAreas, clearAreas, restoreAreas
+} from './areas.js';
 import {
   loadPublishedData, checkPublishedDataUpdate,
   getMapdataVersion, getClosureVersion, getClosureCount
@@ -197,6 +202,20 @@ const el = {
   photoListBody: document.getElementById('photoListBody'),
   photoListGrid: document.getElementById('photoListGrid'),
 
+  // 「領域を表示」(?p=geojson を付けて開いたときだけ出す暫定機能)。
+  // レイヤーパネル内の領域の数(トグルの右)・読み込み・クリアと、読み込み前の「クリア/追加/中止」モーダル
+  areaSection: document.getElementById('areaSection'),
+  toggleAreas: document.getElementById('toggleAreas'),
+  areaStatus: document.getElementById('areaStatus'),
+  areaActions: document.getElementById('areaActions'),
+  btnAreaImport: document.getElementById('btnAreaImport'),
+  btnAreaClear: document.getElementById('btnAreaClear'),
+  areaImportInput: document.getElementById('areaImportInput'),
+  areaExistingModal: document.getElementById('areaExistingModal'),
+  areaExistingMessage: document.getElementById('areaExistingMessage'),
+  btnAreaExistingClear: document.getElementById('btnAreaExistingClear'),
+  btnAreaExistingAppend: document.getElementById('btnAreaExistingAppend'),
+
   // マーカーの設定モーダル
   settingsModal: document.getElementById('settingsModal'),
 
@@ -233,6 +252,8 @@ async function init() {
   // マップのメニューのトグルを前回の状態に戻す。
   // 各トグルの反映は以降の初期化・マップ画面への切替が checked を読んで行うため、最初に行う
   initStep('restoreMapToggles', restoreMapToggles);
+  // 「領域を表示」は ?p=geojson を付けて開いたときだけ出す
+  if (el.areaSection) el.areaSection.hidden = !isAreaFeatureEnabled();
 
   // 開いている間にブラウザが新しい版へ入れ替えたら知らせる(登録より前に見張りを始める。
   // 登録をきっかけにブラウザが更新を確かめ、すぐ入れ替わることがあるため)
@@ -301,6 +322,8 @@ async function init() {
   await restoreTrackFromStorage();
   // 写真も端末から戻す(撮影地点の印を地図に出す)
   await restorePhotosFromStorage();
+  // 領域も端末から戻す(「領域を表示」を使える端末だけ。表示はマップ画面でトグル ON のとき)
+  if (isAreaFeatureEnabled()) await restoreAreas();
   // パネルの件数・統計表・ボタン行を、トグルの状態とデータに合わせて描画しておく
   updateDataPanels();
 
@@ -508,6 +531,11 @@ function bindEvents() {
     updatePhotoButtonState(on);
     updatePhotoPanel();
   });
+  // 領域を表示: ON で領域を地図に重ね、パネルの読み込み・クリアを出す。OFF は表示を消すだけ(領域は残す)
+  on(el.toggleAreas, 'change', () => {
+    applyAreasVisible();
+    updateAreaPanel();
+  });
   // 表示設定パネルのトグルは切り替えるたびに保存する(次回起動時に restoreMapToggles で戻す)。
   // 各トグルの処理(上)より後に登録し、取り消しで checked を戻した場合も最終の状態を保存する
   for (const input of mapToggleInputs()) on(input, 'change', saveMapToggles);
@@ -591,6 +619,21 @@ function bindEvents() {
   // 写真の出力: 全部の写真を KMZ 形式でファイルに出力する
   on(el.btnPhotoExport, 'click', openPhotoExportModal);
   on(el.btnPhotoExportSave, 'click', handlePhotoExportSave);
+
+  // 領域の読み込み: GeoJSON ファイルを選び、領域を地図に表示する。経路の記録中でも読み込める
+  // (経路・写真には触れないため)。既存の領域があるときは、クリア/追加/中止を選んでからファイル選択へ進む
+  on(el.btnAreaImport, 'click', () => {
+    if (getAreaCount() > 0) {
+      openAreaExistingModal();
+      return;
+    }
+    openAreaImportPicker(false);
+  });
+  on(el.areaImportInput, 'change', importAreaFile);
+  // 領域の「クリア/追加/中止」モーダルの2ボタン(中止は閉じるだけで、領域には手を付けない)
+  on(el.btnAreaExistingClear, 'click', () => resolveAreaExisting(false));
+  on(el.btnAreaExistingAppend, 'click', () => resolveAreaExisting(true));
+  on(el.btnAreaClear, 'click', handleAreaClear);
 
   // 記録点が追加されるたびにパネル内の件数・統計表を最新化する。
   // 記録で増えたとき(読み込みではないとき)は、経路を未出力にする
@@ -822,6 +865,8 @@ function showView(name) {
     updateTrackButtonState(el.toggleTrackRecording.checked);
     // 写真を撮影トグルの状態に応じてカメラボタンの表示を更新
     updatePhotoButtonState(!!el.togglePhotoCapture?.checked);
+    // 領域は「領域を表示」トグルの状態に従う
+    applyAreasVisible();
     // 時刻表示は normalizeMapChrome() でトグルの状態に従って反映済み
     requestAnimationFrame(() => resizeMap());
   } else if (name === 'home') {
@@ -836,6 +881,8 @@ function showView(name) {
     // 記録操作ボタン群・カメラボタンはマップ画面のUIなので隠す(記録状態自体は保持する)
     updateTrackButtonState(false);
     updatePhotoButtonState(false);
+    // 領域もマップ画面だけに出す(トグル状態と領域は保持する)
+    applyAreasVisible();
     // マップ以外では時刻表示を停止・非表示(トグル状態は保持)
     setClockVisible(false);
     requestAnimationFrame(() => resizeMap());
@@ -911,7 +958,8 @@ function openExternalSiteModal(href, siteName) {
 // いま開いている URL(location.href)をその場で QRコードにする。開くたびに作り直すのは、
 // クエリ付きで開いた場合や PWA の起動 URL でも実際のアドレスとずれないようにするため。
 function openQrCodeModal() {
-  const url = location.href;
+  // 領域の表示(?p=geojson)は開いた本人だけが使う暫定機能のため、QR コードには入れない
+  const url = withoutAreaProfile(location.href);
   el.qrCodeUrl.textContent = url;
   try {
     el.qrCodeImage.innerHTML = renderQrSvg(url);
@@ -1055,11 +1103,12 @@ function formatTrackSummary(stats, index, total) {
   return `${t('track.routeIndex', { n: index + 1 })}: ${summary}`;
 }
 
-// ===== レイヤーパネルの移動経路・写真の表示 =====
-// 両方をまとめて最新化する(起動時・パネルを開いたとき)
+// ===== レイヤーパネルの移動経路・写真・領域の表示 =====
+// まとめて最新化する(起動時・パネルを開いたとき)
 function updateDataPanels() {
   updateTrackPanel();
   updatePhotoPanel();
+  updateAreaPanel();
 }
 
 // トグルの右に添える出力済みかどうか(「未出力あり」「出力済み」)。データが無ければ出さない
@@ -2036,6 +2085,84 @@ function releasePhotoView() {
   if (viewingPhotoUrl) URL.revokeObjectURL(viewingPhotoUrl);
   viewingPhotoUrl = null;
   if (el.photoViewImage) el.photoViewImage.removeAttribute('src');
+}
+
+// ===== 領域の表示(?p=geojson を付けて開いたときだけ使える暫定機能) =====
+// 領域を出すのは、使える端末で、マップ画面にいて、「領域を表示」が ON のときだけ
+function applyAreasVisible() {
+  setAreasVisible(isAreaFeatureEnabled() && currentView === 'map' && !!el.toggleAreas?.checked);
+}
+
+// 領域: トグルの右の領域の数と、トグル ON のときだけ出すボタン行
+function updateAreaPanel() {
+  if (!el.areaSection || el.areaSection.hidden) return;
+  if (el.areaActions) el.areaActions.hidden = !el.toggleAreas.checked;
+  const n = getAreaCount();
+  if (el.areaStatus) {
+    el.areaStatus.hidden = n === 0;
+    el.areaStatus.textContent = n > 0 ? t('area.count', { n }) : '';
+  }
+}
+
+// 表示中の領域があるときの選択(クリア/追加/中止)。閉じただけのときは何もしない
+function openAreaExistingModal() {
+  el.areaExistingMessage.textContent = t('area.existingMessage', { n: getAreaCount() });
+  el.mapLayerPanel.hidden = true;
+  el.areaExistingModal.hidden = false;
+}
+
+// クリア/追加のどちらかが選ばれたとき。クリアは、ファイルを読めてから行う(→ importAreaFile)。
+// ファイル選択はこのクリック操作の延長で呼ぶため同期的に進める
+function resolveAreaExisting(append) {
+  closeModal(el.areaExistingModal);
+  openAreaImportPicker(append);
+}
+
+// 既存の領域をクリアするか追加するかの選択(ファイル選択の前に選び、選択後の処理へ引き継ぐ)
+let areaImportAppend = false;
+
+function openAreaImportPicker(append) {
+  areaImportAppend = append;
+  el.areaImportInput.value = '';
+  el.areaImportInput.click();
+}
+
+// ファイル選択後: GeoJSON から領域(Polygon / MultiPolygon)を読み込んで表示する
+async function importAreaFile(ev) {
+  const file = ev.target.files?.[0];
+  if (!file) return;
+  try {
+    const { geometries, skipped } = parseAreaGeoJSON(await file.text());
+    if (geometries.length === 0) {
+      showToast(t('area.importNoAreas'));
+      return;
+    }
+    await loadAreas(geometries, { append: areaImportAppend });
+    updateAreaPanel();
+    // 読み込んだものが見えるよう、メニューを閉じて領域の全体を表示する
+    el.mapLayerPanel.hidden = true;
+    fitMapToAreas();
+    let msg = t('area.imported', { name: file.name, n: geometries.length });
+    if (skipped > 0) msg += t('area.importedSkipped', { skipped });
+    logHistory(msg, 'success');
+    showToast(msg);
+  } catch (err) {
+    reportImportFailure(err);
+  }
+}
+
+// 領域のクリア: 全部の領域を消去する(経路・写真は消さない)
+async function handleAreaClear() {
+  const n = getAreaCount();
+  if (n === 0) {
+    showToast(t('area.nothingToClear'));
+    return;
+  }
+  if (!confirm(t('area.clearConfirm', { n }))) return;
+  await clearAreas();
+  updateAreaPanel();
+  logHistory(t('area.cleared'), '');
+  showToast(t('area.cleared'));
 }
 
 // ===== 更新版の確認(起動画面のボタンのタップ時) =====

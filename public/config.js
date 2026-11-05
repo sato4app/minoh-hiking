@@ -151,6 +151,10 @@ export const PHOTOS_UNEXPORTED_KEY = 'minoh-hiking.photos-unexported';
 // 再起動しても聞き直さないため)。「写真を撮影」を OFF から ON にしたら消し、次の撮影で聞き直す。
 export const PHOTO_SHOOT_CONFIRMED_KEY = 'minoh-hiking.photo-shoot-confirmed';
 
+// ===== 領域(「領域を表示」。?p=geojson を付けて開いたときだけ使える暫定機能。areas.js) =====
+// 領域の線と塗り(固定。マーカーの設定の対象外)。塗りは地図が読めるよう薄くする
+export const AREA_STYLE = { color: '#7C3AED', weight: 2, opacity: 0.9, fillColor: '#7C3AED', fillOpacity: 0.12 };
+
 // マーカー設定の対象種別と既定値。
 // 表示名は i18n.js の辞書で管理する(キーは markerType.<key> で導出)。
 // locked: 設定UIで変更不可とする属性(常に既定値を使用)。

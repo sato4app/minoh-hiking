@@ -2,6 +2,7 @@
 // - tileCachePackages ストア: 地図データのダウンロード履歴
 // - tracks ストア: 移動経路(最新の1件のみ。id='latest' で上書き保存する)
 // - photos ストア: 「写真を撮影」で撮った写真(1枚1件。写真のクリアで全件消す。経路とは別に扱う)
+// - areas ストア: 「領域を表示」で読み込んだ領域(最新の1件のみ。id='latest' で上書き保存する)
 //
 // tracks を IndexedDB に置くのは、記録した移動経路が再読み込み・アプリ終了で
 // 失われないようにするため。localStorage ではなく IndexedDB なのは、
@@ -11,12 +12,16 @@
 const DB_NAME = 'minoh-hiking';
 // 2: tracks ストアを追加
 // 3: photos ストアを追加
-const DB_VERSION = 3;
+// 4: areas ストアを追加
+const DB_VERSION = 4;
 const STORE = 'tileCachePackages';
 const TRACK_STORE = 'tracks';
 // 移動経路は最新の1件だけを保持する(同じキーへ上書きしていく)
 const LATEST_TRACK_ID = 'latest';
 const PHOTO_STORE = 'photos';
+const AREA_STORE = 'areas';
+// 領域も最新の1件だけを保持する(読み込みのたびに全体を上書きする)
+const LATEST_AREAS_ID = 'latest';
 
 let dbPromise = null;
 
@@ -36,6 +41,9 @@ function openDB() {
       }
       if (!db.objectStoreNames.contains(PHOTO_STORE)) {
         db.createObjectStore(PHOTO_STORE, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(AREA_STORE)) {
+        db.createObjectStore(AREA_STORE, { keyPath: 'id' });
       }
     };
     req.onsuccess = () => resolve(req.result);
@@ -124,4 +132,26 @@ export function deletePhotoRecord(id) {
 // 保存済みの写真を全件削除する(写真のクリアに合わせて呼ぶ)
 export function clearPhotoRecords() {
   return withStore(PHOTO_STORE, 'readwrite', (store) => store.clear());
+}
+
+// ===== 領域(「領域を表示」で読み込んだもの) =====
+// geometries は GeoJSON の geometry(Polygon / MultiPolygon)の配列
+
+export function saveLatestAreas(geometries) {
+  return withStore(AREA_STORE, 'readwrite', (store) => store.put({
+    id: LATEST_AREAS_ID,
+    savedAt: Date.now(),
+    geometries
+  }));
+}
+
+// 保存済みの領域を返す(無ければ空配列)
+export async function loadLatestAreas() {
+  const record = await withStore(AREA_STORE, 'readonly', (store) => store.get(LATEST_AREAS_ID));
+  return Array.isArray(record?.geometries) ? record.geometries : [];
+}
+
+// 保存済みの領域を削除する(領域のクリアに合わせて呼ぶ)
+export function clearLatestAreas() {
+  return withStore(AREA_STORE, 'readwrite', (store) => store.delete(LATEST_AREAS_ID));
 }
