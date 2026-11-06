@@ -70,8 +70,6 @@ const DICT = {
   'map.toggleCenterCurrent': { ja: '現在地点は中央に表示', en: 'Keep Current Location Centered' },
   'map.toggleTrackRecording': { ja: '移動経路を記録', en: 'Record Track' },
   'map.togglePhotoCapture': { ja: '写真を撮影', en: 'Take Photos' },
-  // 領域を表示(?p=geojson を付けて開いたときだけ出す暫定機能)
-  'map.toggleAreas': { ja: '領域を表示', en: 'Show Areas' },
   'map.backToHome': { ja: '起動時の画面に戻る', en: 'Back to Start Screen' },
 
   // ----- 移動記録 -----
@@ -604,42 +602,6 @@ const DICT = {
     ja: '起動時のバージョン確認: 地図 {map} / アプリ {app}',
     en: 'Startup version check: map {map} / app {app}'
   },
-
-  // ----- 領域を表示(areas.js。?p=geojson を付けて開いたときだけ使える暫定機能) -----
-  // トグルの右に添える領域の数
-  'area.count': { ja: '{n}件', en: '{n}' },
-  // 表示中の領域があるときに、読み込みの前に出す選択モーダル(クリア / 追加 / 中止 の3択)
-  'area.existingTitle': { ja: '領域の読み込み(GeoJSON)', en: 'Import Areas (GeoJSON)' },
-  'area.existingMessage': {
-    ja: '表示中の領域が {n} 件あります。表示中の領域をクリアするか、残したまま追加するかを選んでください。',
-    en: 'Areas currently on the map: {n}. Choose whether to clear them, or keep them and add more.'
-  },
-  'area.existingClear': { ja: 'クリアして読み込み', en: 'Clear and Import' },
-  'area.existingAppend': { ja: '追加して読み込み', en: 'Add and Import' },
-  'area.importInvalidJson': {
-    ja: 'GeoJSONファイルとして解析できません',
-    en: 'The file could not be parsed as GeoJSON'
-  },
-  'area.importOutOfRange': {
-    ja: '緯度・経度の範囲外の座標があります。緯度・経度(WGS84)で書かれた GeoJSON を選んでください',
-    en: 'Some coordinates are out of latitude/longitude range. Choose a GeoJSON file in latitude/longitude (WGS84)'
-  },
-  'area.importNoAreas': {
-    ja: '領域が見つかりませんでした(GeoJSON に Polygon / MultiPolygon がありません)',
-    en: 'No areas found (no Polygon or MultiPolygon in the GeoJSON file)'
-  },
-  'area.imported': { ja: '{name} から領域を {n} 件読み込みました', en: 'Imported {n} areas from {name}' },
-  // 領域以外(点・線)や形の壊れたものを読み飛ばしたとき、読み込みの結果に添える
-  'area.importedSkipped': {
-    ja: '(領域でないもの {skipped} 件は読み込んでいません)',
-    en: ' ({skipped} non-area items were not imported)'
-  },
-  'area.nothingToClear': { ja: 'クリアする領域がありません', en: 'No areas to clear' },
-  'area.clearConfirm': {
-    ja: '表示中の領域({n} 件)をすべてクリアします。よろしいですか?',
-    en: 'Clear all areas currently shown on the map ({n})?'
-  },
-  'area.cleared': { ja: '領域をクリアしました', en: 'Areas cleared' },
 
   // ----- アプリ・地図タイルの更新確認(update.js) -----
   'update.appConfirm': {

@@ -173,23 +173,6 @@
       </div>
       <!-- 写真の「読み込み」で開くファイル選択(KMZ)。accept を付けない理由は GPX と同じ -->
       <input type="file" id="photoImportInput" hidden />
-      <!-- 領域を表示(暫定機能): 起動 URL に ?p=geojson を付けて開いたときだけ出す(app.js が hidden を外す)。
-           ON で読み込んだ領域(GeoJSON の Polygon / MultiPolygon)を地図に重ね、読み込み・クリアを出す。
-           OFF は表示を消すだけで、領域は残す。トグルの右には領域の数を添える -->
-      <div id="areaSection" hidden>
-        <label class="toggle toggle-switch">
-          <input type="checkbox" id="toggleAreas" />
-          <span class="toggle-slider" aria-hidden="true"></span>
-          <span class="toggle-text" data-i18n="map.toggleAreas">領域を表示</span>
-          <span class="toggle-status" id="areaStatus" hidden></span>
-        </label>
-        <div class="track-inline-actions" id="areaActions" hidden>
-          <button type="button" class="btn-track-mini" id="btnAreaImport" data-i18n="track.import">読み込み</button>
-          <button type="button" class="btn-track-mini" id="btnAreaClear" data-i18n="common.clear">クリア</button>
-        </div>
-        <!-- 「読み込み」で開くファイル選択(GeoJSON)。accept を付けない理由は GPX と同じ -->
-        <input type="file" id="areaImportInput" hidden />
-      </div>
       <hr class="panel-divider" />
       <!-- マーカーの設定(マーカーの設定モーダルを開く)。マーカーはマップ画面でしか見えないため、
            起動画面の「情報・言語/Info & Language」ではなくここからだけ開く -->
@@ -281,26 +264,6 @@
         <div class="button-group">
           <button type="button" id="btnPhotoExistingClear" class="btn btn-primary"></button>
           <button type="button" id="btnPhotoExistingAppend" class="btn btn-primary"></button>
-          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.cancel">キャンセル</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 表示中の領域があるときに、領域の読み込みの前に「クリア/追加/中止」を選ぶモーダル。
-       閉じる(×・背景・キャンセル)は読み込みの中止で、領域には手を付けない -->
-  <div class="modal" id="areaExistingModal" hidden role="dialog" aria-modal="true" aria-labelledby="areaExistingTitle">
-    <div class="modal-backdrop" data-close-modal></div>
-    <div class="modal-panel" role="document">
-      <header class="modal-header">
-        <h2 id="areaExistingTitle" data-i18n="area.existingTitle">領域の読み込み(GeoJSON)</h2>
-        <button type="button" class="btn-icon" data-close-modal aria-label="閉じる" data-i18n-aria="common.close">×</button>
-      </header>
-      <div class="modal-body">
-        <p class="modal-subtitle" id="areaExistingMessage"></p>
-        <div class="button-group">
-          <button type="button" id="btnAreaExistingClear" class="btn btn-primary" data-i18n="area.existingClear">クリアして読み込み</button>
-          <button type="button" id="btnAreaExistingAppend" class="btn btn-primary" data-i18n="area.existingAppend">追加して読み込み</button>
           <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.cancel">キャンセル</button>
         </div>
       </div>
