@@ -76,7 +76,9 @@ const DICT = {
   'track.start': { ja: '記録開始', en: 'Start Recording' },
   'track.stop': { ja: '記録停止', en: 'Stop Recording' },
   'track.export': { ja: '出力', en: 'Export' },
-  'track.import': { ja: '読み込み', en: 'Import' },
+  // 読み込みボタンのラベル。経路(GPX)と写真(KMZ)のどちらの読み込みかをボタンだけで分かるようにする
+  'track.importGpx': { ja: 'GPX読み込み', en: 'Import GPX' },
+  'photo.importKmz': { ja: 'KMZ読み込み', en: 'Import KMZ' },
   'track.importWhileRecording': {
     ja: '記録中は読み込みできません。記録を停止してください',
     en: 'Cannot import while recording. Stop recording first.'
@@ -109,10 +111,10 @@ const DICT = {
     ja: '{name} を読み込みました({routes}経路 / {count}地点)',
     en: 'Imported {name} ({routes} routes / {count} points)'
   },
-  // 経路の「読み込み」で KMZ を選んだとき(写真は写真の「読み込み」から)
+  // 経路の「GPX読み込み」で KMZ を選んだとき(写真は写真の「KMZ読み込み」から)
   'track.importIsKmz': {
-    ja: '写真(KMZ)は「写真を撮影」の「読み込み」から読み込んでください',
-    en: 'Import photos (KMZ) with "Import" under "Take Photos"'
+    ja: '写真(KMZ)は「写真を撮影」の「KMZ読み込み」から読み込んでください',
+    en: 'Import photos (KMZ) with "Import KMZ" under "Take Photos"'
   },
   'track.importFailed': {
     ja: '読み込みに失敗しました: {message}',
@@ -272,12 +274,12 @@ const DICT = {
     ja: '出力していない写真があります。残したい場合は、先に「出力」で KMZ ファイルに出力してください。',
     en: 'Some photos have not been exported. To keep them, first export them as a KMZ file with "Export".'
   },
-  // 読み込み(写真の「読み込み」から。KMZ だけを読み込む)
+  // 読み込み(写真の「KMZ読み込み」から。KMZ だけを読み込む)
   'photo.importNotKmz': { ja: 'KMZファイルではありません', en: 'The file is not a KMZ file' },
-  // 写真の「読み込み」で KMZ 以外(GPX など)を選んだとき(経路は経路の「読み込み」から)
+  // 写真の「KMZ読み込み」で KMZ 以外(GPX など)を選んだとき(経路は経路の「GPX読み込み」から)
   'photo.importIsNotKmz': {
-    ja: 'KMZファイルではありません。移動経路(GPX)は「移動経路を記録」の「読み込み」から読み込んでください',
-    en: 'This is not a KMZ file. Import tracks (GPX) with "Import" under "Record Track"'
+    ja: 'KMZファイルではありません。移動経路(GPX)は「移動経路を記録」の「GPX読み込み」から読み込んでください',
+    en: 'This is not a KMZ file. Import tracks (GPX) with "Import GPX" under "Record Track"'
   },
   'photo.importNoKml': { ja: 'KMZファイルの中に KML がありません', en: 'No KML found in the KMZ file' },
   'photo.importInvalidKml': {

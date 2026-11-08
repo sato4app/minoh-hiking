@@ -761,9 +761,11 @@ body.view-state-map .leaflet-control-container {
   font-variant-numeric: tabular-nums;
 }
 
+/* ラベルは1行に収める(「GPX読み込み」等が折り返さないよう nowrap) */
 .btn-track-mini {
   padding: 0.3rem 0.8rem;
   font: inherit;
+  white-space: nowrap;
   border: 1px solid #1d4ed8;
   background: #fff;
   color: #1d4ed8;

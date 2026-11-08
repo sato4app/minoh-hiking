@@ -476,8 +476,8 @@ export const FAQ_SECTIONS = [
             en: 'Only the most recent track is stored as data inside the app on your device. Deleting the app also deletes that data.'
           },
           {
-            ja: '残しておきたいときは、「出力」で GPX ファイルに保存してください。保存したファイルは「読み込み」で地図に戻せます。',
-            en: 'To keep it, save it as a GPX file with "Export". A saved file can be put back on the map with "Import".'
+            ja: '残しておきたいときは、「出力」で GPX ファイルに保存してください。保存したファイルは「GPX読み込み」で地図に戻せます。',
+            en: 'To keep it, save it as a GPX file with "Export". A saved file can be put back on the map with "Import GPX".'
           },
           {
             ja: '「写真を撮影」のカメラで撮った写真も、アプリ内にだけ保存されます(端末の写真には残りません)。写真は経路とは別に扱い、「写真を撮影」の「クリア」で消えます。残したいときは、「写真を撮影」の「出力」で KMZ ファイルに出力してください。',
@@ -552,8 +552,8 @@ export const FAQ_SECTIONS = [
         },
         a: [
           {
-            ja: '前の経路を「読み込み」で表示してから記録を始め、確認画面で「追加して記録開始」を選んでください。',
-            en: 'Display the earlier track with "Import", then start recording and choose "Add a Route and Start Recording" on the confirmation screen.'
+            ja: '前の経路を「GPX読み込み」で表示してから記録を始め、確認画面で「追加して記録開始」を選んでください。',
+            en: 'Display the earlier track with "Import GPX", then start recording and choose "Add a Route and Start Recording" on the confirmation screen.'
           },
           {
             ja: '経路が「経路 1」「経路 2」として別々に残り、それぞれの地点数・移動距離が表示されます。',

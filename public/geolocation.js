@@ -29,6 +29,12 @@ let recenterWithoutAnimation = true;
 let lastKnownLatLng = null;
 // 直近の位置を取得した時刻[ms](鮮度の判定は isLastFixFresh)
 let lastKnownAtMs = 0;
+// 直近の位置の測位精度[m](coords.accuracy)。記録開始時の1点目に使えるかの判定に使う
+let lastKnownAccuracyM = null;
+// これまでに受け取った測位のうち最も新しい測位時刻[ms](pos.timestamp。fixTimeOf 参照)。
+// これより古い測位が後から届いたら捨てる(watchPosition と getCurrentPosition の
+// 応答順は保証されず、良い位置の後に古い粗い位置が届くことがあるため)
+let lastFixTimeMs = 0;
 // 直近の位置を「現在地」として即時反映してよい上限。これより古い位置は使わず次の取得を待つ。
 // 監視は両トグル OFF・マップ画面を離れたときに止まるため、再開直後の直近位置は
 // 何分も前の地点でありうる。そこへ地図を寄せると現在地から離れた場所が表示されてしまう
@@ -41,6 +47,16 @@ let locationErrorReported = false;
 // 「移動した」の判定: 直近の記録点から 20m 以上離れたか、1 分以上経過した場合に記録
 const TRACK_MIN_DISTANCE_M = 20;
 const TRACK_MIN_INTERVAL_MS = 60 * 1000;
+// 記録点にしない測位(外れ値)の判定。表示(青丸・三角・現在地点までの線)は従来どおり更新し、
+// 記録点として残すかだけをここで絞る。
+// - 測位精度がこれより悪い位置は記録しない。他のアプリから戻った直後など GPS を捕まえ直すまでは
+//   Wi-Fi・基地局による概算位置(誤差 100m 以上)が先に届き、そのまま記録すると経路が飛んで戻る。
+//   森や谷では GPS でも 30m 台になることがあるため、それより少し緩めにする
+const TRACK_MAX_ACCURACY_M = 50;
+// - 直近の記録点からの速さがこれを超える位置は記録しない(歩行ではありえない飛び)。
+//   時間は測位時刻の差で測るので、長く他のアプリを開いていた後の正しい移動は残る。
+//   誤って残った記録点に引きずられても、時間がたてば速さが下がり記録が再開する
+const TRACK_MAX_SPEED_MPS = 5;
 let isRecordingTrack = false;
 // 移動経路(経路)の一覧。1本 = 1回の記録、または読み込んだGPXの1セグメント。
 // 各要素は次の形: {
@@ -205,12 +221,11 @@ export function startTrackRecording({ append = false } = {}) {
   // マーカー表示・追従が両方 OFF でも、記録のため現在地監視を確実に開始する。
   refreshLocationWatch();
   recordingTrack = createTrack();
-  // 既に現在地が取得済なら、最初の点として打つ(待たずに描画開始する)。
+  // 新しく精度も十分な現在地が取得済なら、最初の点として打つ(待たずに描画開始する)。
   // 青丸は消さない。表示するかは「現在地点をマーカー表示」トグルだけで決まる。
-  if (currentLocationMarker) {
-    const ll = currentLocationMarker.getLatLng();
-    appendTrackPoint(recordingTrack, [ll.lat, ll.lng]);
-    updateRecordingLive(ll);
+  if (isLastFixFresh() && isAccurateForTrack(lastKnownAccuracyM)) {
+    appendTrackPoint(recordingTrack, lastKnownLatLng, lastFixTimeMs);
+    updateRecordingLive(lastKnownLatLng);
   }
 }
 
@@ -239,12 +254,25 @@ function removeTrackLayers(track) {
   if (track.endMarker) map.removeLayer(track.endMarker);
 }
 
-// 移動判定: 直近の記録点から 20m 以上離れた、または 1 分以上経過していれば記録対象
-function shouldRecordTrackPoint(latlng, nowMs) {
+// 記録点にしてよい測位精度か。精度が得られない(非数)ときは判定できないため通す
+function isAccurateForTrack(accuracyM) {
+  return !Number.isFinite(accuracyM) || accuracyM <= TRACK_MAX_ACCURACY_M;
+}
+
+// 記録判定。外れ値を除いたうえで、直近の記録点から 20m 以上離れた、または 1 分以上経過していれば記録対象。
+// fixTimeMs は測位時刻(fixTimeOf)、accuracyM は測位精度[m]。
+function shouldRecordTrackPoint(latlng, fixTimeMs, accuracyM) {
+  // 精度の悪い測位(概算位置)は記録しない
+  if (!isAccurateForTrack(accuracyM)) return false;
   if (!lastTrackLatLng) return true;
+  const elapsedMs = fixTimeMs - lastTrackTimeMs;
+  // 直近の記録点より古い(または同時刻の)測位は記録しない
+  if (elapsedMs <= 0) return false;
   const distance = L.latLng(latlng).distanceTo(L.latLng(lastTrackLatLng));
+  // 歩行ではありえない速さの移動(飛び)は記録しない
+  if (distance / (elapsedMs / 1000) > TRACK_MAX_SPEED_MPS) return false;
   if (distance >= TRACK_MIN_DISTANCE_M) return true;
-  if (nowMs - lastTrackTimeMs >= TRACK_MIN_INTERVAL_MS) return true;
+  if (elapsedMs >= TRACK_MIN_INTERVAL_MS) return true;
   return false;
 }
 
@@ -419,9 +447,9 @@ export async function restoreSavedTrack() {
 let onTrackPointAppended = null;
 export function setOnTrackPointAppended(fn) { onTrackPointAppended = fn; }
 
-// 記録点を追加: 経路の線に頂点を足し、最初の点なら開始点マーカーを置く(記録時刻は今)。
-function appendTrackPoint(track, latlng) {
-  const timeMs = Date.now();
+// 記録点を追加: 経路の線に頂点を足し、最初の点なら開始点マーカーを置く。
+// timeMs は記録時刻(測位時刻。fixTimeOf)。
+function appendTrackPoint(track, latlng, timeMs) {
   if (!track) return;
   const wasEmpty = track.polyline.getLatLngs().length === 0;
   track.polyline.addLatLng(latlng);
@@ -620,12 +648,34 @@ function reportLocationError(msg) {
   locationErrorCb && locationErrorCb(msg);
 }
 
+// 測位の時刻[ms]。基本は pos.timestamp(測位した時刻)を使う。
+// 値が無い・明らかにおかしい(未来、または1日以上前)ときは受け取った時刻で代える
+const FIX_TIME_MAX_FUTURE_MS = 60 * 1000;
+const FIX_TIME_MAX_PAST_MS = 24 * 60 * 60 * 1000;
+function fixTimeOf(pos) {
+  const nowMs = Date.now();
+  const ts = Number(pos.timestamp);
+  if (!Number.isFinite(ts) || ts > nowMs + FIX_TIME_MAX_FUTURE_MS || ts < nowMs - FIX_TIME_MAX_PAST_MS) {
+    return nowMs;
+  }
+  return ts;
+}
+
+// 受け取った測位を直近の位置として覚える
+function rememberFix(pos, fixTimeMs) {
+  lastKnownLatLng = [pos.coords.latitude, pos.coords.longitude];
+  lastKnownAtMs = Date.now();
+  lastKnownAccuracyM = pos.coords.accuracy;
+  lastFixTimeMs = Math.max(lastFixTimeMs, fixTimeMs);
+}
+
 // 位置取得成功時の更新処理(マーカー表示・記録・地図追従)
 function onGeoSuccess(pos) {
-  const { latitude, longitude } = pos.coords;
-  const latlng = [latitude, longitude];
-  lastKnownLatLng = latlng;
-  lastKnownAtMs = Date.now();
+  const fixTimeMs = fixTimeOf(pos);
+  // 既に処理した測位より古い測位が後から届いたら、表示にも記録にも使わない
+  if (fixTimeMs < lastFixTimeMs) return;
+  rememberFix(pos, fixTimeMs);
+  const latlng = lastKnownLatLng;
 
   // 現在地マーカー(青丸): 「現在地点をマーカー表示」ON なら表示する。
   // 記録中も出す(ライブ現在地は三角でも示すが、青丸を消す理由にはしない)。
@@ -637,7 +687,9 @@ function onGeoSuccess(pos) {
 
   // 記録中: 条件を満たせば記録点を追加し、三角をライブ現在地へ追従(進行方向つき)
   if (isRecordingTrack && recordingTrack) {
-    if (shouldRecordTrackPoint(latlng, Date.now())) appendTrackPoint(recordingTrack, latlng);
+    if (shouldRecordTrackPoint(latlng, fixTimeMs, pos.coords.accuracy)) {
+      appendTrackPoint(recordingTrack, latlng, fixTimeMs);
+    }
     updateRecordingLive(latlng);
   }
 
@@ -749,9 +801,7 @@ export function showCurrentLocationSpot({ onEnd } = {}) {
   }
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      const { latitude, longitude } = pos.coords;
-      lastKnownLatLng = [latitude, longitude];
-      lastKnownAtMs = Date.now();
+      rememberFix(pos, fixTimeOf(pos));
       renderCurrentLocationSpot(lastKnownLatLng);
     },
     (err) => {
