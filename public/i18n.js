@@ -41,6 +41,7 @@ const DICT = {
   // ----- 共通 -----
   'app.title': { ja: '箕面ハイキング', en: 'Minoh Hiking' },
   'common.close': { ja: '閉じる', en: 'Close' },
+  'common.back': { ja: '戻る', en: 'Back' },
   'common.cancel': { ja: 'キャンセル', en: 'Cancel' },
   'common.clear': { ja: 'クリア', en: 'Clear' },
   // 表示設定パネルの「移動経路を記録」「写真を撮影」の右に添える、出力済みかどうか。
@@ -254,6 +255,8 @@ const DICT = {
   'photo.deleteFailed': { ja: '写真を削除できませんでした: {message}', en: 'Could not delete the photo: {message}' },
   // 写真の表示の「一覧」と、写真の一覧(タイル状に並べ、押すとその写真を表示する)
   'photo.list': { ja: '一覧', en: 'List' },
+  // 写真の表示の「撮影」(この上にカメラを開いて追加で撮る)
+  'photo.shoot': { ja: '撮影', en: 'Camera' },
   'photo.listTitle': { ja: '写真の一覧({n} 枚)', en: 'Photos ({n})' },
   'photo.takenAt': { ja: '撮影日時: {time}', en: 'Taken: {time}' },
   'photo.takenAtUnknown': { ja: '撮影日時: 不明', en: 'Taken: unknown' },
@@ -303,7 +306,6 @@ const DICT = {
   // ----- アプリ内カメラ(camera.js) -----
   'camera.aria': { ja: 'カメラ', en: 'Camera' },
   'camera.shutter': { ja: '撮影', en: 'Take Photo' },
-  'camera.viewLast': { ja: '撮った写真を見る', en: 'View the Last Photo' },
   'camera.starting': { ja: 'カメラを起動しています…', en: 'Starting the camera…' },
   'camera.denied': {
     ja: 'カメラの使用が許可されていません。ブラウザや端末の設定で、このアプリのカメラの使用を許可してください',

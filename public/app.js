@@ -35,7 +35,7 @@ import {
   setOnTrackPointAppended, setOnTrackNotice,
   capturePhotoPosition
 } from './geolocation.js';
-import { isCameraSupported, isCameraOpen, openCamera, closeCamera, setCameraStatus } from './camera.js';
+import { isCameraSupported, openCamera, closeCamera, setCameraStatus } from './camera.js';
 import {
   setPhotoHandlers, setPhotoStyle, getPhotos, getPhotoCount, getPhoto, fitMapToPhotos,
   addPhoto, renamePhoto, deletePhoto, clearPhotos, restorePhotos, importPhotos, getPhotoThumbUrl,
@@ -191,6 +191,7 @@ const el = {
   photoViewMeta: document.getElementById('photoViewMeta'),
   btnPhotoDelete: document.getElementById('btnPhotoDelete'),
   btnPhotoViewList: document.getElementById('btnPhotoViewList'),
+  btnPhotoViewShoot: document.getElementById('btnPhotoViewShoot'),
   // 写真の一覧(タイル)
   photoListModal: document.getElementById('photoListModal'),
   photoListTitle: document.getElementById('photoListTitle'),
@@ -549,6 +550,8 @@ function bindEvents() {
   on(el.btnPhotoDelete, 'click', deleteViewingPhoto);
   // 「一覧」: 写真の一覧(タイル)へ切り替える。押した写真の表示に戻る
   on(el.btnPhotoViewList, 'click', () => openPhotoList(viewingPhotoId));
+  // 「撮影」: 写真の表示の上にカメラを開いて追加で撮る(撮った写真は最後に加わり、その表示に替わる)
+  on(el.btnPhotoViewShoot, 'click', shootFromPhotoView);
 
   // 読み込み: GPX ファイルを選び、記録済みの移動経路として地図に表示する(写真は扱わない)。
   // 記録中は経路が入れ替わると記録が壊れるため受け付けない。
@@ -1751,8 +1754,11 @@ function warnIfPhotosNearLimit({ delayToast = false } = {}) {
 
 // ===== 写真の撮影(アプリ内カメラ) =====
 // カメラボタンの表示: 「写真を撮影」ON のときだけ出す(アプリ内カメラが使えない端末では出さない)
+// 写真の表示の「撮影」も同じ条件で出す(出せないときは「一覧」「戻る」の2つになる)
 function updatePhotoButtonState(enabled) {
-  if (el.btnPhotoCamera) el.btnPhotoCamera.hidden = !enabled || !isCameraSupported();
+  const hidden = !enabled || !isCameraSupported();
+  if (el.btnPhotoCamera) el.btnPhotoCamera.hidden = hidden;
+  if (el.btnPhotoViewShoot) el.btnPhotoViewShoot.hidden = hidden;
 }
 
 // 表示中の写真について「クリア/追加」を確認した日(yyyymmdd)。
@@ -1794,21 +1800,13 @@ function openPhotoCameraNow() {
     return;
   }
   el.mapLayerPanel.hidden = true;
-  const photos = getPhotos();
   openCamera({
-    // 既に撮った写真があれば、開いた時点で最後の1枚をサムネイルに出す
-    lastPhoto: photos.length > 0 ? photos[photos.length - 1].blob : null,
     canShoot: () => {
       if (getPhotoCount() + pendingShots < PHOTO_MAX_COUNT) return true;
       setCameraStatus(t('photo.limitReached', { max: PHOTO_MAX_COUNT }));
       return false;
     },
     onShot: handlePhotoShot,
-    // サムネイル: 最後の写真を開く(前後の写真へは写真の表示の矢印ボタンで移る)
-    onThumb: () => {
-      const list = getPhotos();
-      if (list.length > 0) openPhotoView(list[list.length - 1].id);
-    },
     onError: (msg) => {
       logHistory(msg, 'error');
       showToast(msg);
@@ -1817,9 +1815,21 @@ function openPhotoCameraNow() {
   });
 }
 
+// 写真の表示の「撮影」: 入力中の名前を保存し、写真の表示は開いたままカメラを重ねて開く
+// (カメラを × で閉じれば元の写真の表示に戻る)。表示中の写真に足して撮るので「クリア/追加」は聞かない
+function shootFromPhotoView() {
+  if (el.btnPhotoViewShoot.hidden) return;
+  commitPhotoViewName();
+  blurActiveElement();
+  writeShootConfirmedDate(formatDateStr(Date.now()));
+  openPhotoCameraNow();
+}
+
 // 撮った1枚を保存する: 位置を取り直してから写真を保存する(移動経路には何も書かない)。
-// 位置が分からないときは保存しない(撮影地点の無い写真は地図に出せず、KMZ にも書けないため)
-async function handlePhotoShot({ blob, timeMs }) {
+// 位置が分からないときは保存しない(撮影地点の無い写真は地図に出せず、KMZ にも書けないため)。
+// 保存が済んだら、カメラを閉じて撮った写真の表示を開く(撮影後のカメラ画面は残さない)。
+// 保存を待つ間に × などでカメラが閉じられていたら、表示は開かずトーストで知らせる
+async function handlePhotoShot({ blob, timeMs, closeIfWaiting }) {
   const name = t('photo.defaultName', { n: getPhotoCount() + pendingShots + 1 });
   pendingShots++;
   setCameraStatus(t('photo.locating', { name }));
@@ -1827,22 +1837,26 @@ async function handlePhotoShot({ blob, timeMs }) {
     const latlng = await capturePhotoPosition();
     if (!latlng) {
       const msg = t('photo.noPosition');
-      setCameraStatus(msg);
+      closeIfWaiting();
       logHistory(msg, 'error');
       showToast(msg);
       return;
     }
-    await addPhoto({ name, timeMs, lat: latlng[0], lng: latlng[1], blob });
-    setCameraStatus(t('photo.saved', { name }));
+    const photo = await addPhoto({ name, timeMs, lat: latlng[0], lng: latlng[1], blob });
     logHistory(t('photo.saved', { name }), 'success');
-    // 上限に近づいたら警告する(カメラの上にもトーストで出す)。警告を出したときは保存のトーストは省く
+    // 上限に近づいたら警告する(トーストで出す)。警告を出したときは保存のトーストは省く
     const warned = warnIfPhotosNearLimit();
-    // 撮影後にカメラが自動で閉じた後で保存が終わったときは、地図の上で知らせる
-    if (!warned && !isCameraOpen()) showToast(t('photo.saved', { name }));
+    if (closeIfWaiting()) {
+      openPhotoView(photo.id);
+    } else {
+      // 待つ間にカメラが閉じられていた: 写真の表示が開いていれば枚数の表示だけ直し、保存したことを知らせる
+      if (!el.photoViewModal.hidden) refreshPhotoViewIndex();
+      if (!warned) showToast(t('photo.saved', { name }));
+    }
   } catch (err) {
     // 保存できなかった(容量不足など)
     const msg = t('photo.saveFailed', { message: err?.message || err?.name || '' });
-    setCameraStatus(msg);
+    closeIfWaiting();
     logHistory(msg, 'error');
     showToast(msg);
   } finally {
@@ -1864,8 +1878,10 @@ function formatPhotoTime(ms) {
   return t('photo.takenAt', { time });
 }
 
-// 写真の表示を開く(地図のカメラの印・カメラ画面のサムネイルから)
+// 写真の表示を開く(地図のカメラの印・写真の一覧・撮影の直後から)。
+// 既に開いているとき(「撮影」で撮った後)は、入力中の名前を保存してから撮った写真に替える
 function openPhotoView(id) {
+  if (!el.photoViewModal.hidden) commitPhotoViewName();
   if (!showPhotoInView(id)) return;
   el.mapLayerPanel.hidden = true;
   el.photoViewModal.hidden = false;
@@ -1885,10 +1901,22 @@ function showPhotoInView(id) {
   el.photoViewImage.alt = photo.name;
   el.photoViewName.value = photo.name;
   el.photoViewMeta.textContent = formatPhotoTime(photo.timeMs);
-  el.photoViewTitle.textContent = t('photo.viewTitleIndex', { n: index + 1, total: photos.length });
-  el.btnPhotoViewPrev.disabled = index === 0;
-  el.btnPhotoViewNext.disabled = index === photos.length - 1;
+  setPhotoViewIndex(index, photos.length);
   return true;
+}
+
+// 見出しの「何枚目/全何枚」と、左右の矢印ボタンを押せるかどうか
+function setPhotoViewIndex(index, total) {
+  el.photoViewTitle.textContent = t('photo.viewTitleIndex', { n: index + 1, total });
+  el.btnPhotoViewPrev.disabled = index === 0;
+  el.btnPhotoViewNext.disabled = index === total - 1;
+}
+
+// 表示中の写真はそのままで、枚数が変わったときに見出しと矢印ボタンだけ直す
+function refreshPhotoViewIndex() {
+  const photos = getPhotos();
+  const index = photos.findIndex((p) => p.id === viewingPhotoId);
+  if (index >= 0) setPhotoViewIndex(index, photos.length);
 }
 
 // 左右の矢印ボタン: 入力中の名前を保存してから、前(step=-1)・次(step=1)の写真へ移る

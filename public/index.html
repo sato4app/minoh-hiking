@@ -295,10 +295,12 @@
     </div>
   </div>
 
-  <!-- 写真の表示(地図のカメラの印・カメラ画面のサムネイルから開く)。名前はここで変えられ、
+  <!-- 写真の表示(地図のカメラの印・写真の一覧・撮影の直後に開く)。名前はここで変えられ、
        閉じたとき・入力を確定したとき・矢印ボタンで移るときに保存する(名前を変えた写真は未出力に戻る)。
        見出しは「写真 n / 全数」(app.js が設定)。左右の矢印ボタンで撮影・読み込みの順に前後の写真へ移る。
-       名前の欄の右のごみ箱で表示中の写真を削除し、「一覧」で写真の一覧(タイル)へ切り替える -->
+       名前の欄の右のごみ箱で表示中の写真を削除し、「一覧」で写真の一覧(タイル)へ切り替える。
+       「撮影」はこの上にカメラを開いて追加で撮る(撮った写真は最後に加わり、その表示に替わる)。
+       「撮影」は「写真を撮影」ON でカメラが使えるときだけ出す(app.js の updatePhotoButtonState) -->
   <div class="modal" id="photoViewModal" hidden role="dialog" aria-modal="true" aria-labelledby="photoViewTitle">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel" role="document">
@@ -327,7 +329,8 @@
         <p class="modal-note photo-view-meta" id="photoViewMeta"></p>
         <div class="button-group button-group-row">
           <button type="button" class="btn btn-primary" id="btnPhotoViewList" data-i18n="photo.list">一覧</button>
-          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.close">閉じる</button>
+          <button type="button" class="btn btn-primary" id="btnPhotoViewShoot" data-i18n="photo.shoot" hidden>撮影</button>
+          <button type="button" class="btn btn-neutral" data-close-modal data-i18n="common.back">戻る</button>
         </div>
       </div>
     </div>
@@ -359,12 +362,10 @@
     <video class="camera-video" id="cameraVideo" playsinline muted autoplay></video>
     <div class="camera-flash" id="cameraFlash" aria-hidden="true"></div>
     <p class="camera-status" id="cameraStatus" role="status" aria-live="polite"></p>
+    <!-- 下部: 左に閉じる、中央にシャッター。1回開くごとに1枚撮り、保存が済むと閉じて写真の表示を開く -->
     <div class="camera-bar">
       <button type="button" class="camera-close" id="btnCameraClose" aria-label="閉じる" data-i18n-aria="common.close">×</button>
       <button type="button" class="camera-shutter" id="btnCameraShutter" aria-label="撮影" data-i18n-aria="camera.shutter"></button>
-      <button type="button" class="camera-thumb is-empty" id="btnCameraThumb" aria-label="撮った写真を見る" data-i18n-aria="camera.viewLast" disabled>
-        <img id="cameraThumbImage" alt="" />
-      </button>
     </div>
   </div>
 

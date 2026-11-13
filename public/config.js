@@ -140,9 +140,6 @@ export const PHOTO_JPEG_QUALITY = 0.8;
 export const PHOTO_POSITION_TIMEOUT_MS = 10000;
 // カメラ画面は、この秒数操作が無ければ閉じる(ポケットの中で開いたままになり電池を使い続けないように)。
 export const CAMERA_IDLE_CLOSE_SEC = 60;
-// 撮影してサムネイルが出たら、この秒数で自動的にカメラを閉じて地図に戻る(× を押さなくてよい)。
-// その間にシャッターを押す・画面に触れると数え直す(続けて撮れる)。
-export const CAMERA_AFTER_SHOT_CLOSE_SEC = 5;
 // 出力(KMZ)していない写真があるか('1' / 無し)。写真ごとには持たず、1枚でも未出力があれば
 // 全部を未出力として扱う。撮影・名前の変更で立て、出力・クリアで降ろす。
 export const PHOTOS_UNEXPORTED_KEY = 'minoh-hiking.photos-unexported';
