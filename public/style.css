@@ -125,7 +125,11 @@ textarea {
   left: 50%;
   bottom: calc(2.5rem + var(--safe-area-bottom));
   transform: translateX(-50%) translateY(0.5rem);
+  /* left: 50% のままでは幅が画面の半分に縮むため、文の長さに合わせて max-width まで広げる
+     (出力の完了など長めの文が細長く折り返されないように) */
+  width: max-content;
   max-width: min(90vw, 420px);
+  overflow-wrap: anywhere;
   padding: 0.7rem 1.1rem;
   background: rgba(33, 33, 33, 0.92);
   color: #fff;
