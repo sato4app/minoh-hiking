@@ -24,7 +24,7 @@ import {
   setHikingRoutesVisible, setHikingRouteStyle, setHikingSpotStyle,
   setClosuresVisible, setClosureClosedStyle, setClosureDifficultStyle,
   setZoomDisplayVisible, getFeatureCounts,
-  setCurrentMarkerButtonHandler, setCurrentMarkerButtonState
+  setCurrentMarkerButtonHandler, setCurrentMarkerButtonState, getMap
 } from './map.js';
 import {
   setLocationActiveForMapView, setCurrentMarkerVisible, setFollowCurrentLocation,
@@ -47,7 +47,7 @@ import {
   getMapdataVersion, getClosureVersion, getClosureCount
 } from './published-data.js';
 import {
-  TRACK_EXPORT_SEQ_KEY, PHOTO_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, TOAST_DURATION_SEC,
+  TRACK_EXPORT_SEQ_KEY, PHOTO_EXPORT_SEQ_KEY, REOPEN_APP_SETTINGS_KEY, RESTORE_SCREEN_KEY, TOAST_DURATION_SEC,
   TRACK_RECORDING_FLAG_KEY, TRACK_UNEXPORTED_KEY, PHOTO_SHOOT_CONFIRMED_KEY, MAP_TOGGLES_KEY,
   TRACK_STOP_HOLD_MS, TRACK_STOP_CONFIRM_SEC, PHOTO_MAX_COUNT, PHOTO_WARN_RATIO,
   TRACK_BATTERY_NOTICE_SEC, TRACK_STOP_TAP_INTERVAL_MS, TRACK_STOP_TAP_GUARD_MS
@@ -55,7 +55,8 @@ import {
 import { getLang, setLang, t, applyStaticTranslations } from './i18n.js';
 import { logHistory, renderMessageList, clearMessageLog, showToast } from './messages.js';
 import {
-  checkAppShellUpdate, promptMapTileUpdate, getCachedAppShellVersion, watchAppShellReplacement
+  checkAppShellUpdate, promptMapTileUpdate, getCachedAppShellVersion, watchAppShellReplacement,
+  setBeforeAppReload
 } from './update.js';
 import {
   getManifestVersion, getSavedManifestVersion,
@@ -65,7 +66,7 @@ import {
 } from './tiles.js';
 import { readMarkerSettings, initMarkerSettings } from './marker-settings.js';
 import { renderQrSvg } from './qrcode.js';
-import { initGuide, openGuide, maybeAutoOpenGuide } from './guide.js';
+import { initGuide, openGuide, maybeAutoOpenGuide, isGuideOpen } from './guide.js';
 import { showNotices, showQuestions, getNoticeText } from './faq.js';
 
 // ===== 状態 =====
@@ -238,6 +239,8 @@ async function init() {
   // 開いている間にブラウザが新しい版へ入れ替えたら知らせる(登録より前に見張りを始める。
   // 登録をきっかけにブラウザが更新を確かめ、すぐ入れ替わることがあるため)
   initStep('watchAppShellReplacement', watchAppShellReplacement);
+  // アプリ更新で再読み込みするときは、その時の画面を控えておき、再読み込み後に戻す
+  setBeforeAppReload(saveScreenForReload);
   // SW 登録
   if ('serviceWorker' in navigator) {
     try {
@@ -319,6 +322,8 @@ async function init() {
     isLayerPanelOpen: () => !el.mapLayerPanel.hidden,
     setLayerPanelOpen: (open) => { el.mapLayerPanel.hidden = !open; }
   });
+  // アプリ更新による再読み込みの直後なら、更新前の画面(マップ画面・開いていたモーダル・使い方)に戻す
+  restoreScreenAfterReload();
   // 初回起動時だけ自動で開く(2回目以降は起動画面の「使い方」ボタンから)
   maybeAutoOpenGuide();
 
@@ -939,6 +944,53 @@ function restoreAppSettingsModalAfterReload() {
     sessionStorage.removeItem(REOPEN_APP_SETTINGS_KEY);
   } catch { /* noop */ }
   if (shouldReopen) openAppSettingsModal();
+}
+
+// ===== アプリ更新の再読み込みをまたいだ画面の保持 =====
+// アプリ更新の確認は起動画面のボタンのタップで走るため、確認が出るのはボタンで移った先
+// (マップ画面・地図データのダウンロード・情報・言語・QRコード・使い方)の上になる。
+// 更新(再読み込み)のたびに起動画面へ戻らないよう、再読み込みの直前に画面を控えて戻す。
+// 戻すモーダルは、起動画面のボタンから開くものに限る(開き直すための関数があるもの)
+const RESTORABLE_MODALS = {
+  downloadModal: () => openDownloadModal(),
+  appSettingsModal: () => openAppSettingsModal(),
+  qrCodeModal: () => openQrCodeModal()
+};
+
+function saveScreenForReload() {
+  const openModal = document.querySelector('.modal:not([hidden])');
+  const screen = {
+    view: currentView,
+    modal: openModal && RESTORABLE_MODALS[openModal.id] ? openModal.id : null,
+    guide: isGuideOpen()
+  };
+  // マップ画面なら、表示していた位置とズームレベルも戻す
+  const map = getMap();
+  if (currentView === 'map' && map) {
+    const center = map.getCenter();
+    screen.map = { lat: center.lat, lng: center.lng, zoom: map.getZoom() };
+  }
+  try { sessionStorage.setItem(RESTORE_SCREEN_KEY, JSON.stringify(screen)); } catch { /* noop */ }
+}
+
+// 控えは一度きりの復元用なので、読み取ったら必ず削除する(以降の通常起動では起動画面のまま)
+function restoreScreenAfterReload() {
+  let screen = null;
+  try {
+    screen = JSON.parse(sessionStorage.getItem(RESTORE_SCREEN_KEY));
+    sessionStorage.removeItem(RESTORE_SCREEN_KEY);
+  } catch { /* noop */ }
+  if (!screen || typeof screen !== 'object') return;
+  if (screen.view === 'map') {
+    showView('map');
+    const m = screen.map;
+    const map = getMap();
+    if (map && m && Number.isFinite(m.lat) && Number.isFinite(m.lng) && Number.isFinite(m.zoom)) {
+      map.setView([m.lat, m.lng], m.zoom, { animate: false });
+    }
+  }
+  RESTORABLE_MODALS[screen.modal]?.();
+  if (screen.guide) openGuide();
 }
 
 // 情報・言語モーダルの「バージョン情報」を開いたとき、その時点の値を反映する。

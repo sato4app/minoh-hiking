@@ -22,6 +22,18 @@ let pageOutdated = false;
 // updateAppToLatest() による切替(すぐ再読み込みする)では知らせない
 let updatingNow = false;
 
+// 更新のための再読み込みの直前に呼ぶ処理(app.js が、その時の画面を控えるために渡す。
+// 再読み込み後に同じ画面へ戻し、起動画面に戻らないようにする)
+let beforeReload = null;
+export function setBeforeAppReload(fn) {
+  beforeReload = fn;
+}
+
+function reloadApp() {
+  try { beforeReload?.(); } catch (err) { console.warn('再読み込み前の処理に失敗:', err); }
+  location.reload();
+}
+
 // 起動時に1回呼ぶ(Service Worker の登録より前)
 export function watchAppShellReplacement() {
   if (!('serviceWorker' in navigator)) return;
@@ -100,7 +112,7 @@ async function promptAppShellUpdate() {
   if (pageOutdated) {
     const version = await getCachedAppShellVersion();
     if (version !== declinedVersion) {
-      if (confirm(t('update.appReloadConfirm', { latest: version || '-' }))) location.reload();
+      if (confirm(t('update.appReloadConfirm', { latest: version || '-' }))) reloadApp();
       else declinedVersion = version;
       return;
     }
@@ -220,5 +232,5 @@ async function updateAppToLatest(latest) {
   }
   // 再読み込み後の最初の更新確認で、同じ版の確認を再表示しないよう更新先の版を控える。
   try { sessionStorage.setItem(APP_UPDATED_FLAG_KEY, latest); } catch { /* noop */ }
-  location.reload();
+  reloadApp();
 }

@@ -39,6 +39,12 @@ export const APP_UPDATED_FLAG_KEY = 'minoh-hiking.app-updated';
 // しまうため、起動時に読み取って情報・言語モーダルを開き直す(読んだら即削除する)。
 export const REOPEN_APP_SETTINGS_KEY = 'minoh-hiking.reopen-app-settings';
 
+// アプリ更新による再読み込みの前に控える、その時の画面(JSON)。そのままでは起動画面に戻って
+// しまうため、起動時に読み取って同じ画面に戻す(読んだら即削除する)。
+// { view: 'home' | 'map', modal: 開いていたモーダルの id | null, guide: 使い方を開いていたか,
+//   map: { lat, lng, zoom } }
+export const RESTORE_SCREEN_KEY = 'minoh-hiking.restore-screen';
+
 // ===== 公開API(Vercel Function + Blob) =====
 // 地図データと通行止めは、外部の運用アプリ MapPublisher が公開したものを受け取る(GET のみ)。
 // 仕様は docs/publish-api-202609.md。公開ストアは Vercel 側にあるため、GitHub Pages 版からは

@@ -75,11 +75,11 @@ minoh-hiking/
 │   ├── manifest.js             # 全データセットの version・件数（GET）
 │   └── _lib/                   # 共通実装（データセット定義・採番・検証・Blob・CORS/認証）
 └── docs/
-    ├── funcspec-202610.md      # 機能仕様書（本書）
+    ├── funcspec-202611.md      # 機能仕様書（本書）
     ├── publish-api-202609.md   # 公開API 仕様書（契約バージョン 3.1・API の正本）
     ├── deployGuide-202609.md   # デプロイ手順書
     ├── licenseGuide-202609.md  # 他リポジトリへの MIT License 追加手順（全リポジトリ共通）
-    ├── UsersGuide-202610.md    # 利用者の手引
+    ├── UsersGuide-202611.md    # 利用者の手引
     └── i18n-202610.md          # 日英対比表（i18n.js / faq-text.js から作成）
 
 > `public/closures.js`（published-data.js への統合前）と `public/orientation.js`（現在地点表示ボタンで
@@ -1214,6 +1214,14 @@ QRコードにして表示し、その下に URL 文字列も並べる。近く�
   SW の切替が再読み込みに間に合わず一時的にバージョンが不一致に見えても、同じ confirm を二重に
   表示しないため。控えは1回で消費し、次のタップからは通常どおり確認する。より新しい版が公開されて
   いれば、最初の確認でも confirm を出す。
+- **更新後は更新前の画面に戻す:** 確認は起動時画面のボタンのタップで走るため、confirm はボタンで移った先
+  （マップ画面・地図データのダウンロード・情報・言語・QRコード・使い方）の上に出る。再読み込みのたびに
+  起動時画面へ戻らないよう、更新・画面の再読み込み（`update.appConfirm` / `update.appReloadConfirm` の OK）の
+  直前にその時の画面を `minoh-hiking.restore-screen`（sessionStorage、JSON）に控え、起動時に戻す
+  （`app.js` の `saveScreenForReload` / `restoreScreenAfterReload`。`update.js` の `setBeforeAppReload` で渡す）。
+  - 戻すもの: ビュー（マップ画面なら**表示していた位置とズームレベル**も）、開いていたモーダル
+    （地図データのダウンロード・情報・言語・QRコードの3つ。起動時画面のボタンから開くもの）、使い方ガイド（1ページ目から）。
+  - 控えは1回で消費する（読み取ったら削除。以降の通常起動は起動時画面から）。
 - **地図タイル:** 「情報・言語/Info & Language」の「バージョン情報」を ON にした時点で、ダウンロード済みの版と
   配信中の最新版を比較し、新しければ起動時画面の「地図データのダウンロード」からの手動更新を
   案内する（案内のみ・自動更新はしない。オフライン地図を未ダウンロードの端末は対象外）。
@@ -1421,6 +1429,7 @@ QRコードにして表示し、その下に URL 文字列も並べる。近く�
 | localStorage | `minoh-hiking.guide-seen` | 使い方ガイドを開いたことがあるか（初回起動時だけ自動表示するために使う。保存できない環境では「開いた」扱い。アプリを更新しても再表示しないよう、キー名は変えない。→ [3.9](#39-使い方ガイド)） |
 | sessionStorage | `minoh-hiking.app-updated` | アプリ更新後の再読み込み直後を示す一時フラグ |
 | sessionStorage | `minoh-hiking.reopen-app-settings` | 言語切替の再読み込み後に情報・言語モーダルを開き直す一時フラグ |
+| sessionStorage | `minoh-hiking.restore-screen` | アプリ更新の再読み込み前の画面（ビュー・地図の位置とズーム・モーダル・使い方）。再読み込み後に同じ画面へ戻す一時データ（→ [6.2](#62-アプリアプリシェルバージョン)） |
 
 > 2026.40 で廃止した `minoh-hiking.startup-update-check`（起動時更新確認の有効/無効）は、
 > 端末に残っていても参照しない（→ [6.3](#63-設定localstorage)）。
